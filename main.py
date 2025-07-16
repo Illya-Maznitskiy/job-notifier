@@ -1,20 +1,24 @@
 import asyncio
-import logging
 from pathlib import Path
 
 from logs.logger import logger
-from fetchers.justjoin import fetch_jobs as justjoin_fetcher
+from fetchers.justjoin.justjoin import (
+    run_fetch_and_save_jobs as justjoin_fetch_and_save_jobs,
+)
 from storage.save_json import save_all_vacancies
 
 
 async def main():
+    """
+    Run job fetchers and save all vacancies asynchronously.
+    """
     logger.info("-" * 60)
     logger.info("Starting job fetchers")
 
     all_jobs = []
 
     try:
-        justjoin_jobs = await justjoin_fetcher()
+        justjoin_jobs = await justjoin_fetch_and_save_jobs()
         all_jobs.extend(justjoin_jobs)
 
         logger.info(f"Total jobs fetched: {len(all_jobs)}")
