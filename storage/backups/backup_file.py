@@ -28,6 +28,5 @@ def backup_file(filepath: Path) -> Path:
     backup_path = backup_dir / backup_name
 
     copy2(filepath, backup_path)
-    logger.info(f"Backup created at: {backup_path}")
 
     return backup_path
