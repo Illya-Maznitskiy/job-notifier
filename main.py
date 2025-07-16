@@ -5,6 +5,9 @@ from logs.logger import logger
 from fetchers.justjoin.justjoin import (
     run_fetch_and_save_jobs as justjoin_fetch_and_save_jobs,
 )
+from fetchers.djinni.djinni import (
+    run_fetch_and_save_jobs as djinni_fetch_and_save_jobs,
+)
 from storage.save_json import save_all_vacancies
 
 
@@ -19,7 +22,10 @@ async def main():
 
     try:
         justjoin_jobs = await justjoin_fetch_and_save_jobs()
+        djinni_jobs = await djinni_fetch_and_save_jobs()
+
         all_jobs.extend(justjoin_jobs)
+        all_jobs.extend(djinni_jobs)
 
         logger.info(f"Total jobs fetched: {len(all_jobs)}")
 
