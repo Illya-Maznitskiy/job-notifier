@@ -36,16 +36,6 @@ def save_all_vacancies(storage_dir: Path):
         except Exception as e:
             logger.error(f"Error reading {jf}: {e}")
 
-    # Backup existing all_vacancies.json if it exists
-    if all_vacancies_path.exists():
-        try:
-            backup_path = backup_file(all_vacancies_path)
-            logger.info(f"Backup created: {backup_path}")
-        except Exception as e:
-            logger.error(
-                f"Failed to create backup for {all_vacancies_path}: {e}"
-            )
-
     # Save combined data to all_vacancies.json
     try:
         with open(all_vacancies_path, "w", encoding="utf-8") as f:
@@ -55,3 +45,13 @@ def save_all_vacancies(storage_dir: Path):
         )
     except Exception as e:
         logger.error(f"Failed to save combined vacancies: {e}")
+
+    # Backup existing all_vacancies.json if it exists
+    if all_vacancies_path.exists():
+        try:
+            backup_path = backup_file(all_vacancies_path)
+            logger.info(f"Backup created: {backup_path}")
+        except Exception as e:
+            logger.error(
+                f"Failed to create backup for {all_vacancies_path}: {e}"
+            )
