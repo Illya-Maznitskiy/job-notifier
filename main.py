@@ -8,7 +8,7 @@ from fetchers.justjoin.justjoin import (
 from fetchers.djinni.djinni import (
     run_fetch_and_save_jobs as djinni_fetch_and_save_jobs,
 )
-from storage.save_json import save_all_vacancies
+from storage.combine_json import save_all_vacancies
 
 
 async def main():
