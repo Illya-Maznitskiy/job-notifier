@@ -2,7 +2,7 @@ import asyncio
 import os
 from dotenv import load_dotenv
 
-from fetcher import fetch_nofluff_jobs
+from fetchers.nofluff.fetcher import fetch_nofluff_jobs
 from fetchers.save_jobs import save_jobs_to_json
 from logs.logger import logger
 
@@ -26,6 +26,8 @@ async def run_fetch_and_save_jobs():
 
     save_jobs_to_json(jobs, filename="nofluff_jobs.json")
     logger.info("Job titles saved successfully.")
+
+    return jobs
 
 
 if __name__ == "__main__":
