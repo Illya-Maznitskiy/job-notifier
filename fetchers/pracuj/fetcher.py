@@ -13,6 +13,7 @@ PRACUJ_HEADLESS = str_to_bool(os.getenv("PRACUJ_HEADLESS", "false"))
 
 
 async def accept_cookies_if_present(page):
+    logger.info("-" * 60)
     try:
         # Wait for the cookie button to appear (if it does)
         await page.locator("button[data-test='button-submitCookie']").click(
@@ -29,6 +30,7 @@ def clean_text(text: str) -> str:
 
 
 async def fetch_pracuj_jobs(url: str) -> list[dict]:
+    logger.info("-" * 60)
     logger.info(f"Starting job fetch from: {url}")
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=PRACUJ_HEADLESS)
