@@ -1,16 +1,28 @@
 from playwright.async_api import async_playwright
+from dotenv import load_dotenv
 
+from config import str_to_bool
 from fetchers.justjoin.pagination import (
     scroll_and_fetch_jobs,
 )
 from logs.logger import logger
+import os
+
+
+load_dotenv()
+
+
+JUST_JOIN_URL = os.getenv("JUST_JOIN_URL")
+JUST_JOIN_HEADLESS = str_to_bool(os.getenv("JUST_JOIN_HEADLESS", "false"))
 
 
 async def setup_page(playwright, url):
     """
     Launch browser, open page, handle cookies, and wait for offers.
     """
-    browser = await playwright.chromium.launch(headless=False)
+    logger.info("-" * 60)
+    logger.info("Starting setup page")
+    browser = await playwright.chromium.launch(headless=JUST_JOIN_HEADLESS)
     page = await browser.new_page()
     await page.goto(url)
 
@@ -85,7 +97,7 @@ async def fetch_jobs():
     """
     Launch browser and scrape job offers from target URL asynchronously.
     """
-    url = "https://justjoin.it/job-offers/remote?keyword=junior+python+developer&orderBy=DESC&sortBy=published"
+    url = JUST_JOIN_URL
 
     logger.info("-" * 60)
     logger.info(f"Starting fetch_jobs for URL: {url}")
