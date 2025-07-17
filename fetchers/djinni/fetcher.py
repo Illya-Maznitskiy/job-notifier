@@ -1,4 +1,6 @@
 from playwright.async_api import async_playwright
+
+from fetchers.djinni.pagination import build_paginated_url
 from logs.logger import logger
 
 DJINNI_URL = "https://djinni.co/jobs/?primary_keyword=Python&salary=1000&exp_level=no_exp&exp_level=1y&exp_level=2y&employment=remote&region=eu"
@@ -51,31 +53,60 @@ async def extract_job_data(item) -> dict:
     return job
 
 
-async def fetch_jobs():
+async def fetch_jobs(max_pages: int = 5):
     logger.info("-" * 60)
-    logger.info("Starting browser and navigating to Djinni...")
+    logger.info("Starting browser and navigating to Djinni base URL")
 
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=False)
         page = await browser.new_page()
-        await page.goto(DJINNI_URL)
+        all_jobs = []
 
-        logger.info("Waiting for job listings to load...")
-        await page.wait_for_selector("ul.list-unstyled > li")
+        for page_num in range(1, max_pages + 1):
+            paginated_url = build_paginated_url(DJINNI_URL, page_num)
+            logger.info(f"Fetching page {page_num}: {paginated_url}")
+            await page.goto(paginated_url)
 
-        job_items = await page.query_selector_all("ul.list-unstyled > li")
-        jobs = []
+            # Wait for job listings
+            await page.wait_for_selector("ul.list-unstyled > li", timeout=5000)
+            job_items = await page.query_selector_all("ul.list-unstyled > li")
 
-        for i, item in enumerate(job_items, start=1):
-            job = await extract_job_data(item)
-            if "title" in job and "url" in job:
-                jobs.append(job)
+            if not job_items:
+                logger.info("No job listings found. Stopping pagination.")
+                break
+
+            for i, item in enumerate(job_items, start=1):
+                job = await extract_job_data(item)
+                if "title" in job and "url" in job:
+                    all_jobs.append(job)
+                    logger.info(
+                        f"{len(all_jobs):>2}. {job['title']} @ {job.get('company', 'unknown')} ({job.get('location', 'unknown')})"
+                    )
+                else:
+                    logger.warning(
+                        f"Skipped job #{i} due to missing title or url"
+                    )
+
+            # Then check pagination links (AFTER scraping)
+            pagination_items = await page.query_selector_all(
+                "ul.pagination li.page-item a.page-link"
+            )
+            page_numbers = []
+
+            for item in pagination_items:
+                text = await item.text_content()
+                if text and text.strip().isdigit():
+                    page_numbers.append(int(text.strip()))
+
+            logger.info(f"Pagination buttons found: {page_numbers}")
+
+            # ⛔ Stop if the next page number is not listed
+            if (page_num + 1) not in page_numbers:
                 logger.info(
-                    f"{i:>2}. {job['title']} @ {job.get('company', 'unknown')} ({job.get('location', 'unknown')})"
+                    f"No button for page {page_num + 1}. Stopping pagination."
                 )
-            else:
-                logger.warning(f"Skipped job #{i} due to missing title or url")
+                break
 
         await browser.close()
-        logger.info(f"Browser closed. Total jobs fetched: {len(jobs)}")
-        return jobs
+        logger.info(f"Browser closed. Total jobs fetched: {len(all_jobs)}")
+        return all_jobs
