@@ -7,7 +7,7 @@ def save_jobs_to_json(jobs, filename="jobs.json"):
     """
     Saves a list of jobs to a JSON file in the storage directory.
     """
-    root_dir = Path(__file__).resolve().parent.parent.parent
+    root_dir = Path(__file__).resolve().parent.parent
     storage_dir = root_dir / "storage"
     storage_dir.mkdir(exist_ok=True)
 
