@@ -5,6 +5,7 @@ async def scroll_and_fetch_jobs(page, max_attempts=30):
     """
     Scroll page and fetch job offers asynchronously.
     """
+    logger.info("-" * 60)
     from fetchers.justjoin.fetcher import (
         parse_job_offer,
     )  # Import here to avoid circular imports
