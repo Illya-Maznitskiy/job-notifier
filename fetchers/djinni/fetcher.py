@@ -1,9 +1,18 @@
+import os
+
+from dotenv import load_dotenv
 from playwright.async_api import async_playwright
 
+from config import str_to_bool
 from fetchers.djinni.pagination import build_paginated_url
 from logs.logger import logger
 
-DJINNI_URL = "https://djinni.co/jobs/?primary_keyword=Python&salary=1000&exp_level=no_exp&exp_level=1y&exp_level=2y&employment=remote&region=eu"
+
+load_dotenv()
+
+
+DJINNI_URL = os.getenv("DJINNI_URL")
+DJINNI_HEADLESS = str_to_bool(os.getenv("DJINNI_HEADLESS", "false"))
 
 
 async def extract_job_data(item) -> dict:
@@ -58,7 +67,7 @@ async def fetch_jobs(max_pages: int = 5):
     logger.info("Starting browser and navigating to Djinni base URL")
 
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=False)
+        browser = await p.chromium.launch(headless=DJINNI_HEADLESS)
         page = await browser.new_page()
         all_jobs = []
 
@@ -100,7 +109,7 @@ async def fetch_jobs(max_pages: int = 5):
 
             logger.info(f"Pagination buttons found: {page_numbers}")
 
-            # ⛔ Stop if the next page number is not listed
+            # Stop if the next page number is not listed
             if (page_num + 1) not in page_numbers:
                 logger.info(
                     f"No button for page {page_num + 1}. Stopping pagination."
