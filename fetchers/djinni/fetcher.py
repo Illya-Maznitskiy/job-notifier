@@ -3,7 +3,7 @@ import os
 from dotenv import load_dotenv
 from playwright.async_api import async_playwright
 
-from config import str_to_bool
+from utils.convert_bool import str_to_bool
 from fetchers.djinni.pagination import build_paginated_url
 from logs.logger import logger
 

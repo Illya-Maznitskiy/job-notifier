@@ -4,7 +4,7 @@ import re
 from dotenv import load_dotenv
 from playwright.async_api import async_playwright
 
-from config import str_to_bool
+from utils.convert_bool import str_to_bool
 
 load_dotenv()
 NO_FLUFF_HEADLESS = str_to_bool(os.getenv("NO_FLUFF_HEADLESS", "false"))
