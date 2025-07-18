@@ -44,7 +44,8 @@ def save_applied():
     with open(APPLIED_FILE, "w", encoding="utf-8") as f:
         json.dump(applied_jobs, f, indent=2, ensure_ascii=False)
     logger.info(
-        f"Applied jobs saved. Current size: {len(json.dumps(applied_jobs)) / (1024*1024):.2f} MB"
+        f"Applied jobs saved. Current size: "
+        f"{len(json.dumps(applied_jobs)) / (1024*1024):.2f} MB"
     )
 
 
@@ -52,7 +53,8 @@ def save_skipped():
     with open(SKIPPED_FILE, "w", encoding="utf-8") as f:
         json.dump(skipped_jobs, f, indent=2, ensure_ascii=False)
     logger.info(
-        f"Skipped jobs saved. Current size: {len(json.dumps(skipped_jobs)) / (1024*1024):.2f} MB"
+        f"Skipped jobs saved. Current size: "
+        f"{len(json.dumps(skipped_jobs)) / (1024*1024):.2f} MB"
     )
 
 
@@ -96,7 +98,8 @@ async def send_next_vacancy(message: types.Message):
             and job["title"] not in user_skipped
         ):
             logger.debug(
-                f"Job '{job['title']}' passed filter for user {user_id}. Preparing to send."
+                f"Job '{job['title']}' passed filter "
+                f"for user {user_id}. Preparing to send."
             )
             keyboard = InlineKeyboardMarkup(
                 inline_keyboard=[
@@ -106,7 +109,8 @@ async def send_next_vacancy(message: types.Message):
                             callback_data=f"applied|{job['title']}",
                         ),
                         InlineKeyboardButton(
-                            text="Skip ⏭️", callback_data=f"skip|{job['title']}"
+                            text="Skip ⏭️",
+                            callback_data=f"skip|" f"{job['title']}",
                         ),
                     ]
                 ]
