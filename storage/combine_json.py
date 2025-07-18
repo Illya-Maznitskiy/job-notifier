@@ -45,7 +45,8 @@ def save_all_vacancies():
         with open(all_vacancies_path, "w", encoding="utf-8") as f:
             json.dump(combined_data, f, ensure_ascii=False, indent=2)
         logger.info(
-            f"Saved combined {len(combined_data)} vacancies to {all_vacancies_path}"
+            f"Saved combined {len(combined_data)} "
+            f"vacancies to {all_vacancies_path}"
         )
     except Exception as e:
         logger.error(f"Failed to save combined vacancies: {e}")
