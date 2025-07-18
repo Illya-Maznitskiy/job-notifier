@@ -5,19 +5,23 @@ from logs.logger import logger  # Your logger
 from storage.backups.backup_file import backup_file
 
 
-def save_all_vacancies(storage_dir: Path):
+def save_all_vacancies():
     """
     Combines all JSON files in storage_dir into all_vacancies.json.
     Backs up existing all_vacancies.json before overwriting.
     """
     logger.info("-" * 60)
+    storage_dir = Path(__file__).resolve().parent.parent / "storage"
+
     logger.info(f"Starting save_all_vacancies in {storage_dir}")
 
     all_vacancies_path = storage_dir / "all_vacancies.json"
 
     # Gather all JSON files except all_vacancies.json
     json_files = [
-        f for f in storage_dir.glob("*.json") if f.name != "all_vacancies.json"
+        f
+        for f in storage_dir.glob("*.json")
+        if f.name not in {"all_vacancies.json", "filtered_vacancies.json"}
     ]
     logger.info(f"Found {len(json_files)} JSON files to combine")
 
