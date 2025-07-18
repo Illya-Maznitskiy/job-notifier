@@ -17,7 +17,7 @@ async def run_fetch_and_save_jobs():
         return
 
     logger.info("-" * 60)
-    logger.info(f"Fetching jobs from: {PRACUJ_URL}")
+    logger.info("Starting full fetch and save operation")
 
     jobs = await fetch_pracuj_jobs(PRACUJ_URL)
 
