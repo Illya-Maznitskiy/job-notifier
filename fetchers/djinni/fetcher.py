@@ -89,7 +89,9 @@ async def fetch_jobs(max_pages: int = 5):
                 if "title" in job and "url" in job:
                     all_jobs.append(job)
                     logger.info(
-                        f"{len(all_jobs):>2}. {job['title']} @ {job.get('company', 'unknown')} ({job.get('location', 'unknown')})"
+                        f"{len(all_jobs):>2}. {job['title']} @ "
+                        f"{job.get('company', 'unknown')} "
+                        f"({job.get('location', 'unknown')})"
                     )
                 else:
                     logger.warning(
