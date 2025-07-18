@@ -89,7 +89,8 @@ async def fetch_pracuj_jobs(url: str) -> list[dict]:
 
             link = await safe_attr(
                 job.locator(
-                    "a[data-test='link-offer-title'], a[data-test='link-offer']"
+                    "a[data-test='link-offer-title'], "
+                    "a[data-test='link-offer']"
                 ).first,
                 "href",
             )
