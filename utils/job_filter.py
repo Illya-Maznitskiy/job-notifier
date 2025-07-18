@@ -102,7 +102,7 @@ def filter_and_score_jobs_from_file(
     Filter jobs from file by score.
     """
     logger.info("-" * 60)
-    logger.info(f"Filtering jobs from '{input_path}'")
+    logger.info("Filtering jobs")
 
     if keyword_weights is None:
         keyword_weights = KEYWORD_WEIGHTS
