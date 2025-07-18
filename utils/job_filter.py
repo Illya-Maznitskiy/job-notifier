@@ -85,7 +85,8 @@ def score_job(job: Dict[str, str], keyword_weights: Dict[str, int]) -> int:
         if count > 0:
             score += weight * count
             logger.debug(
-                f"Matched '{keyword}' {count}x in job: '{title}' -> +{weight * count} points"
+                f"Matched '{keyword}' {count}x in job: '{title}' "
+                f"-> +{weight * count} points"
             )
 
     logger.debug(f"Total score for job '{title}': {score}")
