@@ -40,6 +40,18 @@ else:
 # Helper to save applied jobs
 
 
+@dp.message(Command("stop"))
+async def cmd_stop(message: types.Message):
+    if str(message.from_user.id) != os.getenv("ADMIN_ID"):
+        await message.answer("You are not allowed to stop the bot.")
+        return
+
+    await message.answer("Bot is shutting down...")
+    logger.info("Received stop command. Stopping bot.")
+    await bot.session.close()
+    await dp.stop_polling()
+
+
 def save_applied():
     with open(APPLIED_FILE, "w", encoding="utf-8") as f:
         json.dump(applied_jobs, f, indent=2, ensure_ascii=False)
