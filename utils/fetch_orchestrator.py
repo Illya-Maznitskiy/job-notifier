@@ -27,7 +27,6 @@ async def run_all_fetchers() -> list[dict]:
         logger.info(f"Fetching jobs from {name}...")
         try:
             jobs = await fetcher()
-            logger.info(f"Fetched {len(jobs)} jobs from {name}.")
             all_jobs.extend(jobs)
         except Exception as e:
             logger.error(f"Error fetching from {name}: {e}", exc_info=True)
