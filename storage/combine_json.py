@@ -60,3 +60,5 @@ def save_all_vacancies():
             logger.error(
                 f"Failed to create backup for {all_vacancies_path}: {e}"
             )
+
+    logger.info("All jobs saved successfully")
