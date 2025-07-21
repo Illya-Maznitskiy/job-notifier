@@ -12,12 +12,12 @@ PRACUJ_URL = os.getenv("PRACUJ_URL")
 
 
 async def run_fetch_and_save_jobs():
-    if not PRACUJ_URL:
-        logger.error("Environment variable NO_FLUFF_URL not found.")
-        return
-
     logger.info("-" * 60)
     logger.info("Starting full fetch and save operation")
+
+    if not PRACUJ_URL:
+        logger.error("Environment variable NO_FLUFF_URL not found.")
+        return None
 
     jobs = await fetch_pracuj_jobs(PRACUJ_URL)
 
