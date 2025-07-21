@@ -2,66 +2,34 @@ import json
 from pathlib import Path
 from typing import List, Dict, Optional
 
+import yaml
+
 from logs.logger import logger
 
 
-# you can manage this data on your own
-KEYWORD_WEIGHTS = {
-    # Primary job roles
-    "python": 5,
-    "python developer": 8,
-    "junior": 8,
-    "junior python": 10,
-    "junior software developer": 7,
-    "backend python": 7,
-    "web developer": 3,
-    # Remote work
-    "remote": 4,
-    "zdalnie": 4,
-    "віддалено": 4,
-    # Tech / Stack
-    "django": 4,
-    "fastapi": 3,
-    "flask": 3,
-    "scrapy": 3,
-    "rest api": 2,
-    "sql": 2,
-    # Multilingual terms (positive)
-    "mlodszy": 7,
-    "молодший": 7,
-    "розробник": 5,
-    "розробка": 2,
-    "backend": 2,
-    # Negative weights: roles to avoid
-    "senior": -5,
-    "starszy": -5,
-    "старший": -5,
-    "mid": -2,
-    "middle": -2,
-    "średni": -2,
-    "середній": -2,
-    "intern": -2,
-    "stażysta": -2,
-    "стажер": -2,
-    # Unwanted tech
-    "fullstack": -3,
-    "full stack": -3,
-    "javascript": -4,
-    "react": -4,
-    "vue": -3,
-    "frontend": -3,
-    "devops": -5,
-    "qa": -3,
-    "testing": -2,
-    "automation": -2,
-    # Other unwanted
-    "game": -2,
-    "android": -3,
-    "ios": -3,
-}
-
-
 SCORE_THRESHOLD = -2  # Adjust this threshold as needed
+
+
+def load_keyword_weights(filename="keyword_weights.yaml") -> dict:
+    """Load keyword weights from YAML file."""
+    # Get root path
+    project_root = Path(__file__).resolve().parent.parent
+    # Full path to YAML file
+    weights_path = project_root / filename
+
+    if not weights_path.exists():
+        logger.error(f"Keyword weights not found: {weights_path}")
+        raise FileNotFoundError(
+            f"Keyword weights file not found: {weights_path}"
+        )
+
+    logger.info(f"Loading keyword weights from: {weights_path}")
+
+    # Read and parse YAML
+    with open(weights_path, "r", encoding="utf-8") as f:
+        data = yaml.safe_load(f)
+        # Combine positive + negative weights
+        return {**data.get("positive", {}), **data.get("negative", {})}
 
 
 def score_job(job: Dict[str, str], keyword_weights: Dict[str, int]) -> int:
@@ -106,7 +74,7 @@ def filter_and_score_jobs_from_file(
     logger.info("Filtering jobs")
 
     if keyword_weights is None:
-        keyword_weights = KEYWORD_WEIGHTS
+        keyword_weights = load_keyword_weights()
 
     project_root = Path(__file__).resolve().parent.parent
 
