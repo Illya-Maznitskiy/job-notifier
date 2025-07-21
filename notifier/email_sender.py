@@ -28,6 +28,8 @@ FILTERED_FILE = (
 
 def send_job_listings_email():
     logger.info("-" * 60)
+    logger.info("Sending job listings via email...")
+
     if not FILTERED_FILE.exists():
         logger.warning(f"Vacancies file not found: {FILTERED_FILE}")
         return False
