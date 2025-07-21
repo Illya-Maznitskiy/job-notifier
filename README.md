@@ -35,6 +35,21 @@ pip install -r requirements.txt
 Create `.env` file in root by the [.env.sample](.env.sample).
 
 
+# Setup keyword_weights.yaml
+Create `keyword_weights.yaml` in the project root with content in lowercase, like this:
+
+```yaml
+positive:
+  python: 5
+  junior: 8
+  remote: 4
+
+negative:
+  senior: -20
+  javascript: -4
+```
+
+
 ## Tests
 You can run flake8 linter using the following commands:
 ```bash
