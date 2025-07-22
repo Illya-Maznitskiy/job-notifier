@@ -1,5 +1,6 @@
 import os
 import re
+from asyncio import gather
 
 from dotenv import load_dotenv
 from playwright.async_api import async_playwright
@@ -55,24 +56,14 @@ async def fetch_pracuj_jobs(url: str) -> list[dict]:
         browser = await p.chromium.launch(headless=PRACUJ_HEADLESS)
         page = await browser.new_page()
         await page.goto(url)
+        await page.wait_for_timeout(3000)
         await accept_cookies_if_present(page)
 
         jobs = []
         page_number = 1
 
         while True:
-            # Construct correct page URL
-            paged_url = re.sub(
-                r"([?&])pn=\d+", r"\1pn=" + str(page_number), url
-            )
-            if "pn=" not in paged_url:
-                paged_url += (
-                    "&" if "?" in paged_url else "?"
-                ) + f"pn={page_number}"
-
-            logger.info(f"Fetching page {page_number} → {paged_url}")
-            await page.goto(paged_url)
-
+            logger.info(f"Fetching page {page_number}")
             try:
                 await page.wait_for_selector(
                     "h2[data-test='offer-title']", timeout=10000
@@ -83,9 +74,6 @@ async def fetch_pracuj_jobs(url: str) -> list[dict]:
                 )
                 break
 
-            await page.mouse.wheel(0, 300)
-            await page.wait_for_timeout(500)
-
             cards = page.locator(
                 "div[data-test='positioned-offer'], div[data-test='default-offer']"
             ).filter(
@@ -95,9 +83,12 @@ async def fetch_pracuj_jobs(url: str) -> list[dict]:
             count = await cards.count()
             logger.info(f"Found {count} job cards on page {page_number}")
 
-            for i in range(count):
+            async def extract_job_data(i: int):
                 logger.debug(f"Processing job {i + 1}/{count}")
                 job = cards.nth(i)
+
+                await job.scroll_into_view_if_needed()
+                await page.wait_for_timeout(300)  # Give time for lazy content
 
                 title = await safe_text(
                     job.locator("h2[data-test='offer-title']")
@@ -115,25 +106,54 @@ async def fetch_pracuj_jobs(url: str) -> list[dict]:
                 work_fmt = await safe_text(
                     job.locator("ul.tiles_bfrsaoj li").first
                 )
-                link = await safe_attr(
-                    job.locator(
-                        "a[data-test='link-offer-title'], a[data-test='link-offer']"
-                    ).first,
-                    "href",
-                )
 
-                jobs.append(
-                    {
-                        "url": link,
-                        "title": clean_text(title),
-                        "company": clean_text(company),
-                        "salary": clean_text(salary),
-                        "city": clean_text(city),
-                        "work_format": clean_text(work_fmt),
-                    }
-                )
+                link = ""
 
-            # Check if next page button is present
+                # First attempt: known data-test attributes
+                link_locator = job.locator(
+                    "a[data-test='link-offer-title'], a[data-test='link-offer']"
+                ).first
+                try:
+                    link = await link_locator.get_attribute(
+                        "href", timeout=2000
+                    )
+                except Exception as e:
+                    logger.debug(f"Preferred link not found: {e}")
+
+                # Fallback: try all anchors within the job card
+                if not link:
+                    logger.debug("Trying fallback link search...")
+                    try:
+                        anchors = job.locator("a")
+                        count_anchors = await anchors.count()
+                        for j in range(count_anchors):
+                            a = anchors.nth(j)
+                            href = await safe_attr(a, "href")
+                            if href and "/oferta/" in href:
+                                link = href
+                                logger.debug("Used fallback offer link.")
+                                break
+                    except Exception as e:
+                        logger.debug(f"Fallback search failed: {e}")
+
+                if not link:
+                    logger.warning(f"No valid job link found for job {i + 1}")
+
+                return {
+                    "url": link,
+                    "title": clean_text(title),
+                    "company": clean_text(company),
+                    "salary": clean_text(salary),
+                    "city": clean_text(city),
+                    "work_format": clean_text(work_fmt),
+                }
+
+            job_data_batch = await gather(
+                *(extract_job_data(i) for i in range(count))
+            )
+            jobs.extend(job_data_batch)
+
+            # Pagination
             next_button = page.locator(
                 "button[data-test='bottom-pagination-button-next']"
             )
@@ -142,6 +162,14 @@ async def fetch_pracuj_jobs(url: str) -> list[dict]:
                     logger.info(
                         "Next page button is enabled, continuing pagination."
                     )
+                    await next_button.click()
+                    await page.wait_for_timeout(3000)
+                    await page.wait_for_selector(
+                        "div[data-test='positioned-offer'], div[data-test='default-offer']",
+                        timeout=10000,
+                    )
+                    await page.mouse.wheel(0, 500)
+                    await page.wait_for_timeout(300)
                     page_number += 1
                 else:
                     logger.info(
@@ -149,7 +177,9 @@ async def fetch_pracuj_jobs(url: str) -> list[dict]:
                     )
                     break
             except Exception:
-                logger.info("Next page button not found, ending pagination.")
+                logger.info(
+                    "Next page button not found or not clickable, ending pagination."
+                )
                 break
 
         await browser.close()
