@@ -1,5 +1,5 @@
 from logs.logger import logger
-from storage.combine_json import save_all_vacancies
+from utils.combine_json import save_all_vacancies
 from utils.job_filter import filter_and_score_jobs_from_file
 
 
