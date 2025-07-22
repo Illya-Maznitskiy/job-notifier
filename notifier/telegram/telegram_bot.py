@@ -3,8 +3,8 @@ import asyncio
 from logs.logger import logger
 from notifier.telegram.bot_config import dp, bot
 
-# THIS IMPORT IS CRITICAL to register handlers!
-from notifier.telegram import commands
+# THIS IMPORT IS CRITICAL to register command handlers!
+import notifier.telegram.commands  # noqa: F401
 
 
 async def main():
