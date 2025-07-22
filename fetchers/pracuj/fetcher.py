@@ -75,7 +75,8 @@ async def fetch_pracuj_jobs(url: str) -> list[dict]:
                 break
 
             cards = page.locator(
-                "div[data-test='positioned-offer'], div[data-test='default-offer']"
+                "div[data-test='positioned-offer'], "
+                "div[data-test='default-offer']"
             ).filter(
                 has_not=page.locator("div[data-test='section-ad-container']")
             )
@@ -111,7 +112,8 @@ async def fetch_pracuj_jobs(url: str) -> list[dict]:
 
                 # First attempt: known data-test attributes
                 link_locator = job.locator(
-                    "a[data-test='link-offer-title'], a[data-test='link-offer']"
+                    "a[data-test='link-offer-title'], "
+                    "a[data-test='link-offer']"
                 ).first
                 try:
                     link = await link_locator.get_attribute(
@@ -165,7 +167,8 @@ async def fetch_pracuj_jobs(url: str) -> list[dict]:
                     await next_button.click()
                     await page.wait_for_timeout(3000)
                     await page.wait_for_selector(
-                        "div[data-test='positioned-offer'], div[data-test='default-offer']",
+                        "div[data-test='positioned-offer'], "
+                        "div[data-test='default-offer']",
                         timeout=10000,
                     )
                     await page.mouse.wheel(0, 500)
@@ -173,12 +176,14 @@ async def fetch_pracuj_jobs(url: str) -> list[dict]:
                     page_number += 1
                 else:
                     logger.info(
-                        "Next page button is disabled or not found, ending pagination."
+                        "Next page button is disabled or not found, "
+                        "ending pagination."
                     )
                     break
             except Exception:
                 logger.info(
-                    "Next page button not found or not clickable, ending pagination."
+                    "Next page button not found or not clickable, "
+                    "ending pagination."
                 )
                 break
 
