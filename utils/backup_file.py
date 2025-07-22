@@ -29,4 +29,13 @@ def backup_file(filepath: Path) -> Path:
 
     copy2(filepath, backup_path)
 
+    logger.info(f"Backup completed successfully: {backup_path}")
+
     return backup_path
+
+
+if __name__ == "__main__":
+    backup_path = (
+        Path(__file__).parent.parent / "storage" / "all_vacancies.json"
+    )
+    backup_file(backup_path)
