@@ -22,7 +22,7 @@ async def run_fetch_and_save_jobs():
     jobs = await fetch_pracuj_jobs(PRACUJ_URL)
 
     for i, job in enumerate(jobs, 1):
-        logger.info(f"{i}. {job}")
+        logger.info(f"{i}. {job["title"]} - {job["company"]}")
 
     save_jobs_to_json(jobs, filename="pracuj_jobs.json")
     logger.info("Job titles saved successfully.")
