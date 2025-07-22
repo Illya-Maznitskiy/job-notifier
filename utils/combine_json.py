@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 
 from logs.logger import logger  # Your logger
-from storage.backups.backup_file import backup_file
+from utils.backup_file import backup_file
 
 
 def save_all_vacancies():
