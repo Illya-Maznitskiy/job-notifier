@@ -27,7 +27,7 @@ MEME_GIFS = [
     "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExZXdoeDZkdXV6d2MweWIzbWZjYmpjaWdkeTFsYmxndDhiaDlqeW96ayZlcD12MV9naWZzX3NlYXJjaCZjdD1n/zaciDLCM6xGyi51kwB/giphy.gif",
     "https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3eHNtMTB0YXZxYmthdDkydmQ3ZGg0eTNzYTNpdjJvcWJmengybzY5NyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/2RGhmKXcl0ViM/giphy.gif",
     "https://tenor.com/view/stay-hard-gif-26958197",
-    "https://tenor.com/view/i-am-back-mother-fucker-david-goggins-gif-25850195",
+    "https://tenor.com/view/i-am-back-mother-fucker-david-goggins-gif-25850195"
 ]
 
 
