@@ -1,7 +1,11 @@
 import json
 import hashlib
+import os
+
 from logs.logger import logger
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+
+from notifier.telegram.bot_config import bot
 
 
 def save_applied(applied_jobs, path):
@@ -67,3 +71,18 @@ def get_keyboard(title):
             ]
         ]
     )
+
+
+async def notify_admin_startup():
+    """Notify admin that the bot has started."""
+    admin_id = os.getenv("ADMIN_ID")
+    if admin_id:
+        try:
+            await bot.send_message(
+                chat_id=admin_id, text="🚀 Bot has started and is ready!"
+            )
+            logger.info(f"Sent startup notification to admin {admin_id}")
+        except Exception as e:
+            logger.error(f"Failed to notify admin on startup: {e}")
+    else:
+        logger.warning("ADMIN_ID not set. Cannot notify admin on startup.")
