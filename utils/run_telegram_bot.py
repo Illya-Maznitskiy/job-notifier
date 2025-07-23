@@ -1,4 +1,5 @@
 from logs.logger import logger
+from notifier.telegram.telegram_bot import start_bot
 
 
 async def run_telegram_bot(dp, bot):
@@ -10,6 +11,6 @@ async def run_telegram_bot(dp, bot):
     if run_telegram == "y":
         logger.info("Starting Telegram bot...")
         logger.info("Use /stop inside the bot to stop the bot.")
-        await dp.start_polling(bot)
+        await start_bot()
     else:
         logger.info("Telegram bot was skipped by user.")
