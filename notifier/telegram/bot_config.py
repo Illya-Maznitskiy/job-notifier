@@ -1,5 +1,6 @@
 import json
 import os
+from collections import defaultdict
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -18,6 +19,19 @@ STORAGE_DIR = Path(__file__).resolve().parent.parent.parent / "storage"
 FILTERED_FILE = STORAGE_DIR / "filtered_vacancies.json"
 APPLIED_FILE = STORAGE_DIR / "applied_jobs.json"
 SKIPPED_FILE = STORAGE_DIR / "skipped_jobs.json"
+MEME_GIFS = [
+    "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExa293a3lpNjA0cTJkemE0ZGlienhzZTdjbXltbTh2YXk1aG53a2ptcyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/gidMR0Kv3ljSivshKJ/giphy.gif",
+    "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExd24xYWd2dmJvd2FtbXpxNnJ2dTBhbXE5ajFmamp3NmwxOXl5NTk1dCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/bNpLfNOskgvGIfKIZN/giphy.gif",
+    "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcHliYnd2cmM2NHM5MHdobzNhMWd0cTluZmgzZjJxb21yMDBxanhjMCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/lEADCfIrDg5fMyb3ca/giphy.gif/media/l2JhB29QUPw6xD5eE/giphy.gif",
+    "https://tenor.com/view/wake-up-cat-cat-meme-cat-motivation-meme-cat-motivation-gif-13680646881934680723",
+    "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExZXdoeDZkdXV6d2MweWIzbWZjYmpjaWdkeTFsYmxndDhiaDlqeW96ayZlcD12MV9naWZzX3NlYXJjaCZjdD1n/zaciDLCM6xGyi51kwB/giphy.gif",
+    "https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3eHNtMTB0YXZxYmthdDkydmQ3ZGg0eTNzYTNpdjJvcWJmengybzY5NyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/2RGhmKXcl0ViM/giphy.gif",
+    "https://tenor.com/view/stay-hard-gif-26958197",
+    "https://tenor.com/view/i-am-back-mother-fucker-david-goggins-gif-25850195"
+]
+
+
+user_request_count = defaultdict(int)
 
 
 # Load skipped jobs
