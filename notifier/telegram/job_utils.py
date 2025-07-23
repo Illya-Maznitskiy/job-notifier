@@ -86,3 +86,9 @@ async def notify_admin_startup():
             logger.error(f"Failed to notify admin on startup: {e}")
     else:
         logger.warning("ADMIN_ID not set. Cannot notify admin on startup.")
+
+
+def clean_short_title(title: str, max_words=3):
+    """Make title shorter."""
+    words = title.split()
+    return " ".join(words[:max_words])
