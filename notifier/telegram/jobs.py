@@ -1,4 +1,5 @@
 import json
+import random
 
 from aiogram import types
 
@@ -10,12 +11,15 @@ from .bot_config import (
     skipped_jobs,
     SKIPPED_FILE,
     APPLIED_FILE,
+    user_request_count,
+    MEME_GIFS,
 )
 from logs.logger import logger
 from notifier.telegram.job_utils import (
     save_applied,
     save_skipped,
     get_keyboard,
+    clean_short_title,
 )
 from notifier.telegram.job_utils import find_job_by_hash
 
@@ -54,7 +58,6 @@ async def send_vacancy_to_user(user_id: str):
                 f"*Company:* {job.get('company', 'Unknown')}\n"
                 f"*Score:* {score}\n"
                 f"*URL:* {url_text}\n\n"
-                f"{job.get('description', '')[:500]}..."
             )
 
             await bot.send_message(
@@ -96,10 +99,18 @@ async def process_callback(callback_query: types.CallbackQuery):
         await bot.answer_callback_query(
             callback_query.id, text="Marked as applied!"
         )
-        short_title = title[:10] + ("…" if len(title) > 10 else "")
+        short_title = clean_short_title(title)
         await bot.send_message(
-            user_id, f"Great! Marked '{short_title}' as applied. 🎉"
+            user_id, f"Marked '{short_title}' as applied. 😎"
         )
+        # Increment request count
+        user_request_count[user_id] += 1
+
+        # After every 3 requests, send a meme
+        if user_request_count[user_id] % 3 == 0:
+            meme_url = random.choice(MEME_GIFS)
+            await callback_query.message.answer_animation(meme_url)
+            logger.info(f"Sent meme to user {user_id}")
 
     elif action == "skip":
         skipped_jobs.setdefault(user_id, []).append(title)
