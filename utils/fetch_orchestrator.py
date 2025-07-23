@@ -5,6 +5,7 @@ from fetchers.djinni.djinni import run_fetch_and_save_jobs as fetch_djinni
 from fetchers.nofluff.nofluff import run_fetch_and_save_jobs as fetch_nofluff
 from fetchers.pracuj.pracuj import run_fetch_and_save_jobs as fetch_pracuj
 from fetchers.dou.dou import run_fetch_and_save_jobs as fetch_dou
+from fetchers.bulldog.bulldog import run_fetch_and_save_jobs as fetch_bulldog
 from logs.logger import logger
 
 
@@ -14,6 +15,7 @@ FETCHERS = {
     "nofluff": fetch_nofluff,
     "pracuj": fetch_pracuj,
     "dou": fetch_dou,
+    "bulldog": fetch_bulldog,
 }
 
 
