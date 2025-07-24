@@ -51,7 +51,7 @@ async def fetch_jobs() -> list[dict]:
             url = await title_el.get_attribute("href")
 
             company_el = job.locator("div.title a.company")
-            company_name = await company_el.text_content()
+            company = await company_el.text_content()
 
             location_el = job.locator("div.title span.cities")
             location = await location_el.text_content()
@@ -59,9 +59,7 @@ async def fetch_jobs() -> list[dict]:
             clean_job = {
                 "title": clean_text(title) if title else "",
                 "url": clean_text(url) if url else "",
-                "company_name": (
-                    clean_text(company_name) if company_name else ""
-                ),
+                "company": (clean_text(company) if company else ""),
                 "location": clean_location(location) if location else "",
             }
 
@@ -69,7 +67,7 @@ async def fetch_jobs() -> list[dict]:
 
             logger.info(
                 f"{i+1}: '{clean_job['title']}' "
-                f"at '{clean_job['company_name']}'"
+                f"at '{clean_job['company']}'"
             )
 
         await browser.close()
