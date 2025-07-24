@@ -1,4 +1,6 @@
+import asyncio
 import os
+import random
 
 from aiogram.filters import Command
 from aiogram import types
@@ -8,6 +10,7 @@ from notifier.telegram.jobs import send_vacancy_to_user
 from notifier.telegram.bot_config import (
     dp,
     bot,
+    READY_GIF_URLS,
 )
 
 
@@ -27,6 +30,21 @@ async def send_next_vacancy(message: types.Message):
     logger.info("-" * 60)
     user_id = str(message.from_user.id)
     logger.info(f"User {user_id} requested next vacancy.")
+
+    # Choose a random GIF from the list
+    gif_url = random.choice(READY_GIF_URLS)
+
+    # Send the "Are you ready?!" GIF
+    await bot.send_animation(
+        chat_id=message.chat.id,
+        animation=gif_url,
+        caption="Are you ready?! 🔥",
+    )
+
+    # Optional: small pause for dramatic effect
+    await asyncio.sleep(2)
+
+    # Then send the vacancy
     await send_vacancy_to_user(user_id)
 
 
