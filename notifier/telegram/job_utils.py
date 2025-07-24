@@ -40,21 +40,24 @@ def find_job_by_hash(job_hash, filtered_file_path):
     with open(filtered_file_path, "r", encoding="utf-8") as f:
         all_jobs = json.load(f)
         for job in all_jobs:
-            h = hashlib.md5(job["title"].encode("utf-8")).hexdigest()[:16]
+            raw = f"{job.get('title', '')}|{job.get('company', '')}|{job.get('url', '')}"
+            h = get_hash(raw)
             if h == job_hash:
-                logger.info(f"Job found: {job['title']}")
+                logger.info(f"Job found: {job['title']} | {job['company']}")
                 return job
     logger.warning(f"No job found for hash: {job_hash}")
 
     return None
 
 
-def get_keyboard(title):
-    """Return inline keyboard for given job title."""
+def get_keyboard(title: str, job_hash: str) -> InlineKeyboardMarkup:
+    """Return inline keyboard with correct job hash."""
     logger.info("-" * 60)
+    logger.debug(
+        f"Generating keyboard with hash: {job_hash} for title: {title}"
+    )
 
     def get_callback_data(action):
-        job_hash = hashlib.md5(title.encode("utf-8")).hexdigest()[:16]
         return f"{action}|{job_hash}"
 
     return InlineKeyboardMarkup(
@@ -94,6 +97,16 @@ def clean_short_title(title: str, max_words=3):
     return " ".join(words[:max_words])
 
 
-def make_job_key(job):
-    """Avoid duplicates by combining key fields."""
-    return f"{job['title']} | {job.get('company', '')} | {job.get('url', '')}"
+def make_job_key(job: dict) -> str:
+    """
+    Create a short unique key for a job based on title + company + URL.
+    """
+    raw = (
+        f"{job.get('title', '')}|{job.get('company', '')}|{job.get('url', '')}"
+    )
+    return get_hash(raw)
+
+
+def get_hash(raw: str) -> str:
+    """Return 16-char MD5 hash of string."""
+    return hashlib.md5(raw.encode("utf-8")).hexdigest()[:16]
