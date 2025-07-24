@@ -92,3 +92,8 @@ def clean_short_title(title: str, max_words=3):
     """Make title shorter."""
     words = title.split()
     return " ".join(words[:max_words])
+
+
+def make_job_key(job):
+    """Avoid duplicates by combining key fields."""
+    return f"{job['title']} | {job.get('company', '')} | {job.get('url', '')}"
