@@ -43,7 +43,7 @@ async def fetch_nofluff_jobs(url: str) -> list[dict]:
             title = await job.locator(
                 "h3.posting-title__position"
             ).text_content()
-            company_name = await job.locator("h4.company-name").text_content()
+            company = await job.locator("h4.company-name").text_content()
             location_raw = await job.locator(
                 "[data-cy='location on the job offer listing']"
             ).text_content()
@@ -59,9 +59,7 @@ async def fetch_nofluff_jobs(url: str) -> list[dict]:
                 {
                     "url": f"https://nofluffjobs.com{href}" if href else "",
                     "title": clean_text(title) if title else "",
-                    "company_name": (
-                        clean_text(company_name) if company_name else ""
-                    ),
+                    "company": (clean_text(company) if company else ""),
                     "skills": [clean_text(s) for s in skills],
                     "salary": clean_text(salary_raw) if salary_raw else "",
                     "location": (
