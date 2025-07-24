@@ -20,6 +20,7 @@ from notifier.telegram.job_utils import (
     save_skipped,
     get_keyboard,
     clean_short_title,
+    make_job_key,
 )
 from notifier.telegram.job_utils import find_job_by_hash
 
@@ -41,10 +42,8 @@ async def send_vacancy_to_user(user_id: str):
     user_skipped = skipped_jobs.get(user_id, [])
 
     for job in vacancies:
-        if (
-            job["title"] not in user_applied
-            and job["title"] not in user_skipped
-        ):
+        job_key = make_job_key(job)
+        if job_key not in user_applied and job_key not in user_skipped:
             logger.info(f"Found new job for user {user_id}: {job['title']}")
 
             keyboard = get_keyboard(job["title"])
@@ -91,10 +90,11 @@ async def process_callback(callback_query: types.CallbackQuery):
         return
 
     title = job["title"]
+    job_key = make_job_key(job)
     logger.info(f"User {user_id} marked job '{title}' as '{action}'")
 
     if action == "applied":
-        applied_jobs.setdefault(user_id, []).append(title)
+        applied_jobs.setdefault(user_id, []).append(job_key)
         save_applied(applied_jobs, APPLIED_FILE)
         await bot.answer_callback_query(
             callback_query.id, text="Marked as applied!"
@@ -113,7 +113,7 @@ async def process_callback(callback_query: types.CallbackQuery):
             logger.info(f"Sent meme to user {user_id}")
 
     elif action == "skip":
-        skipped_jobs.setdefault(user_id, []).append(title)
+        skipped_jobs.setdefault(user_id, []).append(job_key)
         save_skipped(skipped_jobs, SKIPPED_FILE)
         await bot.answer_callback_query(callback_query.id, text="Skipped.")
 
