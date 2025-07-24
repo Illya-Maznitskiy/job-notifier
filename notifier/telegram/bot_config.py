@@ -27,9 +27,14 @@ MEME_GIFS = [
     "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExZXdoeDZkdXV6d2MweWIzbWZjYmpjaWdkeTFsYmxndDhiaDlqeW96ayZlcD12MV9naWZzX3NlYXJjaCZjdD1n/zaciDLCM6xGyi51kwB/giphy.gif",
     "https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3eHNtMTB0YXZxYmthdDkydmQ3ZGg0eTNzYTNpdjJvcWJmengybzY5NyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/2RGhmKXcl0ViM/giphy.gif",
     "https://tenor.com/view/stay-hard-gif-26958197",
-    "https://tenor.com/view/i-am-back-mother-fucker-david-goggins-gif-25850195"
+    "https://tenor.com/view/i-am-back-mother-fucker-david-goggins-gif-25850195",
 ]
-
+READY_GIF_URLS = [
+    "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExanZqMnl1NWNwdHlmcGg0cHZzbGtiZHJlNHpsYmtueHB6amJieTQ2bCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/xT39Db8zIOODTppk08/giphy.gif",
+    "https://tenor.com/view/ready-are-you-ready-fififonia-republica-de-fifidonia-gif-14317972",
+    "https://tenor.com/view/ac-dc-brian-johnson-are-you-ready-ru-ready-you-ready-gif-26846426",
+    "https://tenor.com/view/sports-sportsmanias-here-we-go-im-ready-you-ready-gif-21241132",
+]
 
 user_request_count = defaultdict(int)
 
