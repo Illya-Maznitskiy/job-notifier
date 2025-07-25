@@ -44,8 +44,10 @@ async def send_vacancy_to_user(user_id: str):
     for job in vacancies:
         job_key = make_job_key(job)
         if job_key not in user_applied and job_key not in user_skipped:
+            job_title = job.get("job", "Unknown Job")
+            company = job.get("company", "Unknown Company")
             logger.info(
-                f"Found new job for user {user_id}: {job['title']} | {job['company']}"
+                f"Found new job for user {user_id}: {job_title} | {company}"
             )
 
             keyboard = get_keyboard(job["title"], job_key)
