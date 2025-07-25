@@ -34,6 +34,9 @@ READY_GIF_URLS = [
     "https://media1.tenor.com/m/RIxhUuakMdEAAAAd/ready-are-you-ready.gif",
     "https://media1.tenor.com/m/zgHjtVU_rocAAAAd/ac-dc-brian-johnson.gif",
     "https://media.tenor.com/YbOlajBHutcAAAAj/sports-sportsmanias.gif",
+    "https://media1.tenor.com/m/GnKeRkk8OkMAAAAd/yes-excited.gif",
+    "https://media1.tenor.com/m/90_rtIn6EWYAAAAd/ponke-ponkesol.gif",
+    "https://media1.tenor.com/m/MWqd3aJwcHwAAAAC/s12.gif",
 ]
 
 user_request_count = defaultdict(int)
