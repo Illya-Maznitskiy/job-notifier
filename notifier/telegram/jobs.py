@@ -2,6 +2,7 @@ import json
 import random
 
 from aiogram import types
+from aiogram.exceptions import TelegramBadRequest
 
 from .bot_config import (
     bot,
@@ -88,9 +89,15 @@ async def process_callback(callback_query: types.CallbackQuery):
     job = find_job_by_hash(job_hash, FILTERED_FILE)
     if not job:
         logger.warning(f"Job not found for hash: {job_hash}")
-        await bot.answer_callback_query(
-            callback_query.id, text="Job not found."
-        )
+        try:
+            await bot.answer_callback_query(
+                callback_query.id, text="Job not found."
+            )
+        except TelegramBadRequest as e:
+            if "query is too old" in str(e):
+                logger.warning("Callback query expired for 'Job not found'.")
+            else:
+                raise
         return
 
     title = job["title"]
@@ -100,9 +107,15 @@ async def process_callback(callback_query: types.CallbackQuery):
     if action == "applied":
         applied_jobs.setdefault(user_id, []).append(job_key)
         save_applied(applied_jobs, APPLIED_FILE)
-        await bot.answer_callback_query(
-            callback_query.id, text="Marked as applied!"
-        )
+        try:
+            await bot.answer_callback_query(
+                callback_query.id, text="Marked as applied!"
+            )
+        except TelegramBadRequest as e:
+            if "query is too old" in str(e):
+                logger.warning("Callback query expired, ignoring.")
+            else:
+                raise
         short_title = clean_short_title(title)
         await bot.send_message(
             user_id, f"Marked '{short_title}' as applied. 😎"
@@ -119,6 +132,12 @@ async def process_callback(callback_query: types.CallbackQuery):
     elif action == "skip":
         skipped_jobs.setdefault(user_id, []).append(job_key)
         save_skipped(skipped_jobs, SKIPPED_FILE)
-        await bot.answer_callback_query(callback_query.id, text="Skipped.")
+        try:
+            await bot.answer_callback_query(callback_query.id, text="Skipped.")
+        except TelegramBadRequest as e:
+            if "query is too old" in str(e):
+                logger.warning("Callback query expired, ignoring.")
+            else:
+                raise
 
     await send_vacancy_to_user(user_id)
