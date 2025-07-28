@@ -28,6 +28,9 @@ MEME_GIFS = [
     "https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3eHNtMTB0YXZxYmthdDkydmQ3ZGg0eTNzYTNpdjJvcWJmengybzY5NyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/2RGhmKXcl0ViM/giphy.gif",
     "https://media1.tenor.com/m/vy3Hk2ADlaYAAAAd/stay-hard.gif",
     "https://media1.tenor.com/m/0bLK6asVSZYAAAAd/i-am-back-mother-fucker-david-goggins.gif",
+    "https://media1.tenor.com/m/D8xkV7B7_-IAAAAC/motivation-motivational-quotes.gif",
+    "https://media1.tenor.com/m/i5fhGSgFTmcAAAAd/mr-bean-thumbs-up.gif",
+    "https://media.tenor.com/9oi-uh5ZeH0AAAAi/herve-apu.gif",
 ]
 READY_GIF_URLS = [
     "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExanZqMnl1NWNwdHlmcGg0cHZzbGtiZHJlNHpsYmtueHB6amJieTQ2bCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/xT39Db8zIOODTppk08/giphy.gif",
