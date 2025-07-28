@@ -101,9 +101,16 @@ def filter_and_score_jobs_from_file(
 
     logger.info(f"Loaded {len(vacancies)} jobs from {input_path}")
 
+    seen_urls = set()
     filtered_jobs = []
     for job in vacancies:
-        logger.info(f"Processing job '{job['title']}")
+        url = job.get("url")
+        if not url or url in seen_urls:
+            logger.debug(f"Duplicate or missing URL skipped: {url}")
+            continue
+        seen_urls.add(url)
+
+        logger.info(f"Processing job '{job['title']}'")
         score = score_job(job, keyword_weights)
         if score >= score_threshold:
             job["score"] = score
