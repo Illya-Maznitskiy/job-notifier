@@ -1,66 +1,13 @@
-import os
-
-from dotenv import load_dotenv
 from playwright.async_api import async_playwright
-
-from utils.convert_bool import str_to_bool
-from fetchers.djinni.pagination import build_paginated_url
+from fetchers.models.djinni.pagination import build_paginated_url
 from logs.logger import logger
 
 
-load_dotenv()
 
 
-DJINNI_URL = os.getenv("DJINNI_URL")
-DJINNI_HEADLESS = str_to_bool(os.getenv("DJINNI_HEADLESS", "false"))
 
 
 async def extract_job_data(item) -> dict:
-    job = {}
-
-    title_el = await item.query_selector("h2 a.job-item__title-link")
-    if title_el:
-        title = await title_el.text_content()
-        href = await title_el.get_attribute("href")
-        if title:
-            job["title"] = title.strip()
-        if href:
-            job["url"] = f"https://djinni.co{href}"
-
-    company_el = await item.query_selector("a.text-body.js-analytics-event")
-    if company_el:
-        company = await company_el.text_content()
-        if company:
-            job["company"] = company.strip()
-
-    location_el = await item.query_selector("span.location-text")
-    if location_el:
-        location = await location_el.text_content()
-        if location:
-            job["location"] = location.strip()
-
-    salary_el = await item.query_selector(".job-item__salary")
-    if salary_el:
-        salary_text = (await salary_el.text_content()) or ""
-        salary_text = salary_text.strip()
-        if salary_text:
-            parts = salary_text.split()
-            if parts:
-                job["salary"] = parts[0]
-                if len(parts) > 1:
-                    job["currency"] = " ".join(parts[1:])
-
-    skills_elements = await item.query_selector_all(".job-item__tags span")
-    skills = []
-    for skill_el in skills_elements:
-        skill = await skill_el.text_content()
-        if skill:
-            skills.append(skill.strip())
-    if skills:
-        job["skills"] = skills
-
-    return job
-
 
 async def fetch_jobs(max_pages: int = 5):
     logger.info("-" * 60)

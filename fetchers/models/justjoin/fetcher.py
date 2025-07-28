@@ -2,7 +2,7 @@ from playwright.async_api import async_playwright
 from dotenv import load_dotenv
 
 from utils.convert_bool import str_to_bool
-from fetchers.justjoin.pagination import (
+from fetchers.models.justjoin.pagination import (
     scroll_and_fetch_jobs,
 )
 from logs.logger import logger

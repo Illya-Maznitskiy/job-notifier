@@ -2,8 +2,8 @@ import asyncio
 import os
 from dotenv import load_dotenv
 
-from fetchers.pracuj.fetcher import fetch_pracuj_jobs
-from fetchers.save_jobs import save_jobs_to_json
+from fetchers.models.pracuj.fetcher import fetch_pracuj_jobs
+from fetchers.utils.save_jobs import save_jobs_to_json
 from logs.logger import logger
 
 

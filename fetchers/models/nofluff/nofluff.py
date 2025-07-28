@@ -2,8 +2,8 @@ import asyncio
 import os
 from dotenv import load_dotenv
 
-from fetchers.nofluff.fetcher import fetch_nofluff_jobs
-from fetchers.save_jobs import save_jobs_to_json
+from fetchers.models.nofluff.fetcher import fetch_nofluff_jobs
+from fetchers.utils.save_jobs import save_jobs_to_json
 from logs.logger import logger
 
 

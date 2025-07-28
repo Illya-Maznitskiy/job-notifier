@@ -3,7 +3,7 @@ import re
 from dotenv import load_dotenv
 from playwright.async_api import async_playwright
 
-from fetchers.dou.pagination import click_all_pagination_buttons
+from fetchers.models.dou.pagination import click_all_pagination_buttons
 from logs.logger import logger
 from utils.convert_bool import str_to_bool
 

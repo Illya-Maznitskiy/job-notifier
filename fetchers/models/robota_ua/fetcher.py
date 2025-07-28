@@ -4,7 +4,7 @@ import os
 from dotenv import load_dotenv
 from playwright.async_api import async_playwright
 
-from fetchers.robota_ua.pagination import click_next_page
+from fetchers.models.robota_ua.pagination import click_next_page
 from logs.logger import logger
 from utils.convert_bool import str_to_bool
 
