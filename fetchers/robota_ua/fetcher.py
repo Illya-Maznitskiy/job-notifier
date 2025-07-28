@@ -57,12 +57,27 @@ async def extract_robota_ua_job(item) -> dict:
         if title:
             job["title"] = title.strip()
 
-    # Company name from alt/title attribute of img inside company-logo div
+    # 1) Try company name from alt or title attribute of img inside company-logo div
     company_img = await item.query_selector("div.company-logo img")
+    company = None
     if company_img:
         company = await company_img.get_attribute("alt")
+        if not company:
+            company = await company_img.get_attribute("title")
         if company:
-            job["company"] = company.strip()
+            company = company.strip()
+
+    # 2) If company not found, try getting company name from <span>
+    if not company:
+        # Query all spans with class containing santa-mr-20 (or exact match)
+        span_el = await item.query_selector("span.santa-mr-20")
+        if span_el:
+            text = await span_el.text_content()
+            if text:
+                company = text.strip()
+
+    if company:
+        job["company"] = company
 
     # Salary info - first <span> inside div.santa-mb-10 with text containing digits or ₴
     salary_el = await item.query_selector("div.santa-mb-10 > span")
@@ -117,17 +132,37 @@ async def fetch_robota_ua_jobs():
             # Extract job details from filtered cards
             for i, item in enumerate(filtered_job_items, start=1):
                 job = await extract_robota_ua_job(item)
-                if "title" in job and "url" in job:
-                    all_jobs.append(job)
+
+                if not job or "title" not in job or "url" not in job:
+                    logger.warning("Skipped job due to missing title or URL")
+                    continue
+
+                # Check if it's remote
+                tag_elements = await item.query_selector_all("div, span")
+                is_remote = False
+
+                for tag_el in tag_elements:
+                    tag_text = (await tag_el.inner_text()).strip().lower()
+                    if (
+                        "віддалена" in tag_text
+                        or "віддалена робота" in tag_text
+                    ):
+                        is_remote = True
+                        break
+
+                if not is_remote:
                     logger.info(
-                        f"{len(all_jobs):>2}. {job['title']} @ "
-                        f"{job.get('company', 'unknown')} "
-                        f"({job.get('location', 'unknown')})"
+                        f"Skipped job #{job.get('company', 'unknown')} {job.get('title', 'unknown')}— not remote"
                     )
-                else:
-                    logger.warning(
-                        f"Skipped job #{i} due to missing title or URL"
-                    )
+                    continue  # this prevents adding the job to the list
+
+                # If remote, keep and log
+                all_jobs.append(job)
+                logger.info(
+                    f"{len(all_jobs):>2}. {job['title']} @ "
+                    f"{job.get('company', 'unknown')} "
+                    f"({job.get('location', 'unknown')})"
+                )
 
             # Go to next page or break if no next page
             has_next = await click_next_page(page)
