@@ -4,24 +4,36 @@ from logs.logger import logger
 
 
 async def click_next_page(page) -> bool:
-    """Click the 'next' button once if available and wait for the new page to load.
+    """Click the (current_page + 1) pagination button if available.
 
-    Returns True if clicked and page loaded, False if no next page.
+    Returns True if clicked and page loaded, False otherwise.
     """
-    next_button = await page.query_selector("a.side-btn.next.ng-star-inserted")
-    if not next_button:
-        logger.info("No 'next' button found. End of pages.")
+    logger.info("Looking for current page in paginator.")
+    current_link = await page.query_selector("div.paginator a.active")
+    if not current_link:
+        logger.warning("Could not find current active page link.")
         return False
 
-    is_disabled = await next_button.get_attribute("disabled")
-    if is_disabled:
-        logger.info("'Next' button is disabled. No more pages.")
+    current_text = await current_link.inner_text()
+    try:
+        current_page = int(current_text.strip())
+    except ValueError:
+        logger.error(f"Failed to parse current page number: {current_text}")
+        return False
+
+    next_page = current_page + 1
+    logger.info(f"Current page: {current_page}, looking for page: {next_page}")
+
+    next_page_selector = f'div.paginator a:has-text("{next_page}")'
+    next_link = await page.query_selector(next_page_selector)
+
+    if not next_link:
+        logger.info(f"No link found for page {next_page}. End of pagination.")
         return False
 
     old_url = page.url
-    logger.info(f"Clicking next page button. Current URL: {old_url}")
-
-    await next_button.click()
+    logger.info(f"Clicking page {next_page}. Current URL: {old_url}")
+    await next_link.click()
 
     # Wait for URL to change
     for _ in range(20):  # 20 * 0.5s = 10s
@@ -31,15 +43,15 @@ async def click_next_page(page) -> bool:
             logger.info(f"Page URL changed to: {new_url}")
             break
     else:
-        logger.warning("URL did not change after clicking next.")
+        logger.warning("URL did not change after clicking next page.")
         return False
 
-    # Wait for job cards to appear on the new page
     try:
         await page.wait_for_selector("a.card", timeout=10000)
         logger.info("Job cards loaded on next page.")
     except Exception:
         logger.warning("Job cards not found after clicking next page.")
 
-    await page.wait_for_timeout(1000)  # optional buffer
+    # Delay to ensure page has fully settled before next operation
+    await page.wait_for_timeout(1000)
     return True
