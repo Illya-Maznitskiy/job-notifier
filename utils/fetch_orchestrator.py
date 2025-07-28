@@ -9,6 +9,7 @@ from fetchers.bulldog.bulldog import run_fetch_and_save_jobs as fetch_bulldog
 from fetchers.robota_ua.robota_ua import (
     run_fetch_and_save_jobs as fetch_robota_ua,
 )
+from fetchers.jooble.jooble import run_fetch_and_save_jobs as fetch_jooble
 from logs.logger import logger
 
 
@@ -20,6 +21,7 @@ FETCHERS = {
     "dou": fetch_dou,
     "bulldog": fetch_bulldog,
     "robota_ua": fetch_robota_ua,
+    "jooble": fetch_jooble,
 }
 
 
