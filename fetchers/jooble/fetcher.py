@@ -54,12 +54,12 @@ def fetch_jooble_jobs():
         # Rename 'link' key to 'URL' in each job dict
         for job in jobs:
             if "link" in job:
-                job["URL"] = job.pop("link")
+                job["url"] = job.pop("link")
 
         for i, job in enumerate(jobs, len(all_jobs) + 1):
             company = job.get("company", "Unknown Company")
             title = job.get("title", "No Title")
-            url = job.get("URL", "No URL")
+            url = job.get("url", "No url")
             logger.info(
                 "%d. %s - %s (%s)", i, company.strip(), title.strip(), url
             )
