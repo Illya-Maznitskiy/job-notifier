@@ -6,6 +6,9 @@ from fetchers.nofluff.nofluff import run_fetch_and_save_jobs as fetch_nofluff
 from fetchers.pracuj.pracuj import run_fetch_and_save_jobs as fetch_pracuj
 from fetchers.dou.dou import run_fetch_and_save_jobs as fetch_dou
 from fetchers.bulldog.bulldog import run_fetch_and_save_jobs as fetch_bulldog
+from fetchers.robota_ua.robota_ua import (
+    run_fetch_and_save_jobs as fetch_robota_ua,
+)
 from logs.logger import logger
 
 
@@ -16,6 +19,7 @@ FETCHERS = {
     "pracuj": fetch_pracuj,
     "dou": fetch_dou,
     "bulldog": fetch_bulldog,
+    "robota_ua": fetch_robota_ua,
 }
 
 
