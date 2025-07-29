@@ -1,5 +1,6 @@
 import json
 import random
+from datetime import datetime
 
 from aiogram import types
 from aiogram.exceptions import TelegramBadRequest
@@ -41,11 +42,14 @@ async def send_vacancy_to_user(user_id: str):
 
     user_applied = applied_jobs.get(user_id, [])
     user_skipped = skipped_jobs.get(user_id, [])
+    applied_keys = {entry["job_key"] for entry in user_applied}
+    skipped_keys = {entry["job_key"] for entry in user_skipped}
 
     for job in vacancies:
         job_key = make_job_key(job)
-        if job_key not in user_applied and job_key not in user_skipped:
-            job_title = job.get("job", "Unknown Job")
+
+        if job_key not in applied_keys and job_key not in skipped_keys:
+            job_title = job.get("title", "Unknown Title")
             company = job.get("company", "Unknown Company")
             logger.info(
                 f"Found new job for user {user_id}: {job_title} | {company}"
@@ -101,11 +105,19 @@ async def process_callback(callback_query: types.CallbackQuery):
         return
 
     title = job["title"]
+    job_url = job["url"]
     job_key = make_job_key(job)
+    now_str = datetime.utcnow().isoformat()
+
+    job_data = {
+        "job_key": job_key,
+        "url": job_url,
+        "datetime": now_str,
+    }
     logger.info(f"User {user_id} marked job '{title}' as '{action}'")
 
     if action == "applied":
-        applied_jobs.setdefault(user_id, []).append(job_key)
+        applied_jobs.setdefault(user_id, []).append(job_data)
         save_applied(applied_jobs, APPLIED_FILE)
         try:
             await bot.answer_callback_query(
@@ -130,7 +142,7 @@ async def process_callback(callback_query: types.CallbackQuery):
             logger.info(f"Sent meme to user {user_id}")
 
     elif action == "skip":
-        skipped_jobs.setdefault(user_id, []).append(job_key)
+        skipped_jobs.setdefault(user_id, []).append(job_data)
         save_skipped(skipped_jobs, SKIPPED_FILE)
         try:
             await bot.answer_callback_query(callback_query.id, text="Skipped.")
