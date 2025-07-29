@@ -1,3 +1,4 @@
+import asyncio
 import os
 import re
 from asyncio import gather
@@ -15,15 +16,27 @@ PRACUJ_HEADLESS = str_to_bool(os.getenv("PRACUJ_HEADLESS", "false"))
 
 async def accept_cookies_if_present(page):
     logger.info("-" * 60)
+    await asyncio.sleep(1)
+
+    # Try clicking the first cookie button
     try:
-        # Wait for the cookie button to appear (if it does)
         await page.locator("button[data-test='button-submitCookie']").click(
             timeout=3000
         )
-        logger.info("Accepted cookies")
+        logger.info("Accepted cookies using data-test locator")
     except Exception:
-        # No cookie prompt found
-        logger.debug("No cookie prompt found, continuing")
+        logger.info("First cookie button not found")
+
+    # Try clicking the second cookie button
+    try:
+        await page.get_by_role("button", name="OK, rozumiem").click(
+            timeout=3000
+        )
+        logger.info(
+            "Accepted cookies using fallback locator for 'OK, rozumiem'"
+        )
+    except Exception:
+        logger.debug("Second cookie button not found, continuing")
 
 
 def clean_text(text: str) -> str:
