@@ -105,18 +105,38 @@ def filter_and_score_jobs_from_file(
     filtered_jobs = []
     for job in vacancies:
         url = job.get("url")
-        if not url or url in seen_urls:
-            logger.debug(f"Duplicate or missing URL skipped: {url}")
-            continue
-        seen_urls.add(url)
 
-        logger.info(f"Processing job '{job['title']}'")
+        if not url:
+            logger.warning(
+                f"Job skipped: Missing URL for job '{job.get('title', '')}'"
+            )
+            continue
+
+        if url in seen_urls:
+            logger.warning(
+                f"Job skipped: Duplicate URL detected '{url}' for job '{job.get('title', '')}'"
+            )
+            continue
+
+        seen_urls.add(url)
+        logger.info(
+            f"Processing job '{job.get('title', '')}: {job.get('company', '')}'"
+        )
         score = score_job(job, keyword_weights)
         if score >= score_threshold:
-            job["score"] = score
-            filtered_jobs.append(job)
+            # Create a filtered job dict with only desired fields:
+            filtered_job = {
+                "title": job.get("title"),
+                "company": job.get("company"),
+                "location": job.get("location"),
+                "salary": job.get("salary"),
+                "skills": job.get("skills"),
+                "score": score,
+                "url": url,
+            }
+            filtered_jobs.append(filtered_job)
             logger.debug(
-                f"Job passed: '{job.get('title', '')}' (score: {score})"
+                f"Job passed: '{filtered_job.get('title', '')}' (score: {score})"
             )
         else:
             logger.debug(
