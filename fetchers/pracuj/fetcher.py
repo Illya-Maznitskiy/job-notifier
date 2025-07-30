@@ -2,6 +2,7 @@ import asyncio
 import os
 import re
 from asyncio import gather
+from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 
 from dotenv import load_dotenv
 from playwright.async_api import async_playwright
@@ -60,6 +61,15 @@ async def safe_attr(locator, attr):
     except Exception as e:
         logger.debug(f"Failed to get attribute '{attr}': {e}")
         return ""
+
+
+def remove_search_id_param(url: str) -> str:
+    parsed_url = urlparse(url)
+    query_params = parse_qs(parsed_url.query)
+    query_params.pop("searchId", None)  # Remove 'searchId' if present
+    cleaned_query = urlencode(query_params, doseq=True)
+    cleaned_url = parsed_url._replace(query=cleaned_query)
+    return urlunparse(cleaned_url)
 
 
 async def fetch_pracuj_jobs(url: str) -> list[dict]:
@@ -153,6 +163,8 @@ async def fetch_pracuj_jobs(url: str) -> list[dict]:
 
                 if not link:
                     logger.warning(f"No valid job link found for job {i + 1}")
+                else:
+                    link = remove_search_id_param(link)
 
                 return {
                     "url": link,
