@@ -33,7 +33,7 @@ MEME_GIFS = [
     "https://media.tenor.com/9oi-uh5ZeH0AAAAi/herve-apu.gif",
     "https://media1.tenor.com/m/eAwDugg8aBgAAAAd/kitty-meow.gif",
     "https://media1.tenor.com/m/KshIPrRS1aAAAAAd/cat-orange-cat.gif",
-    "https://i.pinimg.com/originals/86/64/11/866411be17e4b33411a40cde77d57afa.gif"
+    "https://i.pinimg.com/originals/86/64/11/866411be17e4b33411a40cde77d57afa.gif",
 ]
 READY_GIF_URLS = [
     "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExanZqMnl1NWNwdHlmcGg0cHZzbGtiZHJlNHpsYmtueHB6amJieTQ2bCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/xT39Db8zIOODTppk08/giphy.gif",
