@@ -63,10 +63,16 @@ async def safe_attr(locator, attr):
         return ""
 
 
-def remove_search_id_param(url: str) -> str:
+def remove_tracking_params(url: str) -> str:
     parsed_url = urlparse(url)
     query_params = parse_qs(parsed_url.query)
-    query_params.pop("searchId", None)  # Remove 'searchId' if present
+
+    # List of tracking params to remove
+    tracking_keys = ["s", "ref", "searchId"]
+
+    for key in tracking_keys:
+        query_params.pop(key, None)  # Remove if exists
+
     cleaned_query = urlencode(query_params, doseq=True)
     cleaned_url = parsed_url._replace(query=cleaned_query)
     return urlunparse(cleaned_url)
@@ -164,7 +170,7 @@ async def fetch_pracuj_jobs(url: str) -> list[dict]:
                 if not link:
                     logger.warning(f"No valid job link found for job {i + 1}")
                 else:
-                    link = remove_search_id_param(link)
+                    link = remove_tracking_params(link)
 
                 return {
                     "url": link,
