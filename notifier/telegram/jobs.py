@@ -20,9 +20,9 @@ from logs.logger import logger
 from notifier.telegram.job_utils import (
     save_applied,
     save_skipped,
-    get_keyboard,
     clean_short_title,
     make_job_key,
+    create_vacancy_message,
 )
 from notifier.telegram.job_utils import find_job_by_hash
 
@@ -49,28 +49,11 @@ async def send_vacancy_to_user(user_id: str):
         job_key = make_job_key(job)
 
         if job_key not in applied_keys and job_key not in skipped_keys:
-            job_title = job.get("title", "Unknown Title")
-            company = job.get("company", "Unknown Company")
-            logger.info(
-                f"Found new job for user {user_id}: {job_title} | {company}"
-            )
-
-            keyboard = get_keyboard(job["title"], job_key)
-
-            score = job.get("score", "No score")
-            url = job.get("url", "")
-            url_text = f"[Link]({url})" if url else "No URL provided"
-
-            msg = (
-                f"**{job.get('title', 'No Title')}**\n"
-                f"*Company:* {job.get('company', 'Unknown')}\n"
-                f"*Score:* {score}\n"
-                f"*URL:* {url_text}\n\n"
-            )
-
+            msg, keyboard = create_vacancy_message(job)
             await bot.send_message(
                 user_id, msg, reply_markup=keyboard, parse_mode="Markdown"
             )
+            logger.info(f"Sent vacancy {job_key} to user {user_id}")
             return
 
     logger.info(f"No new vacancies for user {user_id}")
@@ -130,7 +113,7 @@ async def process_callback(callback_query: types.CallbackQuery):
                 raise
         short_title = clean_short_title(title)
         await bot.send_message(
-            user_id, f"Marked '{short_title}' as applied. 😎"
+            user_id, f"Marked '{short_title}' as applied 😎"
         )
         # Increment request count
         user_request_count[user_id] += 1
