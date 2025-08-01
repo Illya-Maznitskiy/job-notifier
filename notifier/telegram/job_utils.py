@@ -112,3 +112,66 @@ def make_job_key(job: dict) -> str:
 def get_hash(raw: str) -> str:
     """Return 16-char MD5 hash of string."""
     return hashlib.md5(raw.encode("utf-8")).hexdigest()[:16]
+
+
+def truncate_title(title: str, max_length: int = 34) -> str:
+    """Truncate title without cutting words."""
+    words = title.split()
+    truncated = ""
+    for word in words:
+        if len(truncated + " " + word if truncated else word) > max_length:
+            break
+        truncated += (" " if truncated else "") + word
+    return truncated or title[:max_length]
+
+
+def create_vacancy_message(job: dict) -> tuple[str, object]:
+    """
+    Create the formatted vacancy message and keyboard for a job.
+    """
+    job_key = make_job_key(job)
+    keyboard = get_keyboard(job["title"], job_key)
+
+    # Extract values with sensible defaults
+    company = job.get("company") or "Unknown"
+    score = job.get("score") or "No score"
+    url = job.get("url") or ""
+    job_title = truncate_title(job.get("title") or "No Title")
+
+    url_text = f"[🔗 View Job Posting]({url})" if url else "No URL provided"
+
+    # Formatting constants
+    table_width = 35
+    total_padding = (table_width - len("🔗 View Job Posting")) * 4 - 4
+    left_padding = total_padding // 2
+    right_padding = total_padding - left_padding
+
+    centered_url = " " * left_padding + url_text + " " * right_padding
+    table_width_spaces = table_width * 3
+    table_spaces = " " * table_width_spaces
+
+    # Padding constants manually tuned for proper alignment
+    # These values balance emoji widths, text, and visual layout
+    spaces_after_title = " " * (
+        table_width_spaces - 42 - len(job_title)
+    )  # 42 = title row offset
+    spaces_after_company = " " * (
+        table_width_spaces - 20 - len(company)
+    )  # 20 = company row offset
+    spaces_after_score = " " * (
+        table_width_spaces - 25 - len(str(score))
+    )  # 25 = score row offset
+
+    msg = (
+        f"┌{'─'*table_width}┐\n"
+        f"│ 🔹 {job_title}{spaces_after_title}│\n"
+        f"│{table_spaces}│\n"
+        f"├{'─'*table_width}┤\n"
+        f"│ 🏢 {company}{spaces_after_company}│\n"
+        f"│ 📊 Score: {str(score)}{spaces_after_score}│\n"
+        f"│{table_spaces}│\n"
+        f"│{centered_url}│\n"
+        f"└{'─'*table_width}┘\n"
+    )
+
+    return msg, keyboard
