@@ -1,6 +1,7 @@
 import json
 import hashlib
 import os
+import re
 
 from logs.logger import logger
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
@@ -125,6 +126,11 @@ def truncate_title(title: str, max_length: int = 34) -> str:
     return truncated or title[:max_length]
 
 
+def escape_markdown(text: str) -> str:
+    """Remove all asterisk (*) characters to prevent Markdown errors."""
+    return re.sub(r"\*", "", text)
+
+
 def create_vacancy_message(job: dict) -> tuple[str, object]:
     """
     Create the formatted vacancy message and keyboard for a job.
@@ -136,7 +142,7 @@ def create_vacancy_message(job: dict) -> tuple[str, object]:
     company = job.get("company", "Unknown")
     score = job.get("score", "No score")
     url = job.get("url", "")
-    job_title = truncate_title(job.get("title", "No Title"))
+    job_title = escape_markdown(truncate_title(job.get("title", "No Title")))
 
     # Create Markdown-safe message
     url_text = f"[🔗 View Job Posting]({url})" if url else "No URL provided"
