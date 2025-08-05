@@ -57,9 +57,7 @@ async def send_vacancy_to_user(user_id: str):
             return
 
     logger.info(f"No new vacancies for user {user_id}")
-    await bot.send_message(
-        user_id, "No new vacancies to show. Check back later!"
-    )
+    await bot.send_message(user_id, "🫠 Dried up. Jobs gone. I am but dust")
 
 
 @dp.callback_query(
