@@ -15,7 +15,8 @@ def fetch_jooble_jobs():
 
     if not api_key:
         logger.error(
-            "No Jooble API key found in environment variable 'JOOBLE_API_KEY'. Aborting fetch."
+            "No Jooble API key found in environment variable "
+            "'JOOBLE_API_KEY'. Aborting fetch."
         )
         return []
 
