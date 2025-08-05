@@ -40,7 +40,10 @@ def fetch_motivational_quote():
             if isinstance(data, list) and len(data) > 0:
                 quote = data[0].get("q", "Keep pushing forward.")
                 author = data[0].get("a", "Anonymous")
-                return f"<hr><blockquote><em>“{quote}”<br>– {author}</em></blockquote>"
+                return (
+                    f"<hr><blockquote><em>“{quote}”"
+                    f"<br>– {author}</em></blockquote>"
+                )
             else:
                 logger.warning("Unexpected response structure from quote API.")
         else:
@@ -51,7 +54,10 @@ def fetch_motivational_quote():
         logger.error(f"Error fetching quote: {e}")
 
     # fallback for broken internet and broken dreams
-    return "<hr><blockquote><em>“You're not stuck. The API is.” – Monday, local sarcasm distributor</em></blockquote>"
+    return (
+        "<hr><blockquote><em>“You're not stuck. The API is.” – "
+        "Monday, local sarcasm distributor</em></blockquote>"
+    )
 
 
 def send_job_listings_email():
