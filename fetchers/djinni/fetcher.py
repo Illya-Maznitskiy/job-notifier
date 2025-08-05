@@ -62,7 +62,7 @@ async def extract_job_data(item) -> dict:
     return job
 
 
-async def fetch_jobs(max_pages: int = 5):
+async def fetch_jobs():
     logger.info("-" * 60)
     logger.info("Starting browser and navigating to Djinni base URL")
 
@@ -71,7 +71,8 @@ async def fetch_jobs(max_pages: int = 5):
         page = await browser.new_page()
         all_jobs = []
 
-        for page_num in range(1, max_pages + 1):
+        page_num = 1
+        while True:
             paginated_url = build_paginated_url(DJINNI_URL, page_num)
             logger.info(f"Fetching page {page_num}: {paginated_url}")
             await page.goto(paginated_url)
@@ -117,6 +118,8 @@ async def fetch_jobs(max_pages: int = 5):
                     f"No button for page {page_num + 1}. Stopping pagination."
                 )
                 break
+
+            page_num += 1  # go to the next page
 
         await browser.close()
         logger.info(f"Browser closed. Total jobs fetched: {len(all_jobs)}")
