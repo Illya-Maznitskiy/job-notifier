@@ -1,7 +1,7 @@
 from logs.logger import logger
 
 
-async def scroll_and_fetch_jobs(page, max_attempts=30):
+async def scroll_and_fetch_jobs(page):
     """
     Scroll page and fetch job offers asynchronously.
     """
@@ -14,15 +14,12 @@ async def scroll_and_fetch_jobs(page, max_attempts=30):
     seen_urls = set()
     job_counter = 1
 
-    for i in range(max_attempts):
+    while True:
         await page.evaluate("window.scrollBy(0, 700)")
-        await page.wait_for_timeout(1500)
+        await page.wait_for_timeout(200)
 
         offers = await page.query_selector_all("a.offer-card")
-        current_count = len(offers)
-        logger.info(f"Scroll attempt {i + 1}: {current_count} offers")
 
-        # Fetch data for new offers only
         new_offers = []
         for offer in offers:
             job_data = await parse_job_offer(offer)
@@ -31,8 +28,7 @@ async def scroll_and_fetch_jobs(page, max_attempts=30):
                 new_offers.append(job_data)
 
                 logger.info(
-                    f"{job_counter:>3}. {job_data['title']:<50}"
-                    f" @ {job_data['company']}"
+                    f"{job_counter:>3}. {job_data['title']:<50} @ {job_data['company']}"
                 )
                 job_counter += 1
 
@@ -40,7 +36,6 @@ async def scroll_and_fetch_jobs(page, max_attempts=30):
             logger.info("No new offers loaded, stopping scroll.")
             break
 
-        # Append new offers to results
         results.extend(new_offers)
 
     return results
