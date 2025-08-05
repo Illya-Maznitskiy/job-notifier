@@ -1,13 +1,19 @@
 import json
+import os
 from pathlib import Path
 from typing import List, Dict, Optional
 
 import yaml
+from dotenv import load_dotenv
 
 from logs.logger import logger
 
 
-SCORE_THRESHOLD = -2  # Adjust this threshold as needed
+load_dotenv()
+
+
+# Get SCORE_THRESHOLD as an integer, default to 0 if not set
+SCORE_THRESHOLD = int(os.getenv("SCORE_THRESHOLD", 0))
 
 
 def load_keyword_weights(filename="keyword_weights.yaml") -> dict:
@@ -72,6 +78,7 @@ def filter_and_score_jobs_from_file(
     """
     logger.info("-" * 60)
     logger.info("Filtering jobs")
+    logger.info(f"Using SCORE_THRESHOLD = {SCORE_THRESHOLD}")
 
     if keyword_weights is None:
         keyword_weights = load_keyword_weights()
