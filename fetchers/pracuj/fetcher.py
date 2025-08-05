@@ -48,18 +48,13 @@ async def safe_text(locator, field_name=""):
     try:
         return await locator.text_content(timeout=2000) or ""
     except Exception as e:
-        if "offer-salary" in field_name:
-            logger.debug("No salary info")
-        else:
-            logger.debug(f"Failed to get text content: {e}")
         return ""
 
 
 async def safe_attr(locator, attr):
     try:
-        return await locator.get_attribute(attr, timeout=5000) or ""
+        return await locator.get_attribute(attr, timeout=3000) or ""
     except Exception as e:
-        logger.debug(f"Failed to get attribute '{attr}': {e}")
         return ""
 
 
@@ -76,6 +71,29 @@ def remove_tracking_params(url: str) -> str:
     cleaned_query = urlencode(query_params, doseq=True)
     cleaned_url = parsed_url._replace(query=cleaned_query)
     return urlunparse(cleaned_url)
+
+
+async def extract_url_from_expanded_form(job):
+    try:
+        # Click the button or element that expands the form / location selector
+        expand_button = job.locator(
+            "div[title^='Zobacz ofertę'], span[role='button']"
+        )
+        if await expand_button.count() > 0:
+            await expand_button.first.click()
+            await asyncio.sleep(0.5)  # wait for the form to expand
+
+        # Now find the first location link inside the expanded section
+        location_links = job.locator("a[data-test='link-offer']")
+        count_links = await location_links.count()
+        if count_links > 0:
+            href = await location_links.nth(0).get_attribute("href")
+            if href:
+                return href
+    except Exception as e:
+        logger.debug(f"Failed to get URL from expanded form: {e}")
+
+    return ""
 
 
 async def fetch_pracuj_jobs(url: str) -> list[dict]:
@@ -114,11 +132,9 @@ async def fetch_pracuj_jobs(url: str) -> list[dict]:
             logger.info(f"Found {count} job cards on page {page_number}")
 
             async def extract_job_data(i: int):
-                logger.debug(f"Processing job {i + 1}/{count}")
                 job = cards.nth(i)
-
                 await job.scroll_into_view_if_needed()
-                await page.wait_for_timeout(300)  # Give time for lazy content
+                await page.wait_for_timeout(300)
 
                 title = await safe_text(
                     job.locator("h2[data-test='offer-title']")
@@ -139,36 +155,34 @@ async def fetch_pracuj_jobs(url: str) -> list[dict]:
 
                 link = ""
 
-                # First attempt: known data-test attributes
+                # Try preferred direct link first
                 link_locator = job.locator(
-                    "a[data-test='link-offer-title'], "
-                    "a[data-test='link-offer']"
+                    "a[data-test='link-offer-title'], a[data-test='link-offer']"
                 ).first
-                try:
-                    link = await link_locator.get_attribute(
-                        "href", timeout=2000
+                link = await safe_attr(link_locator, "href")
+
+                # Fallback: search all anchors inside job card for an offer link
+                if not link:
+                    anchors = job.locator("a")
+                    count_anchors = await anchors.count()
+                    for j in range(count_anchors):
+                        href = await safe_attr(anchors.nth(j), "href")
+                        if href and "/oferta/" in href:
+                            link = href
+                            break
+
+                # Final fallback: try to open expanded form and get first location URL
+                if not link:
+                    link = await extract_url_from_expanded_form(job)
+
+                if not link:
+                    title_text = await safe_text(
+                        job.locator("h2[data-test='offer-title']")
                     )
-                except Exception as e:
-                    logger.debug(f"Preferred link not found: {e}")
+                    logger.warning(
+                        f"No valid job link found for job {i + 1} - Title: {title_text}"
+                    )
 
-                # Fallback: try all anchors within the job card
-                if not link:
-                    logger.debug("Trying fallback link search...")
-                    try:
-                        anchors = job.locator("a")
-                        count_anchors = await anchors.count()
-                        for j in range(count_anchors):
-                            a = anchors.nth(j)
-                            href = await safe_attr(a, "href")
-                            if href and "/oferta/" in href:
-                                link = href
-                                logger.debug("Used fallback offer link.")
-                                break
-                    except Exception as e:
-                        logger.debug(f"Fallback search failed: {e}")
-
-                if not link:
-                    logger.warning(f"No valid job link found for job {i + 1}")
                 else:
                     link = remove_tracking_params(link)
 
