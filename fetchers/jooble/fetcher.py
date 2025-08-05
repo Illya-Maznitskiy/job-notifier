@@ -26,11 +26,13 @@ def fetch_jooble_jobs():
 
     while page <= max_pages:
         payload = {
-            "keywords": "python remote",  # stricter search, no OR
-            "location": "Poland",
+            "keywords": os.getenv("JOOBLE_KEYWORDS", "developer"),
+            "location": os.getenv("JOOBLE_LOCATION", "Europe"),
             "page": page,
-            "radius": "1000",
-            "salary": 0,
+            "radius": os.getenv("JOOBLE_RADIUS", "1000"),
+            "salary": int(os.getenv("JOOBLE_MIN_SALARY", 0)),
+            "searchMode": os.getenv("JOOBLE_SEARCH_MODE", "2"),
+            "date": os.getenv("JOOBLE_DATE", ""),  # empty = no limit
         }
         logger.debug("Requesting page %d", page)
         logger.debug("Request payload: %s", payload)
