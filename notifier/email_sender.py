@@ -4,10 +4,12 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import json
 from pathlib import Path
+import requests
 
 from dotenv import load_dotenv
 
 from logs.logger import logger
+
 
 load_dotenv()  # Load .env file
 
@@ -24,6 +26,32 @@ FILTERED_FILE = (
     / "storage"
     / "filtered_vacancies.json"
 )
+
+
+def fetch_motivational_quote():
+    """
+    Fetch a motivational quote from zenquotes.io
+    Returns a formatted HTML string or fallback string on failure
+    """
+    try:
+        response = requests.get("https://zenquotes.io/api/random")
+        if response.status_code == 200:
+            data = response.json()
+            if isinstance(data, list) and len(data) > 0:
+                quote = data[0].get("q", "Keep pushing forward.")
+                author = data[0].get("a", "Anonymous")
+                return f"<hr><blockquote><em>“{quote}”<br>– {author}</em></blockquote>"
+            else:
+                logger.warning("Unexpected response structure from quote API.")
+        else:
+            logger.warning(
+                f"Failed to fetch quote: Status {response.status_code}"
+            )
+    except Exception as e:
+        logger.error(f"Error fetching quote: {e}")
+
+    # fallback for broken internet and broken dreams
+    return "<hr><blockquote><em>“You're not stuck. The API is.” – Monday, local sarcasm distributor</em></blockquote>"
 
 
 def send_job_listings_email():
@@ -45,7 +73,7 @@ def send_job_listings_email():
         return False
 
     # Build HTML email content
-    html_content = "<h2>Top 10 Job Vacancies</h2><ul>"
+    html_content = "<h2>Top 10 Job Vacancies 🏢</h2><ul>"
     for job in jobs_to_send:
         title = job.get("title", "No title")
         company = job.get("company", "Unknown company")
@@ -57,10 +85,11 @@ def send_job_listings_email():
             f"<a href='{url}'>Job Link</a></li><br>"
         )
     html_content += "</ul>"
+    html_content += fetch_motivational_quote()
 
     # Create email message
     msg = MIMEMultipart("alternative")
-    msg["Subject"] = "Your Top 10 Job Listings"
+    msg["Subject"] = "Your Top 10 Job Listings 📩"
     msg["From"] = SENDER_EMAIL
     msg["To"] = RECEIVER_EMAIL
 
