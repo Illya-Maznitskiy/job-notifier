@@ -15,7 +15,9 @@ def save_applied(applied_jobs, path):
     with open(path, "w", encoding="utf-8") as f:
         json.dump(applied_jobs, f, indent=2, ensure_ascii=False)
 
-    total_applied = sum(len(jobs) for jobs in applied_jobs.values())
+    total_applied = sum(
+        len(user_data["jobs"]) for user_data in applied_jobs.values()
+    )
     logger.info(
         f"Applied jobs saved. Total applied jobs count: {total_applied}"
     )
@@ -27,7 +29,9 @@ def save_skipped(skipped_jobs, path):
     with open(path, "w", encoding="utf-8") as f:
         json.dump(skipped_jobs, f, indent=2, ensure_ascii=False)
 
-    total_skipped = sum(len(jobs) for jobs in skipped_jobs.values())
+    total_skipped = sum(
+        len(user_data["jobs"]) for user_data in skipped_jobs.values()
+    )
     logger.info(
         f"Skipped jobs saved. Total skipped jobs count: {total_skipped}"
     )
