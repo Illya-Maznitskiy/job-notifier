@@ -47,14 +47,14 @@ def clean_text(text: str) -> str:
 async def safe_text(locator, field_name=""):
     try:
         return await locator.text_content(timeout=2000) or ""
-    except Exception as e:
+    except Exception:
         return ""
 
 
 async def safe_attr(locator, attr):
     try:
         return await locator.get_attribute(attr, timeout=3000) or ""
-    except Exception as e:
+    except Exception:
         return ""
 
 
@@ -157,11 +157,13 @@ async def fetch_pracuj_jobs(url: str) -> list[dict]:
 
                 # Try preferred direct link first
                 link_locator = job.locator(
-                    "a[data-test='link-offer-title'], a[data-test='link-offer']"
+                    "a[data-test='link-offer-title'], "
+                    "a[data-test='link-offer']"
                 ).first
                 link = await safe_attr(link_locator, "href")
 
-                # Fallback: search all anchors inside job card for an offer link
+                # Fallback: search all anchors inside
+                # job card for an offer link
                 if not link:
                     anchors = job.locator("a")
                     count_anchors = await anchors.count()
@@ -171,7 +173,8 @@ async def fetch_pracuj_jobs(url: str) -> list[dict]:
                             link = href
                             break
 
-                # Final fallback: try to open expanded form and get first location URL
+                # Final fallback: try to open expanded form
+                # and get first location URL
                 if not link:
                     link = await extract_url_from_expanded_form(job)
 
@@ -180,7 +183,8 @@ async def fetch_pracuj_jobs(url: str) -> list[dict]:
                         job.locator("h2[data-test='offer-title']")
                     )
                     logger.warning(
-                        f"No valid job link found for job {i + 1} - Title: {title_text}"
+                        f"No valid job link found for "
+                        f"job {i + 1} - Title: {title_text}"
                     )
 
                 else:
