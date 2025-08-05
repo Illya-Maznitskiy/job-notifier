@@ -19,6 +19,8 @@ STORAGE_DIR = Path(__file__).resolve().parent.parent.parent / "storage"
 FILTERED_FILE = STORAGE_DIR / "filtered_vacancies.json"
 APPLIED_FILE = STORAGE_DIR / "applied_jobs.json"
 SKIPPED_FILE = STORAGE_DIR / "skipped_jobs.json"
+# No PEP8 warnings about line length
+# flake8: noqa
 MEME_GIFS = [
     "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExa293a3lpNjA0cTJkemE0ZGlienhzZTdjbXltbTh2YXk1aG53a2ptcyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/gidMR0Kv3ljSivshKJ/giphy.gif",
     "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExd24xYWd2dmJvd2FtbXpxNnJ2dTBhbXE5ajFmamp3NmwxOXl5NTk1dCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/bNpLfNOskgvGIfKIZN/giphy.gif",
