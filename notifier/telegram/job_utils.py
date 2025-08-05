@@ -47,7 +47,10 @@ def find_job_by_hash(job_hash, filtered_file_path):
         for job in all_jobs:
             job_title = job.get("title", "Unknown Title")
             company = job.get("company", "Unknown Company")
-            raw = f"{job.get('title', '')}|{job.get('company', '')}|{job.get('url', '')}"
+            raw = (
+                f"{job.get('title', '')}|{job.get('company', '')}"
+                f"|{job.get('url', '')}"
+            )
             h = get_hash(raw)
             if h == job_hash:
                 logger.info(f"Job found: {job_title} | {company}")
