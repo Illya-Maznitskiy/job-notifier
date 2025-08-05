@@ -40,8 +40,8 @@ async def send_vacancy_to_user(user_id: str):
     with open(FILTERED_FILE, "r", encoding="utf-8") as f:
         vacancies = json.load(f)
 
-    user_applied = applied_jobs.get(user_id, [])
-    user_skipped = skipped_jobs.get(user_id, [])
+    user_applied = applied_jobs.get(user_id, {}).get("jobs", [])
+    user_skipped = skipped_jobs.get(user_id, {}).get("jobs", [])
     applied_keys = {entry["job_key"] for entry in user_applied}
     skipped_keys = {entry["job_key"] for entry in user_skipped}
 
@@ -98,8 +98,17 @@ async def process_callback(callback_query: types.CallbackQuery):
     logger.info(f"User {user_id} marked job '{title}' as '{action}'")
 
     if action == "applied":
-        applied_jobs.setdefault(user_id, []).append(job_data)
+        user_data = applied_jobs.setdefault(
+            user_id,
+            {"username": callback_query.from_user.username, "jobs": []},
+        )
+        user_data["username"] = (
+            callback_query.from_user.username
+        )  # keep username updated
+        user_data["jobs"].append(job_data)
+
         save_applied(applied_jobs, APPLIED_FILE)
+
         try:
             await bot.answer_callback_query(
                 callback_query.id, text="Marked as applied!"
@@ -123,8 +132,14 @@ async def process_callback(callback_query: types.CallbackQuery):
             logger.info(f"Sent meme to user {user_id}")
 
     elif action == "skip":
-        skipped_jobs.setdefault(user_id, []).append(job_data)
+        user_data = skipped_jobs.setdefault(
+            user_id,
+            {"username": callback_query.from_user.username, "jobs": []},
+        )
+        user_data["username"] = callback_query.from_user.username
+        user_data["jobs"].append(job_data)
         save_skipped(skipped_jobs, SKIPPED_FILE)
+
         try:
             await bot.answer_callback_query(callback_query.id, text="Skipped.")
         except TelegramBadRequest as e:
