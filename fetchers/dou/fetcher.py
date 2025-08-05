@@ -27,7 +27,7 @@ async def fetch_jobs() -> list[dict]:
     :return: List of job dictionaries.
     """
     logger.info("-" * 60)
-    logger.info("Starting to fetch DOU jobs...")
+    logger.info(f"Starting to fetch DOU jobs through {DOU_URL}")
 
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=DOU_HEADLESS)
