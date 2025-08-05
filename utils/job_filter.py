@@ -121,13 +121,15 @@ def filter_and_score_jobs_from_file(
 
         if url in seen_urls:
             logger.warning(
-                f"Job skipped: Duplicate URL detected '{url}' for job '{job.get('title', '')}'"
+                f"Job skipped: Duplicate URL detected "
+                f"'{url}' for job '{job.get('title', '')}'"
             )
             continue
 
         seen_urls.add(url)
         logger.info(
-            f"Processing job '{job.get('title', '')}: {job.get('company', '')}'"
+            f"Processing job '{job.get('title', '')}: "
+            f"{job.get('company', '')}'"
         )
         score = score_job(job, keyword_weights)
         if score >= score_threshold:
@@ -143,7 +145,8 @@ def filter_and_score_jobs_from_file(
             }
             filtered_jobs.append(filtered_job)
             logger.debug(
-                f"Job passed: '{filtered_job.get('title', '')}' (score: {score})"
+                f"Job passed: '{filtered_job.get('title', '')}' "
+                f"(score: {score})"
             )
         else:
             logger.debug(
