@@ -57,7 +57,8 @@ async def extract_robota_ua_job(item) -> dict:
         if title:
             job["title"] = title.strip()
 
-    # 1) Try company name from alt or title attribute of img inside company-logo div
+    # 1) Try company name from alt or title attribute
+    # of img inside company-logo div
     company_img = await item.query_selector("div.company-logo img")
     company = None
     if company_img:
@@ -79,7 +80,8 @@ async def extract_robota_ua_job(item) -> dict:
     if company:
         job["company"] = company
 
-    # Salary info - first <span> inside div.santa-mb-10 with text containing digits or ₴
+    # Salary info - first <span> inside div.santa-mb-10 with
+    # text containing digits or ₴
     salary_el = await item.query_selector("div.santa-mb-10 > span")
     if salary_el:
         salary = await salary_el.text_content()
@@ -100,7 +102,7 @@ async def extract_robota_ua_job(item) -> dict:
 
 async def fetch_robota_ua_jobs():
     logger.info("-" * 60)
-    logger.info(f"Launching browser for robota.ua scraping")
+    logger.info("Launching browser for robota.ua scraping")
 
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=ROBOTA_UA_HEADLESS)
@@ -124,7 +126,8 @@ async def fetch_robota_ua_jobs():
             filtered_job_items = []
             for card in job_items:
                 parent_alliance = await card.evaluate(
-                    "(node) => node.closest('alliance-recommended-vacancy-list')"
+                    "(node) => node.closest"
+                    "('alliance-recommended-vacancy-list')"
                 )
                 if not parent_alliance:
                     filtered_job_items.append(card)
@@ -152,7 +155,8 @@ async def fetch_robota_ua_jobs():
 
                 if not is_remote:
                     logger.info(
-                        f"Skipped job #{job.get('company', 'unknown')} {job.get('title', 'unknown')}— not remote"
+                        f"Skipped job #{job.get('company', 'unknown')} "
+                        f"{job.get('title', 'unknown')} — not remote"
                     )
                     continue  # this prevents adding the job to the list
 
