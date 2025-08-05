@@ -21,7 +21,13 @@ def save_all_vacancies():
     json_files = [
         f
         for f in storage_dir.glob("*.json")
-        if f.name not in {"all_vacancies.json", "filtered_vacancies.json"}
+        if f.name
+        not in {
+            "all_vacancies.json",
+            "filtered_vacancies.json",
+            "applied_jobs.json",
+            "skipped_jobs.json",
+        }
     ]
     logger.info(f"Found {len(json_files)} JSON files to combine")
 
