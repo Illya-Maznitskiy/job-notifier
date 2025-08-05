@@ -1,3 +1,5 @@
+import asyncio
+
 from fetchers.justjoin.fetcher import fetch_jobs
 from fetchers.save_jobs import save_jobs_to_json
 from logs.logger import logger
@@ -15,3 +17,7 @@ async def run_fetch_and_save_jobs():
         save_jobs_to_json(jobs, "justjoin_jobs.json")
 
     return jobs
+
+
+if __name__ == "__main__":
+    asyncio.run(run_fetch_and_save_jobs())
