@@ -1,5 +1,4 @@
 import json
-import hashlib
 import os
 import re
 
@@ -37,38 +36,31 @@ def save_skipped(skipped_jobs, path):
     )
 
 
-def find_job_by_hash(job_hash, filtered_file_path):
-    """Find job in file by its hash."""
+def find_job_by_url(job_url, filtered_file_path):
+    """Find job in file by its URL."""
     logger.info("-" * 60)
-    logger.info(f"Looking for job with hash: {job_hash}")
+    logger.info(f"Looking for job with URL: {job_url}")
 
     with open(filtered_file_path, "r", encoding="utf-8") as f:
         all_jobs = json.load(f)
         for job in all_jobs:
-            job_title = job.get("title", "Unknown Title")
-            company = job.get("company", "Unknown Company")
-            raw = (
-                f"{job.get('title', '')}|{job.get('company', '')}"
-                f"|{job.get('url', '')}"
-            )
-            h = get_hash(raw)
-            if h == job_hash:
-                logger.info(f"Job found: {job_title} | {company}")
+            if job.get("url") == job_url:
+                logger.info(
+                    f"Job found: {job.get('title', 'Unknown Title')} | {job.get('company', 'Unknown Company')}"
+                )
                 return job
-    logger.warning(f"No job found for hash: {job_hash}")
 
+    logger.warning(f"No job found for URL: {job_url}")
     return None
 
 
-def get_keyboard(title: str, job_hash: str) -> InlineKeyboardMarkup:
-    """Return inline keyboard with correct job hash."""
+def get_keyboard(title: str, job_url: str) -> InlineKeyboardMarkup:
+    """Return inline keyboard with correct job URL."""
     logger.info("-" * 60)
-    logger.debug(
-        f"Generating keyboard with hash: {job_hash} for title: {title}"
-    )
+    logger.debug(f"Generating keyboard with URL: {job_url} for title: {title}")
 
     def get_callback_data(action):
-        return f"{action}|{job_hash}"
+        return f"{action}|{job_url}"
 
     return InlineKeyboardMarkup(
         inline_keyboard=[
@@ -107,21 +99,6 @@ def clean_short_title(title: str, max_words=3):
     return " ".join(words[:max_words])
 
 
-def make_job_key(job: dict) -> str:
-    """
-    Create a short unique key for a job based on title + company + URL.
-    """
-    raw = (
-        f"{job.get('title', '')}|{job.get('company', '')}|{job.get('url', '')}"
-    )
-    return get_hash(raw)
-
-
-def get_hash(raw: str) -> str:
-    """Return 16-char MD5 hash of string."""
-    return hashlib.md5(raw.encode("utf-8")).hexdigest()[:16]
-
-
 def truncate_title(title: str, max_length: int = 34) -> str:
     """Truncate title without cutting words."""
     words = title.split()
@@ -142,13 +119,12 @@ def create_vacancy_message(job: dict) -> tuple[str, object]:
     """
     Create the formatted vacancy message and keyboard for a job.
     """
-    job_key = make_job_key(job)
-    keyboard = get_keyboard(job["title"], job_key)
+    url = job.get("url", "")
+    keyboard = get_keyboard(job["title"], url)  # pass URL here
 
     # Extract values with sensible defaults
     company = job.get("company", "Unknown")
     score = job.get("score", "No score")
-    url = job.get("url", "")
     job_title = escape_markdown(truncate_title(job.get("title", "No Title")))
 
     # Create Markdown-safe message
