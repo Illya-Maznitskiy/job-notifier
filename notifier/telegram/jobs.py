@@ -15,6 +15,7 @@ from .bot_config import (
     APPLIED_FILE,
     user_request_count,
     MEME_GIFS,
+    job_id_map,
 )
 from logs.logger import logger
 from notifier.telegram.job_utils import (
@@ -65,7 +66,8 @@ async def process_callback(callback_query: types.CallbackQuery):
     """Handle user 'applied' or 'skip' button clicks."""
     logger.info("-" * 60)
 
-    action, job_url = callback_query.data.split("|", 1)
+    action, job_id = callback_query.data.split("|", 1)
+    job_url = job_id_map.get(job_id)
     job = find_job_by_url(job_url, FILTERED_FILE)
     user_id = str(callback_query.from_user.id)
     logger.info(f"Callback from user {user_id}: {action}")
