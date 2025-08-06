@@ -1,3 +1,5 @@
+import asyncio
+
 from fetchers.jooble.fetcher import fetch_jooble_jobs
 from fetchers.save_jobs import save_jobs_to_json
 from logs.logger import logger
@@ -15,6 +17,4 @@ async def run_fetch_and_save_jobs():
 
 
 if __name__ == "__main__":
-    import asyncio
-
     asyncio.run(run_fetch_and_save_jobs())
