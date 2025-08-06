@@ -77,3 +77,6 @@ if APPLIED_FILE.exists() and APPLIED_FILE.stat().st_size > 0:
 else:
     applied_jobs = {}
     logger.info(f"{APPLIED_FILE} is missing or empty. Initialized empty.")
+
+job_id_map = {}
+# If one day it breaks for many users, maybe save this link mapping in a file or DB
