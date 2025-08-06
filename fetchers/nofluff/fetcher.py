@@ -4,6 +4,7 @@ import re
 from dotenv import load_dotenv
 from playwright.async_api import async_playwright
 
+from logs.logger import logger
 from utils.convert_bool import str_to_bool
 
 load_dotenv()
@@ -23,21 +24,77 @@ def clean_location(text: str) -> str:
 async def fetch_nofluff_jobs(url: str) -> list[dict]:
     """
     Fetches full job data from NoFluffJobs.
-
-    :param url: URL of the job listing page.
-    :return: List of job dictionaries.
     """
+    logger.info(f"Opening NoFluffJobs URL")
+
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=NO_FLUFF_HEADLESS)
         page = await browser.new_page()
         await page.goto(url)
         await page.wait_for_load_state("networkidle")
+        logger.info("Page loaded successfully.")
+
+        # Accept cookies if present
+        try:
+            consent_button = page.locator(
+                "button[data-action='consent'][data-action-type='accept']"
+            )
+            if await consent_button.is_visible():
+                await consent_button.click()
+                logger.info("Cookie consent accepted (Akceptuj wszystkie).")
+            else:
+                logger.info("No cookie consent banner found.")
+        except Exception as e:
+            logger.warning(f"No cookie consent to close: {e}")
 
         job_cards = page.locator("a.posting-list-item")
-        count = await job_cards.count()
         jobs = []
 
-        for i in range(count):
+        while True:
+            count_before = await job_cards.count()
+
+            load_more_button = page.locator(
+                "button", has_text="Pokaż kolejne oferty"
+            )
+
+            # Check existence first to avoid timeout
+            if await load_more_button.count() == 0:
+                logger.info(
+                    "'Pokaż kolejne oferty' button not found — reached end of job list."
+                )
+                break
+
+            # Make sure it's visible/enabled before clicking
+            if await load_more_button.is_enabled():
+                await load_more_button.scroll_into_view_if_needed()
+                logger.info("Clicking 'Pokaż kolejne oferty' button...")
+                await load_more_button.click()
+                await page.wait_for_timeout(1500)
+
+                # Wait for new jobs to load
+                await page.wait_for_function(
+                    f"document.querySelectorAll('a.posting-list-item').length > {count_before}"
+                )
+                count_after = await job_cards.count()
+                logger.info(
+                    f"Loaded {count_after - count_before} new jobs (total: {count_after})."
+                )
+
+                if count_after == count_before:
+                    logger.info("No new jobs loaded — breaking.")
+                    break
+            else:
+                logger.info(
+                    "'Pokaż kolejne oferty' button disabled — reached end."
+                )
+                break
+
+        # Now fetch all jobs after loading is done
+        total_count = await job_cards.count()
+        logger.info(f"Total jobs loaded: {total_count}")
+
+        for i in range(total_count):
+            logger.info(f"Scraping job {i + 1} of {total_count}...")
             job = job_cards.nth(i)
 
             title = await job.locator(
@@ -59,7 +116,7 @@ async def fetch_nofluff_jobs(url: str) -> list[dict]:
                 {
                     "url": f"https://nofluffjobs.com{href}" if href else "",
                     "title": clean_text(title) if title else "",
-                    "company": (clean_text(company) if company else ""),
+                    "company": clean_text(company) if company else "",
                     "skills": [clean_text(s) for s in skills],
                     "salary": clean_text(salary_raw) if salary_raw else "",
                     "location": (
@@ -68,5 +125,6 @@ async def fetch_nofluff_jobs(url: str) -> list[dict]:
                 }
             )
 
+        logger.info(f"Finished scraping {len(jobs)} jobs.")
         await browser.close()
         return jobs
