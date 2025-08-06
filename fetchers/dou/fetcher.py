@@ -66,8 +66,7 @@ async def fetch_jobs() -> list[dict]:
             jobs.append(clean_job)
 
             logger.info(
-                f"{i+1}: '{clean_job['title']}' "
-                f"at '{clean_job['company']}'"
+                f"{i+1:>3}. {clean_job['title']:<60} @ {clean_job.get('company', 'unknown')}"
             )
 
         await browser.close()
