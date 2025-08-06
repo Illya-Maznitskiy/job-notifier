@@ -163,9 +163,7 @@ async def fetch_robota_ua_jobs():
                 # If remote, keep and log
                 all_jobs.append(job)
                 logger.info(
-                    f"{len(all_jobs):>2}. {job['title']} @ "
-                    f"{job.get('company', 'unknown')} "
-                    f"({job.get('location', 'unknown')})"
+                    f"{len(all_jobs):>3}. {job['title']:<60} @ {job.get('company', 'unknown')}"
                 )
 
             # Go to next page or break if no next page
