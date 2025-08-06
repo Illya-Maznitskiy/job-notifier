@@ -15,7 +15,7 @@ ROBOTA_UA_HEADLESS = str_to_bool(os.getenv("ROBOTA_UA_HEADLESS", "true"))
 BASE_URL = "https://robota.ua"
 
 
-async def auto_scroll(page, scroll_step=1250, max_scrolls: int = 4):
+async def auto_scroll(page, scroll_step=1050, max_scrolls: int = 5):
     # Give the page time to settle before starting scroll
     await asyncio.sleep(1)
 
