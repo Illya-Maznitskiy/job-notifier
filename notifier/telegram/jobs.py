@@ -21,10 +21,9 @@ from notifier.telegram.job_utils import (
     save_applied,
     save_skipped,
     clean_short_title,
-    make_job_key,
     create_vacancy_message,
+    find_job_by_url,
 )
-from notifier.telegram.job_utils import find_job_by_hash
 
 
 async def send_vacancy_to_user(user_id: str):
@@ -42,18 +41,17 @@ async def send_vacancy_to_user(user_id: str):
 
     user_applied = applied_jobs.get(user_id, {}).get("jobs", [])
     user_skipped = skipped_jobs.get(user_id, {}).get("jobs", [])
-    applied_keys = {entry["job_key"] for entry in user_applied}
-    skipped_keys = {entry["job_key"] for entry in user_skipped}
+    applied_urls = {entry["url"] for entry in user_applied}
+    skipped_urls = {entry["url"] for entry in user_skipped}
 
     for job in vacancies:
-        job_key = make_job_key(job)
-
-        if job_key not in applied_keys and job_key not in skipped_keys:
+        job_url = job["url"]
+        if job_url not in applied_urls and job_url not in skipped_urls:
             msg, keyboard = create_vacancy_message(job)
             await bot.send_message(
                 user_id, msg, reply_markup=keyboard, parse_mode="Markdown"
             )
-            logger.info(f"Sent vacancy {job_key} to user {user_id}")
+            logger.info(f"Sent vacancy {job_url} to user {user_id}")
             return
 
     logger.info(f"No new vacancies for user {user_id}")
@@ -67,13 +65,13 @@ async def process_callback(callback_query: types.CallbackQuery):
     """Handle user 'applied' or 'skip' button clicks."""
     logger.info("-" * 60)
 
-    action, job_hash = callback_query.data.split("|", 1)
+    action, job_url = callback_query.data.split("|", 1)
+    job = find_job_by_url(job_url, FILTERED_FILE)
     user_id = str(callback_query.from_user.id)
     logger.info(f"Callback from user {user_id}: {action}")
 
-    job = find_job_by_hash(job_hash, FILTERED_FILE)
     if not job:
-        logger.warning(f"Job not found for hash: {job_hash}")
+        logger.warning(f"Job not found for hash: {job_url}")
         try:
             await bot.answer_callback_query(
                 callback_query.id, text="Job not found."
@@ -87,11 +85,9 @@ async def process_callback(callback_query: types.CallbackQuery):
 
     title = job["title"]
     job_url = job["url"]
-    job_key = make_job_key(job)
     now_str = datetime.utcnow().isoformat()
 
     job_data = {
-        "job_key": job_key,
         "url": job_url,
         "datetime": now_str,
     }
