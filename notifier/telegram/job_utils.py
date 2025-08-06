@@ -1,3 +1,4 @@
+import hashlib
 import json
 import os
 import re
@@ -5,7 +6,7 @@ import re
 from logs.logger import logger
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-from notifier.telegram.bot_config import bot
+from notifier.telegram.bot_config import bot, job_id_map
 
 
 def save_applied(applied_jobs, path):
@@ -59,8 +60,11 @@ def get_keyboard(title: str, job_url: str) -> InlineKeyboardMarkup:
     logger.info("-" * 60)
     logger.debug(f"Generating keyboard with URL: {job_url} for title: {title}")
 
+    job_id = get_job_id(job_url)
+    job_id_map[job_id] = job_url
+
     def get_callback_data(action):
-        return f"{action}|{job_url}"
+        return f"{action}|{job_id}"
 
     return InlineKeyboardMarkup(
         inline_keyboard=[
@@ -113,6 +117,11 @@ def truncate_title(title: str, max_length: int = 34) -> str:
 def escape_markdown(text: str) -> str:
     """Remove all asterisk (*) characters to prevent Markdown errors."""
     return re.sub(r"\*", "", text)
+
+
+def get_job_id(job_url: str) -> str:
+    """Create short unique ID to fit Telegram callback_data limit."""
+    return hashlib.md5(job_url.encode()).hexdigest()[:8]
 
 
 def create_vacancy_message(job: dict) -> tuple[str, object]:
