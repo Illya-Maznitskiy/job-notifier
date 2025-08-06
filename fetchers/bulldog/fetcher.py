@@ -89,10 +89,9 @@ async def fetch_bulldog_jobs():
                 if "title" in job and "url" in job:
                     all_jobs.append(job)
                     logger.info(
-                        f"{len(all_jobs):>2}. {job['title']} @ "
-                        f"{job.get('company', 'unknown')} "
-                        f"({job.get('location', 'unknown')})"
+                        f"{len(all_jobs):>3}. {job['title']:<60} @ {job.get('company', 'unknown')}"
                     )
+
                 else:
                     logger.warning(
                         f"Skipped job #{i} due to missing title or URL"
