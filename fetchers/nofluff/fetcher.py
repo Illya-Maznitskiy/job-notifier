@@ -94,7 +94,6 @@ async def fetch_nofluff_jobs(url: str) -> list[dict]:
         logger.info(f"Total jobs loaded: {total_count}")
 
         for i in range(total_count):
-            logger.info(f"Scraping job {i + 1} of {total_count}...")
             job = job_cards.nth(i)
 
             title = await job.locator(
@@ -112,17 +111,21 @@ async def fetch_nofluff_jobs(url: str) -> list[dict]:
             ).all_text_contents()
             href = await job.get_attribute("href")
 
-            jobs.append(
-                {
-                    "url": f"https://nofluffjobs.com{href}" if href else "",
-                    "title": clean_text(title) if title else "",
-                    "company": clean_text(company) if company else "",
-                    "skills": [clean_text(s) for s in skills],
-                    "salary": clean_text(salary_raw) if salary_raw else "",
-                    "location": (
-                        clean_location(location_raw) if location_raw else ""
-                    ),
-                }
+            job_data = {
+                "url": f"https://nofluffjobs.com{href}" if href else "",
+                "title": clean_text(title) if title else "",
+                "company": clean_text(company) if company else "",
+                "skills": [clean_text(s) for s in skills],
+                "salary": clean_text(salary_raw) if salary_raw else "",
+                "location": (
+                    clean_location(location_raw) if location_raw else ""
+                ),
+            }
+
+            jobs.append(job_data)
+
+            logger.info(
+                f"{i + 1:>3}. {job_data['title']:<60} @ {job_data['company']}"
             )
 
         logger.info(f"Finished scraping {len(jobs)} jobs.")
