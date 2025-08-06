@@ -28,7 +28,7 @@ async def scroll_and_fetch_jobs(page):
                 new_offers.append(job_data)
 
                 logger.info(
-                    f"{job_counter:>3}. {job_data['title']:<50} @ {job_data['company']}"
+                    f"{job_counter:>3}. {job_data['title']:<60} @ {job_data['company']}"
                 )
                 job_counter += 1
 
