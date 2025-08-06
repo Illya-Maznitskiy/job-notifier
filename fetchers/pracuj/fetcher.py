@@ -220,7 +220,6 @@ async def fetch_pracuj_jobs(url: str) -> list[dict]:
                         "div[data-test='default-offer']",
                         timeout=10000,
                     )
-                    await page.mouse.wheel(0, 500)
                     await page.wait_for_timeout(300)
                     page_number += 1
                 else:
