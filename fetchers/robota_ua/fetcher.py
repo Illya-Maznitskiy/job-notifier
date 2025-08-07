@@ -105,8 +105,17 @@ async def fetch_robota_ua_jobs():
     logger.info("Launching browser for robota.ua scraping")
 
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=ROBOTA_UA_HEADLESS)
-        page = await browser.new_page()
+        browser = await p.chromium.launch(
+            headless=ROBOTA_UA_HEADLESS,
+            args=["--disable-blink-features=AutomationControlled"],
+        )
+        page = await browser.new_page(
+            viewport={"width": 1280, "height": 800},
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/114.0.0.0 Safari/537.36",
+        )
+
         all_jobs = []
 
         logger.info(f"Fetching robota.ua page: {ROBOTA_UA_URL}")
@@ -115,7 +124,7 @@ async def fetch_robota_ua_jobs():
         while True:
             # Scroll page fully so all jobs load
             await auto_scroll(page)
-            await page.wait_for_selector("a.card", timeout=10000)
+            await page.wait_for_selector("a.card", timeout=30000)
 
             job_items = await page.query_selector_all("a.card")
             if not job_items:
