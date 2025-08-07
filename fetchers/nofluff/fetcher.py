@@ -70,6 +70,13 @@ async def fetch_nofluff_jobs(url: str) -> list[dict]:
             load_more_button = page.locator(
                 "button", has_text="Pokaż kolejne oferty"
             )
+            # Wait for any overlay blocking pointer events to disappear
+            try:
+                await page.wait_for_selector(
+                    ".cdk-overlay-container", state="detached", timeout=5000
+                )
+            except Exception:
+                pass
 
             if await load_more_button.count() == 0:
                 logger.info(
