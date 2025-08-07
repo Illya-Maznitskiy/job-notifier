@@ -28,8 +28,19 @@ async def fetch_nofluff_jobs(url: str) -> list[dict]:
     logger.info(f"Opening NoFluffJobs URL")
 
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=NO_FLUFF_HEADLESS)
-        page = await browser.new_page()
+        browser = await p.chromium.launch(
+            headless=NO_FLUFF_HEADLESS,
+            args=["--disable-blink-features=AutomationControlled"],
+        )
+
+        context = await browser.new_context(
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            viewport={"width": 1280, "height": 800},
+            locale="pl-PL",
+        )
+
+        page = await context.new_page()
+
         await page.goto(url)
         await page.wait_for_load_state("networkidle")
         logger.info("Page loaded successfully.")
@@ -39,13 +50,16 @@ async def fetch_nofluff_jobs(url: str) -> list[dict]:
             consent_button = page.locator(
                 "button[data-action='consent'][data-action-type='accept']"
             )
-            if await consent_button.is_visible():
-                await consent_button.click()
-                logger.info("Cookie consent accepted (Akceptuj wszystkie).")
-            else:
-                logger.info("No cookie consent banner found.")
+
+            # Wait up to 30 seconds for the cookie banner to appear
+            await consent_button.wait_for(state="visible", timeout=30_000)
+            await consent_button.click()
+            logger.info("Cookie consent accepted (Akceptuj wszystkie).")
+
         except Exception as e:
-            logger.warning(f"No cookie consent to close: {e}")
+            logger.warning(
+                f"No cookie consent to close or timeout occurred: {e}"
+            )
 
         job_cards = page.locator("a.posting-list-item")
         jobs = []
@@ -57,7 +71,6 @@ async def fetch_nofluff_jobs(url: str) -> list[dict]:
                 "button", has_text="Pokaż kolejne oferty"
             )
 
-            # Check existence first to avoid timeout
             if await load_more_button.count() == 0:
                 logger.info(
                     "'Pokaż kolejne oferty' button not found — reached end of job list."
@@ -66,15 +79,23 @@ async def fetch_nofluff_jobs(url: str) -> list[dict]:
 
             # Make sure it's visible/enabled before clicking
             if await load_more_button.is_enabled():
+                await page.evaluate(
+                    "window.scrollTo(0, document.body.scrollHeight)"
+                )
+                logger.info(
+                    "Scrolled to bottom before clicking 'Pokaż kolejne oferty' button"
+                )
                 await load_more_button.scroll_into_view_if_needed()
                 logger.info("Clicking 'Pokaż kolejne oferty' button...")
                 await load_more_button.click()
-                await page.wait_for_timeout(1500)
+                await page.wait_for_timeout(3000)
 
                 # Wait for new jobs to load
                 await page.wait_for_function(
-                    f"document.querySelectorAll('a.posting-list-item').length > {count_before}"
+                    f"document.querySelectorAll('a.posting-list-item').length > {count_before}",
+                    timeout=30000,
                 )
+
                 count_after = await job_cards.count()
                 logger.info(
                     f"Loaded {count_after - count_before} new jobs (total: {count_after})."
