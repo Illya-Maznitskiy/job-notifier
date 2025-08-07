@@ -63,6 +63,13 @@ python -m main
 ```
 
 
+## Run with Docker
+Make sure Docker Desktop is running, this command builds the image and runs the job scraper in a container.
+```
+docker build -t job-notifier . ; docker run --rm job-notifier
+```
+
+
 ## Screenshots
 ### Data
 ![Data](screenshots/data.png)
