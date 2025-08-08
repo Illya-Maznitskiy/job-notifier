@@ -73,7 +73,7 @@ async def fetch_nofluff_jobs(url: str) -> list[dict]:
             # Wait for any overlay blocking pointer events to disappear
             try:
                 await page.wait_for_selector(
-                    ".cdk-overlay-container", state="detached", timeout=5000
+                    ".cdk-overlay-container", state="detached", timeout=15000
                 )
             except Exception:
                 pass
