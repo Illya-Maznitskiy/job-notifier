@@ -34,10 +34,10 @@ RUN python -m playwright install
 COPY . .
 
 # Expose any port if your bot uses (optional)
-# EXPOSE 8000
+EXPOSE 8000
 
 # Define environment variables if needed (optional)
 # ENV NO_FLUFF_HEADLESS=true
 
 # Default command to run your main script
-CMD ["python", "-m", "main"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
