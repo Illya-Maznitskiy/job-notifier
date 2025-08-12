@@ -47,6 +47,7 @@ class Job(Base):
     )  # PostgreSQL array
     score: Mapped[int] = mapped_column(Integer, nullable=False)
     url: Mapped[str] = mapped_column(Text, nullable=False)
+    sent_to_users: Mapped[list["UserJob"]] = relationship(back_populates="job")
 
 
 class UserJob(Base):
