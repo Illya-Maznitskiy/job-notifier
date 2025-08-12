@@ -2,8 +2,9 @@ import asyncio
 import os
 from dotenv import load_dotenv
 
+from db.db import AsyncSessionLocal
 from fetchers.pracuj.fetcher import fetch_pracuj_jobs
-from fetchers.save_jobs import save_jobs_to_json
+from fetchers.save_jobs import save_jobs_to_db
 from logs.logger import logger
 
 
@@ -26,8 +27,13 @@ async def run_fetch_and_save_jobs():
             f"{i:>3}. {job['title']:<60} @ {job.get('company', 'unknown')}"
         )
 
-    save_jobs_to_json(jobs, filename="pracuj_jobs.json")
-    logger.info("Job titles saved successfully.")
+    if not jobs:
+        logger.info("No jobs fetched from pracuj.")
+    else:
+        async with AsyncSessionLocal() as session:
+            await save_jobs_to_db(jobs, session)
+
+    logger.info("Pracuj job fetch process completed.")
 
     return jobs
 
