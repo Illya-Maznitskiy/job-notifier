@@ -6,6 +6,7 @@ from playwright.async_api import async_playwright
 from fetchers.dou.pagination import click_all_pagination_buttons
 from logs.logger import logger
 from utils.convert_bool import str_to_bool
+from utils.fetcher_optimization import block_resources
 
 load_dotenv()
 DOU_HEADLESS = str_to_bool(os.getenv("DOU_HEADLESS", "false"))
@@ -32,6 +33,9 @@ async def fetch_jobs() -> list[dict]:
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=DOU_HEADLESS)
         page = await browser.new_page()
+
+        await page.route("**/*", block_resources)
+
         await page.goto(DOU_URL)
         await page.wait_for_selector("ul.lt > li.l-vacancy")
 
