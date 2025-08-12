@@ -9,6 +9,12 @@ load_dotenv()
 api_key = os.getenv("JOOBLE_API_KEY")
 
 
+def sanitize_job(job):
+    if not job.get("company"):
+        job["company"] = "Unknown Company"
+    return job
+
+
 def fetch_jooble_jobs():
     logger.info("-" * 60)
     logger.info("Fetching jobs from Jooble...")
@@ -55,12 +61,13 @@ def fetch_jooble_jobs():
             break  # No more jobs on next page
 
         # Rename 'link' key to 'URL' in each job dict
-        for job in jobs:
+        for i, job in enumerate(jobs):
             if "link" in job:
                 job["url"] = job.pop("link")
+            jobs[i] = sanitize_job(job)  # update the list with sanitized job
 
         for i, job in enumerate(jobs, len(all_jobs) + 1):
-            company = job.get("company", "Unknown Company")
+            company = job.get("company") or "Unknown Company"
             title = job.get("title", "No Title")
             logger.info(f"{i:>3}. {title.strip():<60} @ {company.strip()}")
 
@@ -68,4 +75,5 @@ def fetch_jooble_jobs():
         page += 1
 
     logger.info("Total jobs fetched from Jooble: %d", len(all_jobs))
+
     return all_jobs
