@@ -50,6 +50,16 @@ negative:
 ```
 
 
+# Database
+You can use your hosted PostgreSQL database or create one locally.
+
+Local database script (Make sure PostgreSQL is installed):
+```bash
+psql -U postgres
+CREATE DATABASE job_notifier;
+```
+
+
 ## Tests
 You can run flake8 linter using the following commands:
 ```bash
