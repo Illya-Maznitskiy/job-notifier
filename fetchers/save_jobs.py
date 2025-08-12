@@ -1,6 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.crud import get_job_by_url, create_job
+from logs.logger import logger
 
 
 async def save_jobs_to_db(jobs, session: AsyncSession):
@@ -17,4 +18,8 @@ async def save_jobs_to_db(jobs, session: AsyncSession):
                 skills=job_data.get("skills"),
                 score=job_data.get("score", 0),
                 url=job_data.get("url"),
+            )
+        else:
+            logger.info(
+                f"Skipping {job_data.get('title')} because it already exists."
             )
