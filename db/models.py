@@ -1,0 +1,71 @@
+from datetime import datetime
+from sqlalchemy import (
+    String,
+    Integer,
+    DateTime,
+    ForeignKey,
+    UniqueConstraint,
+    ARRAY,
+    Text,
+)
+from sqlalchemy.ext.asyncio import AsyncAttrs
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+
+
+class Base(AsyncAttrs, DeclarativeBase):
+    """Base model for all tables."""
+
+    pass
+
+
+class User(Base):
+    """Telegram user info."""
+
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(Integer, unique=True, index=True)
+    username: Mapped[str] = mapped_column(String(100), nullable=True)
+
+    jobs: Mapped[list["UserJob"]] = relationship(back_populates="user")
+
+
+class Job(Base):
+    """Scraped job listings."""
+
+    __tablename__ = "jobs"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    company: Mapped[str] = mapped_column(String(255), nullable=False)
+    location: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    salary: Mapped[str | None] = mapped_column(
+        String(255), nullable=True
+    )  # salary can be null or string
+    skills: Mapped[list[str] | None] = mapped_column(
+        ARRAY(String), nullable=True
+    )  # PostgreSQL array
+    score: Mapped[int] = mapped_column(Integer, nullable=False)
+    url: Mapped[str] = mapped_column(Text, nullable=False)
+
+
+class UserJob(Base):
+    """Link between users and jobs with status."""
+
+    __tablename__ = "user_jobs"
+    __table_args__ = (
+        UniqueConstraint("user_id", "job_id", name="uix_user_job"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    job_id: Mapped[int] = mapped_column(ForeignKey("jobs.id"))
+    datetime_sent: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow
+    )
+    status: Mapped[str] = mapped_column(
+        String(50), default="sent"
+    )  # sent, skipped, applied
+
+    user: Mapped["User"] = relationship(back_populates="jobs")
+    job: Mapped["Job"] = relationship(back_populates="sent_to_users")
