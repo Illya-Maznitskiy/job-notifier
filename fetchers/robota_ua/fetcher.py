@@ -7,6 +7,7 @@ from playwright.async_api import async_playwright
 from fetchers.robota_ua.pagination import click_next_page
 from logs.logger import logger
 from utils.convert_bool import str_to_bool
+from utils.fetcher_optimization import block_resources
 
 load_dotenv()
 
@@ -15,7 +16,7 @@ ROBOTA_UA_HEADLESS = str_to_bool(os.getenv("ROBOTA_UA_HEADLESS", "true"))
 BASE_URL = "https://robota.ua"
 
 
-async def auto_scroll(page, scroll_step=1050, max_scrolls: int = 5):
+async def auto_scroll(page, scroll_step=1050, max_scrolls: int = 12):
     # Give the page time to settle before starting scroll
     await asyncio.sleep(1)
 
@@ -115,6 +116,8 @@ async def fetch_robota_ua_jobs():
             "AppleWebKit/537.36 (KHTML, like Gecko) "
             "Chrome/114.0.0.0 Safari/537.36",
         )
+
+        await page.route("**/*", block_resources)
 
         all_jobs = []
 
