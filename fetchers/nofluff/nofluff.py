@@ -2,8 +2,9 @@ import asyncio
 import os
 from dotenv import load_dotenv
 
+from db.db import AsyncSessionLocal
 from fetchers.nofluff.fetcher import fetch_nofluff_jobs
-from fetchers.save_jobs import save_jobs_to_json
+from fetchers.save_jobs import save_jobs_to_db
 from logs.logger import logger
 
 
@@ -21,8 +22,13 @@ async def run_fetch_and_save_jobs():
 
     jobs = await fetch_nofluff_jobs(NO_FLUFF_URL)
 
-    save_jobs_to_json(jobs, filename="nofluff_jobs.json")
-    logger.info("Job titles saved successfully.")
+    if not jobs:
+        logger.info("No jobs fetched from nofluff.")
+    else:
+        async with AsyncSessionLocal() as session:
+            await save_jobs_to_db(jobs, session)
+
+    logger.info("Nofluff job fetch process completed.")
 
     return jobs
 
