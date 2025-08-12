@@ -1,7 +1,8 @@
 import asyncio
 
+from db.db import AsyncSessionLocal
 from fetchers.dou.fetcher import fetch_jobs
-from fetchers.save_jobs import save_jobs_to_json
+from fetchers.save_jobs import save_jobs_to_db
 from logs.logger import logger
 
 
@@ -17,7 +18,8 @@ async def run_fetch_and_save_jobs():
     if not jobs:
         logger.info("No jobs fetched from DOU.")
     else:
-        save_jobs_to_json(jobs, "dou_jobs.json")
+        async with AsyncSessionLocal() as session:
+            await save_jobs_to_db(jobs, session)
 
     logger.info("DOU job fetch process completed.")
 
