@@ -5,6 +5,7 @@ from playwright.async_api import async_playwright
 
 from utils.convert_bool import str_to_bool
 from logs.logger import logger
+from utils.fetcher_optimization import block_resources
 
 load_dotenv()
 
@@ -73,6 +74,9 @@ async def fetch_bulldog_jobs():
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=BULLDOG_HEADLESS)
         page = await browser.new_page()
+
+        await page.route("**/*", block_resources)
+
         all_jobs = []
 
         logger.info(f"Fetching Bulldog page: {BULLDOG_URL}")
