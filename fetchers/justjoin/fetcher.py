@@ -8,6 +8,7 @@ from fetchers.justjoin.pagination import (
 from logs.logger import logger
 import os
 
+from utils.fetcher_optimization import block_resources
 
 load_dotenv()
 
@@ -24,6 +25,9 @@ async def setup_page(playwright, url):
     logger.info("Starting setup page")
     browser = await playwright.chromium.launch(headless=JUST_JOIN_HEADLESS)
     page = await browser.new_page()
+
+    await page.route("**/*", block_resources)
+
     await page.goto(url)
 
     try:
