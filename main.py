@@ -47,22 +47,3 @@ if __name__ == "__main__":
 
     port = int(os.getenv("PORT", 8080))
     uvicorn.run(app, host="0.0.0.0", port=port)
-
-# TODO: Optimize memory usage of fetcher
-
-# async def main():
-#     """
-#     Run job fetchers, save and filter vacancies,
-#     send email, and run telegram bot.
-#     """
-#     logger.info("-" * 60)
-#     logger.info("Job processing started")
-#
-#     await run_all_fetchers()
-#     save_backup_and_filter_jobs()
-#     send_job_listings_email()
-#     await run_telegram_bot(dp, bot)
-#
-#
-# if __name__ == "__main__":
-#     asyncio.run(main())
