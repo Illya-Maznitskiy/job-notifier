@@ -13,12 +13,12 @@ async def run_fetch_and_save_jobs():
     jobs = await fetch_jobs()
 
     if not jobs:
-        logger.info("No jobs fetched from nofluff.")
+        logger.info("No jobs fetched from justjoin.")
     else:
         async with AsyncSessionLocal() as session:
             await save_jobs_to_db(jobs, session)
 
-    logger.info("Nofluff job fetch process completed.")
+    logger.info("Justjoin job fetch process completed.")
 
     return jobs
 
