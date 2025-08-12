@@ -1,7 +1,8 @@
 import asyncio
 
+from db.db import AsyncSessionLocal
 from fetchers.justjoin.fetcher import fetch_jobs
-from fetchers.save_jobs import save_jobs_to_json
+from fetchers.save_jobs import save_jobs_to_db
 from logs.logger import logger
 
 
@@ -12,9 +13,12 @@ async def run_fetch_and_save_jobs():
     jobs = await fetch_jobs()
 
     if not jobs:
-        logger.info("no_jobs")
+        logger.info("No jobs fetched from nofluff.")
     else:
-        save_jobs_to_json(jobs, "justjoin_jobs.json")
+        async with AsyncSessionLocal() as session:
+            await save_jobs_to_db(jobs, session)
+
+    logger.info("Nofluff job fetch process completed.")
 
     return jobs
 
