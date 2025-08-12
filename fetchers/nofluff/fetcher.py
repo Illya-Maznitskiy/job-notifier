@@ -6,6 +6,7 @@ from playwright.async_api import async_playwright
 
 from logs.logger import logger
 from utils.convert_bool import str_to_bool
+from utils.fetcher_optimization import block_resources
 
 load_dotenv()
 NO_FLUFF_HEADLESS = str_to_bool(os.getenv("NO_FLUFF_HEADLESS", "false"))
@@ -40,6 +41,8 @@ async def fetch_nofluff_jobs(url: str) -> list[dict]:
         )
 
         page = await context.new_page()
+
+        await page.route("**/*", block_resources)
 
         await page.goto(url)
         await page.wait_for_load_state("networkidle")
