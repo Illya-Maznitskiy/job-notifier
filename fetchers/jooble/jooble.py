@@ -1,7 +1,8 @@
 import asyncio
 
+from db.db import AsyncSessionLocal
 from fetchers.jooble.fetcher import fetch_jooble_jobs
-from fetchers.save_jobs import save_jobs_to_json
+from fetchers.save_jobs import save_jobs_to_db
 from logs.logger import logger
 
 
@@ -10,9 +11,13 @@ async def run_fetch_and_save_jobs():
     logger.info("Starting Jooble fetch and save operation")
 
     jobs = fetch_jooble_jobs()  # sync call here
-    save_jobs_to_json(jobs, "jooble_jobs.json")
+    if not jobs:
+        logger.info("No jobs fetched from jooble.")
+    else:
+        async with AsyncSessionLocal() as session:
+            await save_jobs_to_db(jobs, session)
 
-    logger.info("Jooble fetch and save completed")
+    logger.info("Jooble job fetch process completed.")
     return jobs
 
 
