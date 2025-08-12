@@ -9,7 +9,7 @@ from playwright.async_api import async_playwright
 
 from logs.logger import logger
 from utils.convert_bool import str_to_bool
-
+from utils.fetcher_optimization import block_pracuj_resources
 
 load_dotenv()
 PRACUJ_HEADLESS = str_to_bool(os.getenv("PRACUJ_HEADLESS", "false"))
@@ -102,6 +102,9 @@ async def fetch_pracuj_jobs(url: str) -> list[dict]:
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=PRACUJ_HEADLESS)
         page = await browser.new_page()
+
+        await block_pracuj_resources(page)
+
         await page.goto(url)
         await page.wait_for_timeout(3000)
         await accept_cookies_if_present(page)
