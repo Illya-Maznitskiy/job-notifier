@@ -5,6 +5,7 @@ import random
 from aiogram.filters import Command
 from aiogram import types
 
+from db.db import AsyncSessionLocal
 from logs.logger import logger
 from notifier.telegram.jobs import send_vacancy_to_user
 from notifier.telegram.bot_config import (
@@ -45,7 +46,8 @@ async def send_next_vacancy(message: types.Message):
     await asyncio.sleep(2)
 
     # Then send the vacancy
-    await send_vacancy_to_user(user_id)
+    async with AsyncSessionLocal() as session:
+        await send_vacancy_to_user(user_id, session, user_id)
 
 
 @dp.message(Command("stop"))
