@@ -4,18 +4,21 @@ from datetime import datetime
 
 from aiogram import types
 from aiogram.exceptions import TelegramBadRequest
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
+from db.crud import (
+    get_user_job,
+    get_job_by_url,
+    create_user_job,
+    update_user_job_status,
+)
+from db.models import Job
 from .bot_config import (
     bot,
     dp,
-    FILTERED_FILE,
-    applied_jobs,
-    skipped_jobs,
-    SKIPPED_FILE,
-    APPLIED_FILE,
     user_request_count,
     MEME_GIFS,
-    job_id_map,
 )
 from logs.logger import logger
 from notifier.telegram.job_utils import (
@@ -24,35 +27,41 @@ from notifier.telegram.job_utils import (
     clean_short_title,
     create_vacancy_message,
     find_job_by_url,
+    get_or_create_user,
 )
 
 
-async def send_vacancy_to_user(user_id: str):
+async def send_vacancy_to_user(
+    user_id: str, session: AsyncSession, username: str | None = None
+):
     """Send next unviewed vacancy to the user."""
     logger.info("-" * 60)
     logger.info(f"Sending vacancy to user: {user_id}")
 
-    if not FILTERED_FILE.exists():
-        logger.warning("Filtered file not found.")
-        await bot.send_message(user_id, "No vacancies found yet.")
-        return
+    # Get or create the user
+    user = await get_or_create_user(session, int(user_id), username)
 
-    with open(FILTERED_FILE, "r", encoding="utf-8") as f:
-        vacancies = json.load(f)
-
-    user_applied = applied_jobs.get(user_id, {}).get("jobs", [])
-    user_skipped = skipped_jobs.get(user_id, {}).get("jobs", [])
-    applied_urls = {entry["url"] for entry in user_applied}
-    skipped_urls = {entry["url"] for entry in user_skipped}
-
-    for job in vacancies:
-        job_url = job["url"]
-        if job_url not in applied_urls and job_url not in skipped_urls:
-            msg, keyboard = create_vacancy_message(job)
+    # Find next unseen job
+    all_jobs = await session.execute(select(Job))
+    for job in all_jobs.scalars():
+        # Check if user already saw this job
+        user_job = await get_user_job(session, user.id, job.id)
+        if not user_job:
+            # Send the vacancy
+            msg, keyboard = create_vacancy_message(
+                {
+                    "title": job.title,
+                    "company": job.company,
+                    "location": job.location,
+                    "salary": job.salary,
+                    "skills": job.skills,
+                    "url": job.url,
+                }
+            )
             await bot.send_message(
                 user_id, msg, reply_markup=keyboard, parse_mode="Markdown"
             )
-            logger.info(f"Sent vacancy {job_url} to user {user_id}")
+            logger.info(f"Sent vacancy {job.url} to user {user_id}")
             return
 
     logger.info(f"No new vacancies for user {user_id}")
@@ -62,88 +71,65 @@ async def send_vacancy_to_user(user_id: str):
 @dp.callback_query(
     lambda c: c.data and c.data.startswith(("applied|", "skip|"))
 )
-async def process_callback(callback_query: types.CallbackQuery):
+async def process_callback(
+    callback_query: types.CallbackQuery, session: AsyncSession
+):
     """Handle user 'applied' or 'skip' button clicks."""
     logger.info("-" * 60)
 
     action, job_id = callback_query.data.split("|", 1)
-    job_url = job_id_map.get(job_id)
-    job = find_job_by_url(job_url, FILTERED_FILE)
     user_id = str(callback_query.from_user.id)
     logger.info(f"Callback from user {user_id}: {action}")
 
-    if not job:
-        logger.warning(f"Job not found for hash: {job_url}")
-        try:
+    async with session.begin():  # start a transaction
+        # Get the job
+        job = await get_job_by_url(session, job_id)
+        if not job:
+            logger.warning(f"Job not found: {job_id}")
             await bot.answer_callback_query(
                 callback_query.id, text="Job not found."
             )
-        except TelegramBadRequest as e:
-            if "query is too old" in str(e):
-                logger.warning("Callback query expired for 'Job not found'.")
-            else:
-                raise
-        return
+            return
 
-    title = job["title"]
-    job_url = job["url"]
-    now_str = datetime.utcnow().isoformat()
-
-    job_data = {
-        "url": job_url,
-        "datetime": now_str,
-    }
-    logger.info(f"User {user_id} marked job '{title}' as '{action}'")
-
-    if action == "applied":
-        user_data = applied_jobs.setdefault(
-            user_id,
-            {"username": callback_query.from_user.username, "jobs": []},
+        # Get or create the user
+        user = await get_or_create_user(
+            session, int(user_id), callback_query.from_user.username
         )
-        user_data["username"] = (
-            callback_query.from_user.username
-        )  # keep username updated
-        user_data["jobs"].append(job_data)
 
-        save_applied(applied_jobs, APPLIED_FILE)
-
-        try:
-            await bot.answer_callback_query(
-                callback_query.id, text="Marked as applied!"
+        # Get or create the user_job record
+        user_job = await get_user_job(session, user.id, job.id)
+        if not user_job:
+            user_job = await create_user_job(
+                session, user.id, job.id, status="sent"
             )
-        except TelegramBadRequest as e:
-            if "query is too old" in str(e):
-                logger.warning("Callback query expired, ignoring.")
-            else:
-                raise
-        short_title = clean_short_title(title)
-        await bot.send_message(
-            user_id, f"Marked '{short_title}' as applied 😎"
-        )
-        # Increment request count
-        user_request_count[user_id] += 1
 
-        # After every 3 requests, send a meme
+        # Update status
+        new_status = "applied" if action == "applied" else "skipped"
+        await update_user_job_status(session, user_job, new_status)
+
+        # At this point, transaction will auto-commit when leaving the 'async with' block
+
+    short_title = clean_short_title(job.title)
+    reply_text = (
+        f"Marked '{short_title}' as {new_status} 😎"
+        if action == "applied"
+        else "Skipped."
+    )
+
+    try:
+        await bot.answer_callback_query(callback_query.id, text=reply_text)
+    except TelegramBadRequest as e:
+        if "query is too old" in str(e):
+            logger.warning("Callback query expired, ignoring.")
+        else:
+            raise
+
+    # Optionally, send a meme after every 3 requests
+    if action == "applied":
+        user_request_count[user_id] += 1
         if user_request_count[user_id] % 3 == 0:
             meme_url = random.choice(MEME_GIFS)
             await callback_query.message.answer_animation(meme_url)
             logger.info(f"Sent meme to user {user_id}")
 
-    elif action == "skip":
-        user_data = skipped_jobs.setdefault(
-            user_id,
-            {"username": callback_query.from_user.username, "jobs": []},
-        )
-        user_data["username"] = callback_query.from_user.username
-        user_data["jobs"].append(job_data)
-        save_skipped(skipped_jobs, SKIPPED_FILE)
-
-        try:
-            await bot.answer_callback_query(callback_query.id, text="Skipped.")
-        except TelegramBadRequest as e:
-            if "query is too old" in str(e):
-                logger.warning("Callback query expired, ignoring.")
-            else:
-                raise
-
-    await send_vacancy_to_user(user_id)
+    await send_vacancy_to_user(user_id, session)
