@@ -13,6 +13,7 @@ from db.crud import (
     create_user_job,
     update_user_job_status,
 )
+from db.db import AsyncSessionLocal
 from db.models import Job
 from .bot_config import (
     bot,
@@ -22,11 +23,8 @@ from .bot_config import (
 )
 from logs.logger import logger
 from notifier.telegram.job_utils import (
-    save_applied,
-    save_skipped,
     clean_short_title,
     create_vacancy_message,
-    find_job_by_url,
     get_or_create_user,
 )
 
@@ -48,16 +46,7 @@ async def send_vacancy_to_user(
         user_job = await get_user_job(session, user.id, job.id)
         if not user_job:
             # Send the vacancy
-            msg, keyboard = create_vacancy_message(
-                {
-                    "title": job.title,
-                    "company": job.company,
-                    "location": job.location,
-                    "salary": job.salary,
-                    "skills": job.skills,
-                    "url": job.url,
-                }
-            )
+            msg, keyboard = create_vacancy_message(job)
             await bot.send_message(
                 user_id, msg, reply_markup=keyboard, parse_mode="Markdown"
             )
@@ -71,9 +60,7 @@ async def send_vacancy_to_user(
 @dp.callback_query(
     lambda c: c.data and c.data.startswith(("applied|", "skip|"))
 )
-async def process_callback(
-    callback_query: types.CallbackQuery, session: AsyncSession
-):
+async def process_callback(callback_query: types.CallbackQuery):
     """Handle user 'applied' or 'skip' button clicks."""
     logger.info("-" * 60)
 
@@ -81,33 +68,35 @@ async def process_callback(
     user_id = str(callback_query.from_user.id)
     logger.info(f"Callback from user {user_id}: {action}")
 
-    async with session.begin():  # start a transaction
-        # Get the job
-        job = await get_job_by_url(session, job_id)
-        if not job:
-            logger.warning(f"Job not found: {job_id}")
-            await bot.answer_callback_query(
-                callback_query.id, text="Job not found."
-            )
-            return
+    # ✅ Open DB session here
+    async with AsyncSessionLocal() as session:
+        async with session.begin():  # transaction
+            # Get the job
+            job = await get_job_by_url(session, job_id)
+            if not job:
+                logger.warning(f"Job not found: {job_id}")
+                await bot.answer_callback_query(
+                    callback_query.id, text="Job not found."
+                )
+                return
 
-        # Get or create the user
-        user = await get_or_create_user(
-            session, int(user_id), callback_query.from_user.username
-        )
-
-        # Get or create the user_job record
-        user_job = await get_user_job(session, user.id, job.id)
-        if not user_job:
-            user_job = await create_user_job(
-                session, user.id, job.id, status="sent"
+            # Get or create the user
+            user = await get_or_create_user(
+                session, int(user_id), callback_query.from_user.username
             )
 
-        # Update status
-        new_status = "applied" if action == "applied" else "skipped"
-        await update_user_job_status(session, user_job, new_status)
+            # Get or create the user_job record
+            user_job = await get_user_job(session, user.id, job.id)
+            if not user_job:
+                user_job = await create_user_job(
+                    session, user.id, job.id, status="sent"
+                )
 
-        # At this point, transaction will auto-commit when leaving the 'async with' block
+            # Update status
+            new_status = "applied" if action == "applied" else "skipped"
+            await update_user_job_status(session, user_job, new_status)
+
+        # Commit automatically happens when leaving `session.begin()`
 
     short_title = clean_short_title(job.title)
     reply_text = (
