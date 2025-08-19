@@ -92,3 +92,6 @@ docker build -t job-notifier . ; docker run --rm job-notifier
 
 ### Logging
 ![Logging](screenshots/logging.png)
+
+### DB Schema
+![DB Schema](screenshots/db_schema.png)
