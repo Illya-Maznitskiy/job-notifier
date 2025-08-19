@@ -114,9 +114,9 @@ def truncate_title(title: str, max_length: int = 34) -> str:
     return truncated or title[:max_length]
 
 
-def escape_markdown(text: str) -> str:
-    """Remove all asterisk (*) characters to prevent Markdown errors."""
-    return re.sub(r"\*", "", text)
+def escape_markdown(text):
+    escape_chars = r"_*[]()~`>#+-=|{}.!"
+    return re.sub(f"([{re.escape(escape_chars)}])", r"\\\1", text)
 
 
 def get_job_id(job_url: str) -> str:
@@ -132,9 +132,9 @@ def create_vacancy_message(job: dict) -> tuple[str, object]:
     keyboard = get_keyboard(job["title"], url)  # pass URL here
 
     # Extract values with sensible defaults
-    company = job.get("company", "Unknown")
-    score = job.get("score", "No score")
-    job_title = escape_markdown(truncate_title(job.get("title", "No Title")))
+    company = escape_markdown(str(job.get("company") or "Unknown"))
+    score = job.get("score") or "No score"
+    job_title = escape_markdown(truncate_title(job.get("title") or "No Title"))
 
     # Create Markdown-safe message
     url_text = f"[🔗 View Job Posting]({url})" if url else "No URL provided"
