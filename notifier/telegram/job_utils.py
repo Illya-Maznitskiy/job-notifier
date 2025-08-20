@@ -3,9 +3,11 @@ import json
 import os
 import re
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.crud import get_user_by_user_id, create_user
+from db.db import AsyncSessionLocal
 from db.models import User, Job
 from logs.logger import logger
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
@@ -13,15 +15,13 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from notifier.telegram.bot_config import bot
 
 
-def get_keyboard(title: str, job_url: str) -> InlineKeyboardMarkup:
-    """Return inline keyboard with correct job URL."""
+def get_keyboard(job: Job) -> InlineKeyboardMarkup:
+    """Return inline keyboard with job.id in callback_data."""
     logger.info("-" * 60)
-    logger.debug(f"Generating keyboard with URL: {job_url} for title: {title}")
+    logger.debug(f"Generating keyboard for job id={job.id}, title={job.title}")
 
-    job_id = get_job_id(job_url)
-
-    def get_callback_data(action):
-        return f"{action}|{job_id}"
+    def get_callback_data(action: str) -> str:
+        return f"{action}|{job.id}"
 
     return InlineKeyboardMarkup(
         inline_keyboard=[
@@ -76,9 +76,15 @@ def escape_markdown(text):
     return re.sub(f"([{re.escape(escape_chars)}])", r"\\\1", text)
 
 
-def get_job_id(job_url: str) -> str:
-    """Create short unique ID to fit Telegram callback_data limit."""
-    return hashlib.md5(job_url.encode()).hexdigest()[:8]
+# def get_job_id(job_url: str) -> str:
+#     """Create short unique ID to fit Telegram callback_data limit."""
+#     return hashlib.md5(job_url.encode()).hexdigest()[:8]
+
+
+async def get_job_id_by_url(session: AsyncSession, job_url: str) -> int | None:
+    """Fetch job.id from DB using job.url."""
+    result = await session.execute(select(Job.id).where(Job.url == job_url))
+    return result.scalar_one_or_none()
 
 
 def create_vacancy_message(job: Job) -> tuple[str, object]:
@@ -86,7 +92,7 @@ def create_vacancy_message(job: Job) -> tuple[str, object]:
     Create the formatted vacancy message and keyboard for a job.
     """
     url = job.url or ""
-    keyboard = get_keyboard(job.title, url)
+    keyboard = get_keyboard(job)
 
     # Extract values with sensible defaults
 
