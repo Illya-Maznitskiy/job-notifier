@@ -19,8 +19,8 @@ async def create_user(
 ) -> User:
     user = User(user_id=user_id, username=username)
     session.add(user)
-    await session.commit()
-    await session.refresh(user)
+    await session.flush()  # push changes to DB without committing
+    await session.refresh(user)  # safe to refresh while transaction is open
     return user
 
 
@@ -29,6 +29,11 @@ async def create_user(
 
 async def get_job_by_url(session: AsyncSession, url: str) -> Job | None:
     result = await session.execute(select(Job).where(Job.url == url))
+    return result.scalars().first()
+
+
+async def get_job_by_id(session: AsyncSession, job_id: int) -> Job | None:
+    result = await session.execute(select(Job).where(Job.id == job_id))
     return result.scalars().first()
 
 
@@ -80,6 +85,7 @@ async def create_user_job(
 ) -> UserJob:
     if datetime_sent is None:
         datetime_sent = datetime.utcnow()
+
     user_job = UserJob(
         user_id=user_id,
         job_id=job_id,
@@ -87,7 +93,7 @@ async def create_user_job(
         datetime_sent=datetime_sent,
     )
     session.add(user_job)
-    await session.commit()
+    await session.flush()  # push to DB but do NOT commit
     await session.refresh(user_job)
     return user_job
 
@@ -96,6 +102,6 @@ async def update_user_job_status(
     session: AsyncSession, user_job: UserJob, new_status: str
 ) -> UserJob:
     user_job.status = new_status
-    await session.commit()
+    await session.flush()  # just push changes
     await session.refresh(user_job)
     return user_job
