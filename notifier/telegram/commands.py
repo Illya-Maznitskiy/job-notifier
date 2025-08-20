@@ -4,8 +4,10 @@ import random
 
 from aiogram.filters import Command
 from aiogram import types
+from sqlalchemy import select
 
 from db.db import AsyncSessionLocal
+from db.models import UserKeyword, User
 from logs.logger import logger
 from notifier.telegram.jobs import send_vacancy_to_user
 from notifier.telegram.bot_config import (
@@ -85,3 +87,49 @@ async def handle_random_text(message: types.Message):
         "/stop - Stop the bot (admin only)"
     )
     await message.answer(help_text)
+
+
+@dp.message(Command("add_keyword"))
+async def add_keyword(message: types.Message):
+    parts = message.text.split(maxsplit=2)
+    if len(parts) < 2:
+        await message.answer("Usage: /add_keyword <keyword> <weight>")
+        return
+
+    keyword = parts[1].lower()
+    weight = int(parts[2]) if len(parts) == 3 else 1
+
+    async with AsyncSessionLocal() as session:
+        # Get DB primary key for this Telegram user
+        result = await session.execute(
+            select(User).where(User.user_id == message.from_user.id)
+        )
+        user = result.scalar()
+        if not user:
+            await message.answer("You are not registered yet ❌")
+            return
+
+        keyword = parts[1].lower()
+        weight = int(parts[2]) if len(parts) == 3 else 1
+
+        # Check if keyword exists
+        result = await session.execute(
+            select(UserKeyword).where(
+                UserKeyword.user_id == user.id,
+                UserKeyword.keyword == keyword,
+            )
+        )
+        existing_kw = result.scalar()
+        if existing_kw:
+            existing_kw.weight = weight
+        else:
+            session.add(
+                UserKeyword(
+                    user_id=user.id,
+                    keyword=keyword,
+                    weight=weight,
+                )
+            )
+        await session.commit()
+
+    await message.answer(f"Keyword '{keyword}' saved with weight {weight} ✅")
