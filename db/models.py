@@ -28,6 +28,9 @@ class User(Base):
     username: Mapped[str] = mapped_column(String(100), nullable=True)
 
     jobs: Mapped[list["UserJob"]] = relationship(back_populates="user")
+    keywords: Mapped[list["UserKeyword"]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
 
 
 class Job(Base):
@@ -70,3 +73,21 @@ class UserJob(Base):
 
     user: Mapped["User"] = relationship(back_populates="jobs")
     job: Mapped["Job"] = relationship(back_populates="sent_to_users")
+
+
+class UserKeyword(Base):
+    """Keywords for each user with weights."""
+
+    __tablename__ = "user_keywords"
+    __table_args__ = (
+        UniqueConstraint("user_id", "keyword", name="uix_user_keyword"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    keyword: Mapped[str] = mapped_column(String(100), nullable=False)
+    weight: Mapped[int] = mapped_column(
+        Integer, nullable=False
+    )  # positive or negative
+
+    user: Mapped["User"] = relationship(back_populates="keywords")
