@@ -122,4 +122,6 @@ async def process_callback(callback_query: types.CallbackQuery):
             await callback_query.message.answer_animation(meme_url)
             logger.info(f"Sent meme to user {user_id}")
 
-    await send_vacancy_to_user(user_id, session)
+    # ✅ Open a new session for sending the vacancy
+    async with AsyncSessionLocal() as session2:
+        await send_vacancy_to_user(user_id, session2)
