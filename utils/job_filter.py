@@ -1,11 +1,11 @@
-import json
+import asyncio
 import os
-from pathlib import Path
-from typing import List, Dict, Optional
 
-import yaml
 from dotenv import load_dotenv
+from sqlalchemy import select
 
+from db.db import AsyncSessionLocal
+from db.models import UserKeyword
 from logs.logger import logger
 
 
@@ -16,32 +16,17 @@ load_dotenv()
 SCORE_THRESHOLD = int(os.getenv("SCORE_THRESHOLD", 0))
 
 
-def load_keyword_weights(filename="keyword_weights.yaml") -> dict:
-    """Load keyword weights from YAML file."""
-    # Get root path
-    project_root = Path(__file__).resolve().parent.parent
-    # Full path to YAML file
-    weights_path = project_root / filename
-
-    if not weights_path.exists():
-        logger.error(f"Keyword weights not found: {weights_path}")
-        raise FileNotFoundError(
-            f"Keyword weights file not found: {weights_path}"
-        )
-
-    logger.info(f"Loading keyword weights from: {weights_path}")
-
-    # Read and parse YAML
-    with open(weights_path, "r", encoding="utf-8") as f:
-        data = yaml.safe_load(f)
-        # Combine positive + negative weights
-        return {**data.get("positive", {}), **data.get("negative", {})}
+async def get_user_keywords(session, user_id: int) -> dict[str, int]:
+    """Fetch all keywords for a user as {keyword: weight}."""
+    result = await session.execute(
+        select(UserKeyword).where(UserKeyword.user_id == user_id)
+    )
+    keywords = result.scalars().all()
+    return {kw.keyword.lower(): kw.weight for kw in keywords}
 
 
-def score_job(job: Dict[str, str], keyword_weights: Dict[str, int]) -> int:
-    """
-    Score job based on keyword relevance.
-    """
+def score_job(job: dict, keyword_weights: dict, user_id=None) -> int:
+    """Score job based on keyword relevance."""
     logger.info("-" * 60)
 
     title = job.get("title", "")
@@ -55,113 +40,61 @@ def score_job(job: Dict[str, str], keyword_weights: Dict[str, int]) -> int:
 
     score = 0
     for keyword, weight in keyword_weights.items():
-        count = combined_text.count(keyword)
-        if count > 0:
-            score += weight * count
-            logger.debug(
-                f"Matched '{keyword}' {count}x in job: '{title}' "
-                f"-> +{weight * count} points"
-            )
+        if keyword in combined_text:  # partial match
+            score += weight
 
-    logger.debug(f"Total score for job '{title}': {score}")
+    logger.debug(
+        f"Job '{job.get('title')}' scored {score} for user_id={user_id}"
+    )
+
     return score
 
 
-def filter_and_score_jobs_from_file(
-    input_path: Optional[str] = None,
-    output_path: Optional[str] = None,
-    keyword_weights: Optional[Dict[str, int]] = None,
-    score_threshold: int = SCORE_THRESHOLD,
-) -> List[Dict[str, str]]:
-    """
-    Filter jobs from file by score.
-    """
+async def filter_jobs_for_user(
+    session, user_id: int, jobs: list[dict]
+) -> list[dict]:
+    """Filter jobs for a single user based on their keywords."""
     logger.info("-" * 60)
-    logger.info("Filtering jobs")
-    logger.info(f"Using SCORE_THRESHOLD = {SCORE_THRESHOLD}")
+    logger.info(f"Fetching keywords for user_id={user_id}")
 
-    if keyword_weights is None:
-        keyword_weights = load_keyword_weights()
-
-    project_root = Path(__file__).resolve().parent.parent
-
-    if input_path is None:
-        input_path = project_root / "storage" / "all_vacancies.json"
-    else:
-        input_path = Path(input_path)
-        if not input_path.is_absolute():
-            input_path = project_root / input_path
-
-    if output_path is None:
-        output_path = project_root / "storage" / "filtered_vacancies.json"
-    else:
-        output_path = Path(output_path)
-        if not output_path.is_absolute():
-            output_path = project_root / output_path
-
-    if not input_path.exists():
-        logger.error(f"Input file not found: {input_path}")
-        return []
-
-    with open(input_path, "r", encoding="utf-8") as f:
-        vacancies = json.load(f)
-
-    logger.info(f"Loaded {len(vacancies)} jobs from {input_path}")
-
-    seen_urls = set()
+    keyword_weights = await get_user_keywords(session, user_id)
     filtered_jobs = []
-    for job in vacancies:
-        url = job.get("url")
 
-        if not url:
-            logger.warning(
-                f"Job skipped: Missing URL for job '{job.get('title', '')}'"
-            )
-            continue
-
-        if url in seen_urls:
-            logger.warning(
-                f"Job skipped: Duplicate URL detected "
-                f"'{url}' for job '{job.get('title', '')}'"
-            )
-            continue
-
-        seen_urls.add(url)
-        logger.info(
-            f"Processing job '{job.get('title', '')}: "
-            f"{job.get('company', '')}'"
-        )
-        score = score_job(job, keyword_weights)
-        if score >= score_threshold:
-            # Create a filtered job dict with only desired fields:
-            filtered_job = {
-                "title": job.get("title"),
-                "company": job.get("company"),
-                "location": job.get("location"),
-                "salary": job.get("salary"),
-                "skills": job.get("skills"),
-                "score": score,
-                "url": url,
-            }
-            filtered_jobs.append(filtered_job)
-            logger.debug(
-                f"Job passed: '{filtered_job.get('title', '')}' "
-                f"(score: {score})"
-            )
-        else:
-            logger.debug(
-                f"Job skipped: '{job.get('title', '')}' (score: {score})"
-            )
+    for job in jobs:
+        score = score_job(job, keyword_weights, user_id)
+        if score >= SCORE_THRESHOLD:
+            filtered_jobs.append({**job, "score": score})
 
     filtered_jobs.sort(key=lambda job: job["score"], reverse=True)
-
-    with open(output_path, "w", encoding="utf-8") as f:
-        json.dump(filtered_jobs, f, indent=2, ensure_ascii=False)
-
-    logger.info(f"Saved {len(filtered_jobs)} filtered jobs to {output_path}")
-
     return filtered_jobs
 
 
+async def main():
+    async with AsyncSessionLocal() as session:
+        # Mock a job
+        jobs = [
+            {
+                "title": "Python Developer",
+                "company": "ABC",
+                "skills": ["python"],
+                "url": "http://...",
+                "description": "Looking for an experienced Python developer.",
+            }
+        ]
+
+        # Mock user keywords instead of fetching from DB
+        user_id = 1
+        keyword_weights = {"python": 10}  # pretend the user has this keyword
+
+        # Filter jobs using mocked keywords
+        filtered_jobs = []
+        for job in jobs:
+            score = score_job(job, keyword_weights, user_id)
+            if score >= SCORE_THRESHOLD:
+                filtered_jobs.append({**job, "score": score})
+
+        print(filtered_jobs)
+
+
 if __name__ == "__main__":
-    filter_and_score_jobs_from_file()
+    asyncio.run(main())
