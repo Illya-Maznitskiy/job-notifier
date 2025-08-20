@@ -12,6 +12,7 @@ from db.crud import (
     get_job_by_url,
     create_user_job,
     update_user_job_status,
+    get_job_by_id,
 )
 from db.db import AsyncSessionLocal
 from db.models import Job
@@ -72,9 +73,9 @@ async def process_callback(callback_query: types.CallbackQuery):
     async with AsyncSessionLocal() as session:
         async with session.begin():  # transaction
             # Get the job
-            job = await get_job_by_url(session, job_id)
+            job = await get_job_by_id(session, int(job_id))
             if not job:
-                logger.warning(f"Job not found: {job_id}")
+                logger.warning(f"Job not found: {job_id}, {job}")
                 await bot.answer_callback_query(
                     callback_query.id, text="Job not found."
                 )
