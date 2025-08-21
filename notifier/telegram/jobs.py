@@ -13,6 +13,7 @@ from db.crud.user_job import (
 )
 from db.db import AsyncSessionLocal
 from db.models import Job
+from utils.job_filter import filter_jobs_for_user
 from .bot_config import (
     bot,
     dp,
@@ -37,13 +38,24 @@ async def send_vacancy_to_user(
     # Get or create the user
     user = await get_or_create_user(session, int(user_id), username)
 
-    # Find next unseen job
+    # Get all jobs from db
     all_jobs = await session.execute(select(Job))
-    for job in all_jobs.scalars():
-        # Check if user already saw this job
+    jobs = list(all_jobs.scalars())
+
+    # Score & filter for this user
+    filtered_jobs = await filter_jobs_for_user(session, user.id, jobs)
+
+    if not filtered_jobs:
+        logger.info(f"No relevant jobs for user {user_id}")
+        await bot.send_message(
+            user_id, "🫠 No relevant jobs found for you right now"
+        )
+        return
+
+    # Find first unseen relevant job
+    for job in filtered_jobs:
         user_job = await get_user_job(session, user.id, job.id)
         if not user_job:
-            # Send the vacancy
             msg, keyboard = create_vacancy_message(job)
             await bot.send_message(
                 user_id, msg, reply_markup=keyboard, parse_mode="Markdown"
