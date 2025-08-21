@@ -95,3 +95,45 @@ async def list_keywords(message: types.Message):
             reply += f"- {kw.keyword} (weight: {kw.weight})\n"
 
         await message.answer(reply)
+
+
+@dp.message(Command("remove_keyword"))
+async def remove_keyword(message: types.Message):
+    """Remove a keyword for the current user."""
+    user_id = message.from_user.id
+    logger.info("-" * 60)
+    logger.info(
+        f"User {user_id} invoked /remove_keyword with text: {message.text!r}"
+    )
+
+    parts = message.text.split(maxsplit=1)
+    if len(parts) != 2:
+        await message.answer("Usage: /remove_keyword <keyword> ❌")
+        return
+
+    keyword = parts[1].lower()
+
+    async with AsyncSessionLocal() as session:
+        # Check if user exists
+        user = await get_user_by_user_id(session, user_id)
+        if not user:
+            logger.warning(
+                f"Unregistered user {user_id} tried to remove a keyword."
+            )
+            await message.answer("You are not registered yet ❌")
+            return
+
+        # Try to delete keyword
+        from db.crud.user_keyword import delete_user_keyword
+
+        deleted = await delete_user_keyword(session, user.id, keyword)
+
+        if deleted:
+            await session.commit()
+            await message.answer(f"Keyword '{keyword}' removed ✅")
+            logger.info(f"User {user_id} removed keyword '{keyword}'")
+        else:
+            await message.answer(f"Keyword '{keyword}' not found ❌")
+            logger.info(
+                f"User {user_id} tried to remove non-existent keyword '{keyword}'"
+            )
