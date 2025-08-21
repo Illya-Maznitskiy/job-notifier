@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from db.crud import get_job_by_url, create_job
+from db.crud.job import get_job_by_url, create_job
 from logs.logger import logger
 
 
