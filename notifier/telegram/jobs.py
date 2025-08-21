@@ -1,18 +1,15 @@
-import json
 import random
-from datetime import datetime
 
 from aiogram import types
 from aiogram.exceptions import TelegramBadRequest
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from db.crud import (
+from db.crud.job import get_job_by_id
+from db.crud.user_job import (
     get_user_job,
-    get_job_by_url,
     create_user_job,
     update_user_job_status,
-    get_job_by_id,
 )
 from db.db import AsyncSessionLocal
 from db.models import Job
