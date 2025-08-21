@@ -6,6 +6,8 @@ from aiogram.filters import Command
 from aiogram import types
 from sqlalchemy import select
 
+from db.crud.user import get_user_by_user_id
+from db.crud.user_keyword import upsert_user_keyword
 from db.db import AsyncSessionLocal
 from db.models import UserKeyword, User
 from logs.logger import logger
@@ -91,45 +93,57 @@ async def handle_random_text(message: types.Message):
 
 @dp.message(Command("add_keyword"))
 async def add_keyword(message: types.Message):
+    """Add or update a user keyword with a specified weight."""
+    logger.info("-" * 60)
+    user_id = message.from_user.id
+    logger.info(
+        f"User {user_id} invoked /add_keyword with text: {message.text!r}"
+    )
+
+    # Split text into exactly 3 parts: command, keyword, weight
     parts = message.text.split(maxsplit=2)
-    if len(parts) < 2:
-        await message.answer("Usage: /add_keyword <keyword> <weight>")
+    if len(parts) != 3:
+        await message.answer(
+            "Usage: /add_keyword <keyword> <weight>\nBoth are required ❌"
+        )
         return
 
     keyword = parts[1].lower()
-    weight = int(parts[2]) if len(parts) == 3 else 1
+    try:
+        weight = int(parts[2])
+    except ValueError:
+        await message.answer("Weight must be an integer ❌")
+        return
 
     async with AsyncSessionLocal() as session:
-        # Get DB primary key for this Telegram user
-        result = await session.execute(
-            select(User).where(User.user_id == message.from_user.id)
-        )
-        user = result.scalar()
+        # Check if user exists
+        user = await get_user_by_user_id(session, user_id)
         if not user:
+            logger.warning(
+                f"Unregistered user {user_id} tried to add a keyword."
+            )
             await message.answer("You are not registered yet ❌")
             return
 
-        keyword = parts[1].lower()
-        weight = int(parts[2]) if len(parts) == 3 else 1
+        # Check if keyword already exists
+        from db.crud.user_keyword import get_user_keyword
 
-        # Check if keyword exists
-        result = await session.execute(
-            select(UserKeyword).where(
-                UserKeyword.user_id == user.id,
-                UserKeyword.keyword == keyword,
-            )
-        )
-        existing_kw = result.scalar()
+        existing_kw = await get_user_keyword(session, user.id, keyword)
         if existing_kw:
+            # Update existing keyword
             existing_kw.weight = weight
+            await session.flush()
+            action = "updated"
         else:
-            session.add(
-                UserKeyword(
-                    user_id=user.id,
-                    keyword=keyword,
-                    weight=weight,
-                )
-            )
+            # Create new keyword
+            await upsert_user_keyword(session, user.id, keyword, weight)
+            action = "created"
+
         await session.commit()
 
-    await message.answer(f"Keyword '{keyword}' saved with weight {weight} ✅")
+    logger.info(
+        f"User {user_id} {action} keyword '{keyword}' with weight {weight}"
+    )
+    await message.answer(
+        f"Keyword '{keyword}' {action} with weight {weight} ✅"
+    )
