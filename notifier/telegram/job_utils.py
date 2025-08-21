@@ -1,13 +1,10 @@
-import hashlib
-import json
 import os
 import re
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from db.crud import get_user_by_user_id, create_user
-from db.db import AsyncSessionLocal
+from db.crud.user import get_user_by_user_id, create_user
 from db.models import User, Job
 from logs.logger import logger
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
