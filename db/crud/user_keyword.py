@@ -39,4 +39,13 @@ async def get_all_user_keywords(
     result = await session.execute(
         select(UserKeyword).where(UserKeyword.user_id == user_id)
     )
-    return list(result.scalars().all())  # explicitly cast to list
+    return list(result.scalars().all())
+
+
+async def get_user_all_keywords(
+    session: AsyncSession, user_id: int
+) -> list[UserKeyword]:
+    result = await session.execute(
+        select(UserKeyword).where(UserKeyword.user_id == user_id)
+    )
+    return list(result.scalars().all())
