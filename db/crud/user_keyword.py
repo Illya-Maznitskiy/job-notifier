@@ -49,3 +49,15 @@ async def get_user_all_keywords(
         select(UserKeyword).where(UserKeyword.user_id == user_id)
     )
     return list(result.scalars().all())
+
+
+async def delete_user_keyword(
+    session: AsyncSession, user_id: int, keyword: str
+) -> bool:
+    """Delete a keyword for a user. Returns True if deleted, False if not found."""
+    existing_kw = await get_user_keyword(session, user_id, keyword)
+    if existing_kw:
+        await session.delete(existing_kw)
+        await session.flush()
+        return True
+    return False
