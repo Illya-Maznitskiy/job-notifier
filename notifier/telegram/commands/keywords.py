@@ -2,7 +2,7 @@ from aiogram.filters import Command
 from aiogram import types
 
 from db.crud.user import get_user_by_user_id
-from db.crud.user_keyword import upsert_user_keyword
+from db.crud.user_keyword import upsert_user_keyword, get_user_all_keywords
 from db.db import AsyncSessionLocal
 from logs.logger import logger
 from notifier.telegram.bot_config import (
@@ -66,3 +66,32 @@ async def add_keyword(message: types.Message):
     await message.answer(
         f"Keyword '{keyword}' {action} with weight {weight} ✅"
     )
+
+
+@dp.message(Command("list_keywords"))
+async def list_keywords(message: types.Message):
+    """List all keywords for the current user."""
+    user_id = message.from_user.id
+    logger.info("-" * 60)
+    logger.info(f"User {user_id} invoked /list_keywords")
+
+    async with AsyncSessionLocal() as session:
+        user = await get_user_by_user_id(session, user_id)
+        if not user:
+            logger.warning(
+                f"Unregistered user {user_id} tried to list keywords."
+            )
+            await message.answer("You are not registered yet ❌")
+            return
+
+        keywords = await get_user_all_keywords(session, user.id)
+
+        if not keywords:
+            await message.answer("You haven't added any keywords yet ❌")
+            return
+
+        reply = "Your keywords:\n"
+        for kw in keywords:
+            reply += f"- {kw.keyword} (weight: {kw.weight})\n"
+
+        await message.answer(reply)
