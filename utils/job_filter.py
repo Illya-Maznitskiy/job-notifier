@@ -1,5 +1,6 @@
 import asyncio
 import os
+from typing import List, Tuple
 
 from dotenv import load_dotenv
 from sqlalchemy import select
@@ -47,20 +48,20 @@ def score_job(job: Job, keyword_weights: dict, user_id=None) -> int:
 
 
 async def filter_jobs_for_user(
-    session, user_id: int, jobs: list[Job]
-) -> list[Job]:
-    """Filter jobs for a single user based on their keywords."""
+    session, user_id: int, jobs: List[Job]
+) -> List[Tuple[Job, int]]:
+    """Filter jobs for a single user based on their keywords and compute scores."""
     keyword_weights = await get_user_keywords(session, user_id)
 
-    scored_jobs: list[tuple[Job, int]] = []
+    scored_jobs: List[Tuple[Job, int]] = []
     for job in jobs:
         score = score_job(job, keyword_weights, user_id)
         if score >= SCORE_THRESHOLD:
             scored_jobs.append((job, score))
 
-    # sort by score
+    # sort by score descending
     scored_jobs.sort(key=lambda x: x[1], reverse=True)
-    return [job for job, _ in scored_jobs]
+    return scored_jobs  # list of (job, score)
 
 
 async def main():
