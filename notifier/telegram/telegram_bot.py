@@ -12,6 +12,7 @@ from notifier.telegram.commands.start_next import (  # noqa: F401
 from notifier.telegram.commands.admin import cmd_stop  # noqa: F401
 
 from notifier.telegram.commands.keywords import add_keyword  # noqa: F401
+from notifier.telegram.commands.refresh import refresh_jobs  # noqa: F401
 from notifier.telegram.random_text import handle_random_text  # noqa: F401
 
 
