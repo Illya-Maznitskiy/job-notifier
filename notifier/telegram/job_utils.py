@@ -84,26 +84,25 @@ async def get_job_id_by_url(session: AsyncSession, job_url: str) -> int | None:
     return result.scalar_one_or_none()
 
 
-def create_vacancy_message(job: Job) -> tuple[str, object]:
+def create_vacancy_message(
+    job: Job, score: int | None = None
+) -> tuple[str, object]:
     """
     Create the formatted vacancy message and keyboard for a job.
     """
     url = job.url or ""
     keyboard = get_keyboard(job)
 
-    # Extract values with sensible defaults
-
     company = escape_markdown(job.company or "Unknown")
     job_title = escape_markdown(truncate_title(job.title or "No Title"))
-    score = job.score or "No score"
+    score_text = score if score is not None else "No score"
 
-    # Create Markdown-safe message
     url_text = f"[🔗 View Job Posting]({url})" if url else "No URL provided"
 
     msg = (
         f"🔹 *{job_title}*\n\n"
         f"🏢 {company}\n"
-        f"📊 Score: {score}\n\n\n"
+        f"📊 Score: {score_text}\n\n\n"
         f"{url_text}"
     )
 
