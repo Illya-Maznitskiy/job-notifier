@@ -87,9 +87,9 @@ async def parse_job_offer(offer):
     skills = [await s.text_content() for s in skill_els]
 
     return {
-        "title": title.strip() if title else None,
+        "title": title.strip() if title else "Unknown",
         "url": job_url,
-        "company": company.strip() if company else None,
+        "company": company.strip() if company else "Unknown",
         "salary": salary.strip() if salary else None,
         "currency": currency.strip() if currency else None,
         "location": location.strip() if location else None,
