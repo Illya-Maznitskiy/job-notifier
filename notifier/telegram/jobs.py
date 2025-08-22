@@ -3,9 +3,9 @@ import random
 from aiogram import types
 from aiogram.exceptions import TelegramBadRequest
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 
 from db.crud.job import get_job_by_id
+from db.crud.user_filtered_jobs import get_filtered_jobs_by_user
 from db.crud.user_job import (
     get_user_job,
     create_user_job,
@@ -13,7 +13,6 @@ from db.crud.user_job import (
 )
 from db.db import AsyncSessionLocal
 from db.models import Job
-from utils.job_filter import filter_jobs_for_user
 from .bot_config import (
     bot,
     dp,
@@ -35,36 +34,36 @@ async def send_vacancy_to_user(
     logger.info("-" * 60)
     logger.info(f"Sending vacancy to user: {user_id}")
 
-    # Get or create the user
     user = await get_or_create_user(session, int(user_id), username)
 
-    # Get all jobs from db
-    all_jobs = await session.execute(select(Job))
-    jobs = list(all_jobs.scalars())
+    user_filtered_jobs = await get_filtered_jobs_by_user(session, user.id)
+    job_sent = False
 
-    # Score & filter for this user
-    filtered_jobs = await filter_jobs_for_user(session, user.id, jobs)
+    for ufj in user_filtered_jobs:
+        # check if user has already seen/applied/skipped this job
+        user_job = await get_user_job(session, user.id, ufj.job_id)
+        if user_job and user_job.status in ("sent", "applied", "skipped"):
+            continue  # skip jobs already sent or acted upon
 
-    if not filtered_jobs:
-        logger.info(f"No relevant jobs for user {user_id}")
+        job: Job | None = await session.get(Job, ufj.job_id)
+        if not job:
+            continue
+
+        # mark as sent
+        await create_user_job(session, user.id, job.id, status="sent")
+
+        msg, keyboard = create_vacancy_message(job, score=ufj.score)
         await bot.send_message(
-            user_id, "🫠 No relevant jobs found for you right now"
+            user_id, msg, reply_markup=keyboard, parse_mode="Markdown"
         )
-        return
+        job_sent = True
+        break
 
-    # Find first unseen relevant job
-    for job in filtered_jobs:
-        user_job = await get_user_job(session, user.id, job.id)
-        if not user_job:
-            msg, keyboard = create_vacancy_message(job)
-            await bot.send_message(
-                user_id, msg, reply_markup=keyboard, parse_mode="Markdown"
-            )
-            logger.info(f"Sent vacancy {job.url} to user {user_id}")
-            return
-
-    logger.info(f"No new vacancies for user {user_id}")
-    await bot.send_message(user_id, "🫠 Dried up. Jobs gone. I am but dust")
+    if not job_sent:
+        logger.info(f"No new vacancies for user {user_id}")
+        await bot.send_message(
+            user_id, "🫠 Dried up. Jobs gone. I am but dust"
+        )
 
 
 @dp.callback_query(
