@@ -36,6 +36,7 @@ async def run_all_fetchers() -> list[dict]:
     all_jobs = []
 
     for name, fetcher in FETCHERS.items():
+        logger.info("-" * 60)
         logger.info(f"Fetching jobs from {name}...")
         try:
             jobs = await fetcher()
