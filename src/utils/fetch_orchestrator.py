@@ -6,14 +6,14 @@ from src.fetchers.nofluff.nofluff import (
     run_fetch_and_save_jobs as fetch_nofluff,
 )
 from src.fetchers.pracuj.pracuj import run_fetch_and_save_jobs as fetch_pracuj
-from src.fetchers import run_fetch_and_save_jobs as fetch_dou
+from src.fetchers.dou.dou import run_fetch_and_save_jobs as fetch_dou
 from src.fetchers.bulldog.bulldog import (
     run_fetch_and_save_jobs as fetch_bulldog,
 )
-from src.fetchers import (
+from src.fetchers.robota_ua.robota_ua import (
     run_fetch_and_save_jobs as fetch_robota_ua,
 )
-from src.fetchers.jooble import run_fetch_and_save_jobs as fetch_jooble
+from src.fetchers.jooble.jooble import run_fetch_and_save_jobs as fetch_jooble
 from logs.logger import logger
 
 
