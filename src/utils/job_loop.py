@@ -1,7 +1,6 @@
 import asyncio
 
 from logs.logger import logger
-from src.utils.email_sender import send_job_listings_email
 from src.utils.fetch_orchestrator import run_all_fetchers
 
 
@@ -20,7 +19,6 @@ async def job_process_loop():
         logger.info("Job processing started")
 
         await run_all_fetchers()
-        send_job_listings_email()
 
         await asyncio.sleep(JOB_LOOP_INTERVAL)
 
