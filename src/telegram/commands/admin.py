@@ -5,7 +5,7 @@ from aiogram import types
 
 
 from logs.logger import logger
-from src.notifier.telegram.bot_config import (
+from src.telegram.bot_config import (
     dp,
     bot,
 )

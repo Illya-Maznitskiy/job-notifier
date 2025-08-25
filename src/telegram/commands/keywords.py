@@ -5,7 +5,7 @@ from src.db.crud.user import get_user_by_user_id
 from src.db.crud.user_keyword import upsert_user_keyword, get_user_all_keywords
 from src.db.db import AsyncSessionLocal
 from logs.logger import logger
-from src.notifier.telegram.bot_config import (
+from src.telegram.bot_config import (
     dp,
 )
 

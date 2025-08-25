@@ -1,5 +1,5 @@
 from logs.logger import logger
-from src.notifier.telegram import start_bot
+from src.telegram import start_bot
 
 
 async def run_telegram_bot(dp, bot):

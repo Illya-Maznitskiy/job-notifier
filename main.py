@@ -4,8 +4,8 @@ import os
 from fastapi import FastAPI
 
 from logs.logger import logger
-from src.notifier.email_sender import send_job_listings_email
-from src.notifier.telegram import dp, bot
+from src.utils.email_sender import send_job_listings_email
+from src.telegram import dp, bot
 from src.utils import run_all_fetchers
 from src.utils import run_telegram_bot
 

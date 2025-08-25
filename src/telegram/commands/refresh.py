@@ -4,10 +4,10 @@ from sqlalchemy import select, delete
 from src.db.db import AsyncSessionLocal
 from src.db.models import Job, UserFilteredJob
 from logs.logger import logger
-from src.notifier.telegram.bot_config import dp
+from src.telegram.bot_config import dp
 from aiogram.filters import Command
 
-from src.notifier.telegram.job_utils import get_or_create_user
+from src.telegram.job_utils import get_or_create_user
 from src.utils.job_filter import filter_jobs_for_user
 from src.db.crud.user_filtered_jobs import create_user_filtered_job
 

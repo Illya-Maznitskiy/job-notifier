@@ -6,8 +6,8 @@ from aiogram import types
 
 from src.db.db import AsyncSessionLocal
 from logs.logger import logger
-from src.notifier.telegram.jobs import send_vacancy_to_user
-from src.notifier.telegram.bot_config import (
+from src.telegram.jobs import send_vacancy_to_user
+from src.telegram.bot_config import (
     dp,
     bot,
     READY_GIF_URLS,

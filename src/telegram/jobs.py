@@ -20,7 +20,7 @@ from .bot_config import (
     MEME_GIFS,
 )
 from logs.logger import logger
-from src.notifier.telegram.job_utils import (
+from src.telegram.job_utils import (
     clean_short_title,
     create_vacancy_message,
     get_or_create_user,

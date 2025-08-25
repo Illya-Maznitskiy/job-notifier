@@ -9,7 +9,7 @@ from src.db.models import User, Job
 from logs.logger import logger
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-from src.notifier.telegram.bot_config import bot
+from src.telegram.bot_config import bot
 
 
 def get_keyboard(job: Job) -> InlineKeyboardMarkup:
