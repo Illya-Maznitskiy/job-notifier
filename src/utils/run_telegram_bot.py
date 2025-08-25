@@ -1,10 +1,11 @@
 from logs.logger import logger
-from src.telegram import start_bot
+from src.telegram.telegram_bot import start_bot
 
 
 async def run_telegram_bot(dp, bot):
     """Run Telegram bot."""
     try:
+        logger.info("-" * 60)
         logger.info("Starting Telegram bot...")
         logger.info("Use /stop inside the bot to stop the bot.")
         await start_bot()
