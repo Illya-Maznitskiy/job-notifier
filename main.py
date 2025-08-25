@@ -1,48 +1,21 @@
-import asyncio
 import os
 
-from fastapi import FastAPI
+import uvicorn
+import asyncio
 
-from logs.logger import logger
-from src.utils.email_sender import send_job_listings_email
-from src.telegram import dp, bot
-from src.utils import run_all_fetchers
-from src.utils import run_telegram_bot
+from src.utils.fastapi_app import app
+from src.utils.job_loop import job_process_loop
 
 
-app = FastAPI()
-
-
-@app.get("/healthz")
-async def health_check():
-    return {"status": "ok"}
-
-
-async def job_process_loop():
-    """
-    Periodically runs job fetching, saving, emailing.
-    Runs every 12 hour.
-    """
-    while True:
-        logger.info("-" * 60)
-        logger.info("Job processing started")
-
-        await run_all_fetchers()
-        send_job_listings_email()
-
-        await asyncio.sleep(12 * 3600)  # wait 12 hours before next fetch
-
-
-@app.on_event("startup")
-async def on_startup():
-    # Start job processing loop in background
+def main():
+    """Start FastAPI server and background job loop"""
+    # Start background job loop
     asyncio.create_task(job_process_loop())
-    # Start telegram bot (this will block so run it in background)
-    asyncio.create_task(run_telegram_bot(dp, bot))
+
+    # Run FastAPI server
+    port = int(os.getenv("PORT", 8080))
+    uvicorn.run(app, host="0.0.0.0", port=port)
 
 
 if __name__ == "__main__":
-    import uvicorn
-
-    port = int(os.getenv("PORT", 8080))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    main()
