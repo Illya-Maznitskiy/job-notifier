@@ -1,11 +1,18 @@
 import os
+from typing import Dict, Any
 
 from dotenv import load_dotenv
 from playwright.async_api import async_playwright
 
 from src.utils.convert_bool import str_to_bool
 from logs.logger import logger
+from src.utils.fetching.anti_block import (
+    get_random_proxy,
+    get_random_user_agent,
+    random_wait,
+)
 from src.utils.fetching.fetcher_optimization import block_resources
+
 
 load_dotenv()
 
@@ -72,8 +79,16 @@ async def fetch_bulldog_jobs():
     logger.info("Launching browser for Bulldogjob scraping")
 
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=BULLDOG_HEADLESS)
-        page = await browser.new_page()
+        launch_args: Dict[str, Any] = {"headless": BULLDOG_HEADLESS}
+        proxy = get_random_proxy()
+        if proxy:
+            launch_args["proxy"] = {"server": proxy}
+
+        browser = await p.chromium.launch(**launch_args)
+
+        # Random User-Agent
+        ua = get_random_user_agent()
+        page = await browser.new_page(user_agent=ua)
 
         await page.route("**/*", block_resources)
 
@@ -100,6 +115,9 @@ async def fetch_bulldog_jobs():
                     logger.warning(
                         f"Skipped job #{i} due to missing title or URL"
                     )
+
+                # Anti-block delay
+                await random_wait(0.5, 2.0)
 
         await browser.close()
         logger.info(f"Scraping done. Total jobs fetched: {len(all_jobs)}")
