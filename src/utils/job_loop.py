@@ -1,7 +1,7 @@
 import asyncio
 
 from logs.logger import logger
-from src.utils.fetch_orchestrator import run_all_fetchers
+from src.utils.fetching.fetch_orchestrator import run_all_fetchers
 
 
 JOB_LOOP_INTERVAL = 12 * 3600
