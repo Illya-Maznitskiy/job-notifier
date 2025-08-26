@@ -5,7 +5,7 @@ from playwright.async_api import async_playwright
 
 from src.utils.convert_bool import str_to_bool
 from logs.logger import logger
-from src.utils.fetcher_optimization import block_resources
+from src.utils.fetching.fetcher_optimization import block_resources
 
 load_dotenv()
 

@@ -6,7 +6,7 @@ from playwright.async_api import async_playwright
 from src.fetchers.dou.pagination import click_all_pagination_buttons
 from logs.logger import logger
 from src.utils.convert_bool import str_to_bool
-from src.utils.fetcher_optimization import block_resources
+from src.utils.fetching.fetcher_optimization import block_resources
 
 load_dotenv()
 DOU_HEADLESS = str_to_bool(os.getenv("DOU_HEADLESS", "false"))

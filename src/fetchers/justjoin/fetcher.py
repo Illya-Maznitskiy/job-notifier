@@ -8,7 +8,7 @@ from src.fetchers.justjoin.pagination import (
 from logs.logger import logger
 import os
 
-from src.utils.fetcher_optimization import block_resources
+from src.utils.fetching.fetcher_optimization import block_resources
 
 load_dotenv()
 

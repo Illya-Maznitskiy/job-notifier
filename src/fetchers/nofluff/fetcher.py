@@ -6,7 +6,7 @@ from playwright.async_api import async_playwright
 
 from logs.logger import logger
 from src.utils.convert_bool import str_to_bool
-from src.utils.fetcher_optimization import block_resources
+from src.utils.fetching.fetcher_optimization import block_resources
 
 load_dotenv()
 NO_FLUFF_HEADLESS = str_to_bool(os.getenv("NO_FLUFF_HEADLESS", "false"))
