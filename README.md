@@ -45,6 +45,13 @@ CREATE DATABASE job_notifier;
 ```
 
 
+# Database migrations
+After setting your db use this to set all models:
+```bash
+alembic upgrade head
+```
+
+
 ## Tests
 You can run flake8 linter using the following commands:
 ```bash
