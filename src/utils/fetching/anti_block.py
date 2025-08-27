@@ -1,6 +1,7 @@
 import random
 import asyncio
 
+from logs.logger import logger
 
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
@@ -17,6 +18,8 @@ PROXIES = [
 async def random_wait(min_sec: float = 1.0, max_sec: float = 5.0):
     """Wait a random time between requests."""
     delay = random.uniform(min_sec, max_sec)
+    formatted_delay = str(delay)[:5]
+    logger.info(f"Waiting {formatted_delay} seconds...")
     await asyncio.sleep(delay)
 
 
