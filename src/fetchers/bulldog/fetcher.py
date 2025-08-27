@@ -4,6 +4,7 @@ from typing import Dict, Any
 from dotenv import load_dotenv
 from playwright.async_api import async_playwright
 
+from src.config import BULLDOG_MAX_JOBS
 from src.utils.convert_bool import str_to_bool
 from logs.logger import logger
 from src.utils.fetching.anti_block import (
@@ -80,7 +81,7 @@ async def fetch_bulldog_jobs():
 
     async with async_playwright() as p:
         launch_args: Dict[str, Any] = {"headless": BULLDOG_HEADLESS}
-        proxy = get_random_proxy()
+        proxy = await get_random_proxy()
         if proxy:
             launch_args["proxy"] = {"server": proxy}
             logger.info(f"Using proxy {proxy}")
@@ -106,6 +107,12 @@ async def fetch_bulldog_jobs():
             logger.info("No job items found on the page.")
         else:
             for i, item in enumerate(job_items, start=1):
+                if len(all_jobs) >= BULLDOG_MAX_JOBS:
+                    logger.info(
+                        f"Reached max job count of {BULLDOG_MAX_JOBS}, stopping scraping."
+                    )
+                    break
+
                 job = await extract_bulldog_job(item)
                 if "title" in job and "url" in job:
                     all_jobs.append(job)
