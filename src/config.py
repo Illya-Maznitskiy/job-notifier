@@ -12,7 +12,7 @@ ROBOTA_UA_URL = "https://robota.ua/zapros/"
 
 # Jooble API settings
 
-JOOBLE_KEYWORDS = "remote"
+JOOBLE_KEYWORDS = ""
 JOOBLE_LOCATION = "remote"
 
 # radius = search distance in km from 'location'
@@ -47,6 +47,7 @@ ROBOTA_UA_HEADLESS = True
 DJINNI_MAX_JOBS = 1000
 DOU_MAX_JOBS = 1000
 BULLDOG_MAX_JOBS = 1000
+JOOBLE_MAX_JOBS = 1000
 
 
 # Filtration settings
