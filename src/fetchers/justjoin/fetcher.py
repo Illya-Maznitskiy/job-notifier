@@ -1,20 +1,13 @@
 from playwright.async_api import async_playwright
-from dotenv import load_dotenv
 
-from src.utils.convert_bool import str_to_bool
+from src.config import JUST_JOIN_HEADLESS, JUST_JOIN_URL
 from src.fetchers.justjoin.pagination import (
     scroll_and_fetch_jobs,
 )
 from logs.logger import logger
-import os
+from src.utils.fetching.anti_block import get_random_user_agent
 
 from src.utils.fetching.fetcher_optimization import block_resources
-
-load_dotenv()
-
-
-JUST_JOIN_URL = os.getenv("JUST_JOIN_URL")
-JUST_JOIN_HEADLESS = str_to_bool(os.getenv("JUST_JOIN_HEADLESS", "false"))
 
 
 async def setup_page(playwright, url):
@@ -24,7 +17,11 @@ async def setup_page(playwright, url):
     logger.info("-" * 60)
     logger.info("Starting setup page")
     browser = await playwright.chromium.launch(headless=JUST_JOIN_HEADLESS)
-    page = await browser.new_page()
+
+    # Random User-Agent
+    ua = get_random_user_agent()
+    logger.info(f"User-agent: {ua}")
+    page = await browser.new_page(user_agent=ua)
 
     await page.route("**/*", block_resources)
 
