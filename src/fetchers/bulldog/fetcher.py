@@ -81,11 +81,6 @@ async def fetch_bulldog_jobs():
 
     async with async_playwright() as p:
         launch_args: Dict[str, Any] = {"headless": BULLDOG_HEADLESS}
-        proxy = await get_random_proxy()
-        if proxy:
-            launch_args["proxy"] = {"server": proxy}
-            logger.info(f"Using proxy {proxy}")
-
         browser = await p.chromium.launch(**launch_args)
 
         # Random User-Agent
