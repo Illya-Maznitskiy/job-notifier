@@ -42,6 +42,11 @@ BULLDOG_HEADLESS = True
 ROBOTA_UA_HEADLESS = True
 
 
+# Fetching limitations
+
+BULLDOG_MAX_JOBS = 1000
+
+
 # Filtration settings
 
 # set a job threshold to not show vacancies under this score
