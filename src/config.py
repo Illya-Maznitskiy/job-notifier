@@ -44,6 +44,7 @@ ROBOTA_UA_HEADLESS = True
 
 # Fetching limitations
 
+DJINNI_MAX_JOBS = 1000
 BULLDOG_MAX_JOBS = 1000
 
 
