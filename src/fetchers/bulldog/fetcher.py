@@ -1,15 +1,13 @@
-import os
 from typing import Dict, Any
 
 from dotenv import load_dotenv
 from playwright.async_api import async_playwright
 
-from src.config import BULLDOG_MAX_JOBS
+from src.config import BULLDOG_MAX_JOBS, BULLDOG_HEADLESS
 from src.fetchers.bulldog.pagination import (
     bulldog_pages,
     get_bulldog_max_pages,
 )
-from src.utils.convert_bool import str_to_bool
 from logs.logger import logger
 from src.utils.fetching.anti_block import (
     get_random_user_agent,
@@ -19,9 +17,6 @@ from src.utils.fetching.fetcher_optimization import block_resources
 
 
 load_dotenv()
-
-BULLDOG_URL = os.getenv("BULLDOG_URL", "https://bulldogjob.com/companies/jobs")
-BULLDOG_HEADLESS = str_to_bool(os.getenv("BULLDOG_HEADLESS", "true"))
 
 
 async def extract_bulldog_job(item) -> dict:
