@@ -19,7 +19,13 @@ DATABASE_URL = (
     f"postgresql+asyncpg://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 )
 
-engine = create_async_engine(DATABASE_URL, echo=False)
+engine = create_async_engine(
+    DATABASE_URL,
+    echo=False,
+    pool_pre_ping=True,  # checks if a connection is alive before using it
+    pool_recycle=1800,  # recycle connections every 30 minutes (seconds)
+)
+
 
 AsyncSessionLocal = sessionmaker(
     bind=engine,
