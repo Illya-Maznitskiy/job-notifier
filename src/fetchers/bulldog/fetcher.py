@@ -5,10 +5,13 @@ from dotenv import load_dotenv
 from playwright.async_api import async_playwright
 
 from src.config import BULLDOG_MAX_JOBS
+from src.fetchers.bulldog.pagination import (
+    bulldog_pages,
+    get_bulldog_max_pages,
+)
 from src.utils.convert_bool import str_to_bool
 from logs.logger import logger
 from src.utils.fetching.anti_block import (
-    get_random_proxy,
     get_random_user_agent,
     random_wait,
 )
@@ -92,15 +95,22 @@ async def fetch_bulldog_jobs():
 
         all_jobs = []
 
-        logger.info(f"Fetching Bulldog page: {BULLDOG_URL}")
-        await page.goto(BULLDOG_URL)
+        # Loop through multiple pages
+        max_pages = await get_bulldog_max_pages(page)
+        for url in bulldog_pages(start=1, end=max_pages):
+            logger.info(f"Fetching Bulldog page: {url}")
+            await page.goto(url)
+            await page.wait_for_selector(
+                "a.JobListItem_item__fYh8y", timeout=5000
+            )
+            job_items = await page.query_selector_all(
+                "a.JobListItem_item__fYh8y"
+            )
 
-        await page.wait_for_selector("a.JobListItem_item__fYh8y", timeout=5000)
-        job_items = await page.query_selector_all("a.JobListItem_item__fYh8y")
+            if not job_items:
+                logger.info("No job items found on this page.")
+                continue
 
-        if not job_items:
-            logger.info("No job items found on the page.")
-        else:
             for i, item in enumerate(job_items, start=1):
                 if len(all_jobs) >= BULLDOG_MAX_JOBS:
                     logger.info(
@@ -122,6 +132,9 @@ async def fetch_bulldog_jobs():
 
                 # Anti-block delay
                 await random_wait(0.5, 5.0)
+
+            if len(all_jobs) >= BULLDOG_MAX_JOBS:
+                break
 
         await browser.close()
         logger.info(f"Scraping done. Total jobs fetched: {len(all_jobs)}")
