@@ -1,16 +1,11 @@
-import os
 import re
-from dotenv import load_dotenv
 from playwright.async_api import async_playwright
 
+from src.config import DOU_URL, DOU_HEADLESS, DOU_MAX_JOBS
 from src.fetchers.dou.pagination import click_all_pagination_buttons
 from logs.logger import logger
-from src.utils.convert_bool import str_to_bool
+from src.utils.fetching.anti_block import get_random_user_agent, random_wait
 from src.utils.fetching.fetcher_optimization import block_resources
-
-load_dotenv()
-DOU_HEADLESS = str_to_bool(os.getenv("DOU_HEADLESS", "false"))
-DOU_URL = os.getenv("DOU_URL", "https://jobs.dou.ua/vacancies/")
 
 
 def clean_text(text: str) -> str:
@@ -28,11 +23,15 @@ async def fetch_jobs() -> list[dict]:
     :return: List of job dictionaries.
     """
     logger.info("-" * 60)
-    logger.info(f"Starting to fetch DOU jobs through {DOU_URL}")
+    logger.info(f"Starting to fetch DOU all_jobs through {DOU_URL}")
 
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=DOU_HEADLESS)
-        page = await browser.new_page()
+
+        # Random User-Agent
+        ua = get_random_user_agent()
+        logger.info(f"User-agent: {ua}")
+        page = await browser.new_page(user_agent=ua)
 
         await page.route("**/*", block_resources)
 
@@ -43,11 +42,17 @@ async def fetch_jobs() -> list[dict]:
 
         job_cards = page.locator("ul.lt > li.l-vacancy")
         count = await job_cards.count()
-        jobs = []
+        all_jobs = []
 
         logger.info(f"Found {count} job listings.")
 
         for i in range(count):
+            if len(all_jobs) >= DOU_MAX_JOBS:
+                logger.info(
+                    f"Reached max job count of {DOU_MAX_JOBS}, stopping scraping."
+                )
+                break
+
             job = job_cards.nth(i)
 
             title_el = job.locator("div.title > a.vt")
@@ -67,13 +72,16 @@ async def fetch_jobs() -> list[dict]:
                 "location": clean_location(location) if location else "",
             }
 
-            jobs.append(clean_job)
+            all_jobs.append(clean_job)
 
             logger.info(
                 f"{i+1:>3}. {clean_job['title']:<60} @ {clean_job.get('company', 'unknown')}"
             )
 
-        await browser.close()
+            # Anti-block delay
+            await random_wait(0.5, 5.0)
 
-    logger.info(f"Finished fetching jobs. Total jobs fetched: {len(jobs)}")
-    return jobs
+    logger.info(
+        f"Finished fetching all_jobs. Total all_jobs fetched: {len(all_jobs)}"
+    )
+    return all_jobs
