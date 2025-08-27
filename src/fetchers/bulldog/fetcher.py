@@ -83,11 +83,13 @@ async def fetch_bulldog_jobs():
         proxy = get_random_proxy()
         if proxy:
             launch_args["proxy"] = {"server": proxy}
+            logger.info(f"Using proxy {proxy}")
 
         browser = await p.chromium.launch(**launch_args)
 
         # Random User-Agent
         ua = get_random_user_agent()
+        logger.info(f"User-agent: {ua}")
         page = await browser.new_page(user_agent=ua)
 
         await page.route("**/*", block_resources)
@@ -117,7 +119,7 @@ async def fetch_bulldog_jobs():
                     )
 
                 # Anti-block delay
-                await random_wait(0.5, 2.0)
+                await random_wait(0.5, 5.0)
 
         await browser.close()
         logger.info(f"Scraping done. Total jobs fetched: {len(all_jobs)}")
