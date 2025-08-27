@@ -1,18 +1,13 @@
-import os
-
 from dotenv import load_dotenv
 from playwright.async_api import async_playwright
 
-from src.utils.convert_bool import str_to_bool
+from src.config import DJINNI_HEADLESS, DJINNI_URL, DJINNI_MAX_JOBS
 from src.fetchers.djinni.pagination import build_paginated_url
 from logs.logger import logger
+from src.utils.fetching.anti_block import get_random_user_agent, random_wait
 from src.utils.fetching.fetcher_optimization import block_resources
 
 load_dotenv()
-
-
-DJINNI_URL = os.getenv("DJINNI_URL")
-DJINNI_HEADLESS = str_to_bool(os.getenv("DJINNI_HEADLESS", "false"))
 
 
 async def extract_job_data(item) -> dict:
@@ -68,7 +63,11 @@ async def fetch_jobs():
 
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=DJINNI_HEADLESS)
-        page = await browser.new_page()
+
+        # Random User-Agent
+        ua = get_random_user_agent()
+        logger.info(f"User-agent: {ua}")
+        page = await browser.new_page(user_agent=ua)
 
         await page.route("**/*", block_resources)
 
@@ -89,6 +88,12 @@ async def fetch_jobs():
                 break
 
             for i, item in enumerate(job_items, start=1):
+                if len(all_jobs) >= DJINNI_MAX_JOBS:
+                    logger.info(
+                        f"Reached max job count of {DJINNI_MAX_JOBS}, stopping scraping."
+                    )
+                    break
+
                 job = await extract_job_data(item)
                 if "title" in job and "url" in job:
                     all_jobs.append(job)
@@ -99,6 +104,12 @@ async def fetch_jobs():
                     logger.warning(
                         f"Skipped job #{i} due to missing title or url"
                     )
+
+                # Anti-block delay
+                await random_wait(0.5, 5.0)
+
+            if len(all_jobs) >= DJINNI_MAX_JOBS:
+                break
 
             # Then check pagination links (AFTER scraping)
             pagination_items = await page.query_selector_all(
