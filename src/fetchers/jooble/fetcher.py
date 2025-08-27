@@ -4,6 +4,15 @@ import requests
 from dotenv import load_dotenv
 
 from logs.logger import logger
+from src.config import (
+    JOOBLE_MAX_JOBS,
+    JOOBLE_KEYWORDS,
+    JOOBLE_LOCATION,
+    JOOBLE_RADIUS,
+    JOOBLE_MIN_SALARY,
+    JOOBLE_SEARCH_MODE,
+    JOOBLE_DATE,
+)
 
 load_dotenv()
 api_key = os.getenv("JOOBLE_API_KEY")
@@ -15,7 +24,7 @@ def sanitize_job(job):
     return job
 
 
-def fetch_jooble_jobs():
+def fetch_jooble_jobs(max_jobs=JOOBLE_MAX_JOBS):
     logger.info("-" * 60)
     logger.info("Fetching jobs from Jooble...")
 
@@ -29,17 +38,17 @@ def fetch_jooble_jobs():
     api_url = f"https://jooble.org/api/{api_key}"
     all_jobs = []
     page = 1
-    max_pages = 10  # Prevent infinite loops just in case
+    max_pages = 1000  # Prevent infinite loops just in case
 
     while page <= max_pages:
         payload = {
-            "keywords": os.getenv("JOOBLE_KEYWORDS", "developer"),
-            "location": os.getenv("JOOBLE_LOCATION", "Europe"),
+            "keywords": JOOBLE_KEYWORDS,
+            "location": JOOBLE_LOCATION,
             "page": page,
-            "radius": os.getenv("JOOBLE_RADIUS", "1000"),
-            "salary": int(os.getenv("JOOBLE_MIN_SALARY", 0)),
-            "searchMode": os.getenv("JOOBLE_SEARCH_MODE", "2"),
-            "date": os.getenv("JOOBLE_DATE", ""),  # empty = no limit
+            "radius": JOOBLE_RADIUS,
+            "salary": JOOBLE_MIN_SALARY,
+            "searchMode": JOOBLE_SEARCH_MODE,
+            "date": JOOBLE_DATE,
         }
         logger.debug("Requesting page %d", page)
         logger.debug("Request payload: %s", payload)
@@ -72,6 +81,13 @@ def fetch_jooble_jobs():
             logger.info(f"{i:>3}. {title.strip():<60} @ {company.strip()}")
 
         all_jobs.extend(jobs)
+
+        # Limit jobs
+        if len(all_jobs) >= max_jobs:
+            all_jobs = all_jobs[:max_jobs]  # trim extra
+            logger.info(f"Maximum jobs limit reached: {max_jobs}")
+            break
+
         page += 1
 
     logger.info("Total jobs fetched from Jooble: %d", len(all_jobs))
