@@ -4,7 +4,7 @@ from playwright.async_api import async_playwright
 
 from logs.logger import logger
 from src.config import NO_FLUFF_HEADLESS, NO_FLUFF_MAX_JOBS
-from src.utils.fetching.anti_block import get_random_user_agent
+from src.utils.fetching.anti_block import get_random_user_agent, random_wait
 from src.utils.fetching.fetcher_optimization import block_resources
 
 
@@ -164,6 +164,9 @@ async def fetch_nofluff_jobs(url: str) -> list[dict]:
             logger.info(
                 f"{i + 1:>3}. {job_data['title']:<60} @ {job_data['company']}"
             )
+
+            # Anti-block delay
+            await random_wait(0.5, 5.0)
 
         logger.info(f"Finished scraping {len(all_jobs)} all_jobs.")
         await browser.close()
