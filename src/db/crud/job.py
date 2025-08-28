@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import select, insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.db.models import Job
@@ -37,3 +37,15 @@ async def create_job(
     await session.commit()
     await session.refresh(job)
     return job
+
+
+async def create_multiple_jobs(session, jobs_data: list[dict]):
+    """
+    Insert multiple jobs in one query.
+    """
+    if not jobs_data:
+        return
+
+    stmt = insert(Job).values(jobs_data)
+    await session.execute(stmt)
+    await session.commit()
