@@ -121,7 +121,7 @@ async def get_or_create_user(
     logger.info(f"Creating new user with id={user_id}, username={username}")
     await bot.send_message(
         ADMIN_ID,
-        "New user joined 😉\nID: {user_id}\nUsername: {username}",
+        f"New user joined 😉\nID: {user_id}\nUsername: {username}",
     )
     return await create_user(
         session, user_id, username
