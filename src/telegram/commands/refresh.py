@@ -21,6 +21,8 @@ async def refresh_jobs(message: types.Message):
     logger.info(f"Refreshing jobs for user: {message.from_user.id}")
 
     async with AsyncSessionLocal() as session:
+        await message.answer("⏳ Filtering jobs, please wait…")
+
         # Ensure user exists
         user = await get_or_create_user(
             session, message.from_user.id, message.from_user.username
