@@ -116,6 +116,7 @@ async def get_or_create_user(
     user = await get_user_by_user_id(session, user_id)  # try to get user
     if user:
         return user  # return existing user
+    logger.info(f"Creating new user with id={user_id}, username={username}")
     return await create_user(
         session, user_id, username
     )  # create new if not found
