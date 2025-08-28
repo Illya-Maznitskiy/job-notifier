@@ -9,7 +9,9 @@ from aiogram.filters import Command
 
 from src.telegram.job_utils import get_or_create_user
 from src.utils.job_filter import filter_jobs_for_user
-from src.db.crud.user_filtered_jobs import create_user_filtered_job
+from src.db.crud.user_filtered_jobs import (
+    create_user_filtered_jobs,
+)
 
 
 @dp.message(Command("refresh"))
@@ -35,16 +37,17 @@ async def refresh_jobs(message: types.Message):
         jobs = list(all_jobs.scalars())
 
         # Filter jobs for the user (returns list of tuples: (job, score))
+        logger.info("Starting job filtering")
         filtered_jobs = await filter_jobs_for_user(session, user.id, jobs)
+        logger.info(f"Filtering done, found {len(filtered_jobs)} jobs")
+        logger.info("Saving filtered vacancies to DB")
 
         # Save filtered jobs to DB using CRUD
-        for job, score in filtered_jobs:  # <- unpack the tuple
-            await create_user_filtered_job(
-                session,
-                user_id=user.id,
-                job_id=job.id,
-                score=score,  # use the computed score
-            )
+        entries = [
+            UserFilteredJob(user_id=user.id, job_id=job.id, score=score)
+            for job, score in filtered_jobs
+        ]
+        await create_user_filtered_jobs(session, entries)
 
         logger.info(f"Found {len(filtered_jobs)} jobs for user {user.id}")
 
