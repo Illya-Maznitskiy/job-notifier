@@ -1,15 +1,11 @@
-import os
 import re
 
-from dotenv import load_dotenv
 from playwright.async_api import async_playwright
 
 from logs.logger import logger
-from src.utils.convert_bool import str_to_bool
+from src.config import NO_FLUFF_HEADLESS, NO_FLUFF_MAX_JOBS
+from src.utils.fetching.anti_block import get_random_user_agent
 from src.utils.fetching.fetcher_optimization import block_resources
-
-load_dotenv()
-NO_FLUFF_HEADLESS = str_to_bool(os.getenv("NO_FLUFF_HEADLESS", "false"))
 
 
 def clean_text(text: str) -> str:
@@ -34,13 +30,10 @@ async def fetch_nofluff_jobs(url: str) -> list[dict]:
             args=["--disable-blink-features=AutomationControlled"],
         )
 
-        context = await browser.new_context(
-            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            viewport={"width": 1280, "height": 800},
-            locale="pl-PL",
-        )
-
-        page = await context.new_page()
+        # Random User-Agent
+        ua = get_random_user_agent()
+        logger.info(f"User-agent: {ua}")
+        page = await browser.new_page(user_agent=ua)
 
         await page.route("**/*", block_resources)
 
@@ -65,9 +58,16 @@ async def fetch_nofluff_jobs(url: str) -> list[dict]:
             )
 
         job_cards = page.locator("a.posting-list-item")
-        jobs = []
+        all_jobs = []
 
         while True:
+            # Jobs limit
+            if len(all_jobs) >= NO_FLUFF_MAX_JOBS:
+                logger.info(
+                    f"Reached max job count of {NO_FLUFF_MAX_JOBS}, stopping scraping."
+                )
+                break
+
             count_before = await job_cards.count()
 
             load_more_button = page.locator(
@@ -97,10 +97,16 @@ async def fetch_nofluff_jobs(url: str) -> list[dict]:
                 )
                 await load_more_button.scroll_into_view_if_needed()
                 logger.info("Clicking 'Pokaż kolejne oferty' button...")
-                await load_more_button.click()
+                await page.evaluate(
+                    """
+                    Array.from(document.querySelectorAll('button'))
+                         .find(b => b.textContent.includes('Pokaż kolejne oferty'))
+                         ?.click()
+                """
+                )
                 await page.wait_for_timeout(3000)
 
-                # Wait for new jobs to load
+                # Wait for new all_jobs to load
                 await page.wait_for_function(
                     f"document.querySelectorAll('a.posting-list-item').length > {count_before}",
                     timeout=30000,
@@ -108,11 +114,11 @@ async def fetch_nofluff_jobs(url: str) -> list[dict]:
 
                 count_after = await job_cards.count()
                 logger.info(
-                    f"Loaded {count_after - count_before} new jobs (total: {count_after})."
+                    f"Loaded {count_after - count_before} new all_jobs (total: {count_after})."
                 )
 
                 if count_after == count_before:
-                    logger.info("No new jobs loaded — breaking.")
+                    logger.info("No new all_jobs loaded — breaking.")
                     break
             else:
                 logger.info(
@@ -120,9 +126,9 @@ async def fetch_nofluff_jobs(url: str) -> list[dict]:
                 )
                 break
 
-        # Now fetch all jobs after loading is done
+        # Now fetch all all_jobs after loading is done
         total_count = await job_cards.count()
-        logger.info(f"Total jobs loaded: {total_count}")
+        logger.info(f"Total all_jobs loaded: {total_count}")
 
         for i in range(total_count):
             job = job_cards.nth(i)
@@ -153,12 +159,12 @@ async def fetch_nofluff_jobs(url: str) -> list[dict]:
                 ),
             }
 
-            jobs.append(job_data)
+            all_jobs.append(job_data)
 
             logger.info(
                 f"{i + 1:>3}. {job_data['title']:<60} @ {job_data['company']}"
             )
 
-        logger.info(f"Finished scraping {len(jobs)} jobs.")
+        logger.info(f"Finished scraping {len(all_jobs)} all_jobs.")
         await browser.close()
-        return jobs
+        return all_jobs
