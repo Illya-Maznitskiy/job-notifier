@@ -16,6 +16,6 @@ async def create_user(
 ) -> User:
     user = User(user_id=user_id, username=username)
     session.add(user)
-    await session.flush()  # push changes to DB without committing
-    await session.refresh(user)  # safe to refresh while transaction is open
+    await session.commit()
+    await session.refresh(user)
     return user
