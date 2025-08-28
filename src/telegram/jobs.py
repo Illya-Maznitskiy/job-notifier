@@ -39,6 +39,14 @@ async def send_vacancy_to_user(
     user_filtered_jobs = await get_filtered_jobs_by_user(session, user.id)
     job_sent = False
 
+    if not user_filtered_jobs:
+        await bot.send_message(
+            user_id,
+            "You have no filters set ⏳ Use /add_keyword <keyword> <weight> first",
+        )
+        await bot.send_message(user_id, "💡 Example /add_keyword python 10")
+        return
+
     for ufj in user_filtered_jobs:
         # check if user has already seen/applied/skipped this job
         user_job = await get_user_job(session, user.id, ufj.job_id)
