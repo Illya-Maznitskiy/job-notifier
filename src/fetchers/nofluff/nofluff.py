@@ -1,21 +1,16 @@
 import asyncio
-import os
-from dotenv import load_dotenv
 
+from src.config import NO_FLUFF_URL
 from src.db.db import AsyncSessionLocal
 from src.fetchers.nofluff.fetcher import fetch_nofluff_jobs
 from src.fetchers.save_jobs import save_jobs_to_db
 from logs.logger import logger
 
 
-load_dotenv()
-NO_FLUFF_URL = os.getenv("NO_FLUFF_URL")
-
-
 async def run_fetch_and_save_jobs():
     if not NO_FLUFF_URL:
-        logger.error("Environment variable NO_FLUFF_URL not found.")
-        return
+        logger.error("Config variable NO_FLUFF_URL not found.")
+        return None
 
     logger.info("-" * 60)
     logger.info(f"Fetching jobs from: {NO_FLUFF_URL}")
