@@ -91,9 +91,9 @@ async def list_keywords(message: types.Message):
             await message.answer("You haven't added any keywords yet ❌")
             return
 
-        reply = "🗝️ Your keywords:\n"
+        reply = "🗝️ Your keywords:\n\n"
         for kw in keywords:
-            reply += f"• {kw.keyword} (weight: {kw.weight})\n"
+            reply += f"• {kw.keyword} ({kw.weight})\n"
 
         await message.answer(reply)
 
