@@ -16,9 +16,15 @@ async def scroll_and_fetch_jobs(page):
     seen_urls = set()
     job_counter = 1
 
+    previous_height = await page.evaluate("document.body.scrollHeight")
+
     while True:
-        await page.evaluate("window.scrollBy(0, 700)")
-        await page.wait_for_timeout(200)
+        await page.evaluate("window.scrollBy(0, document.body.scrollHeight)")
+        await page.wait_for_timeout(10000)
+        new_height = await page.evaluate("document.body.scrollHeight")
+        if new_height == previous_height:
+            break
+        previous_height = new_height
 
         offers = await page.query_selector_all("a.offer-card")
 
