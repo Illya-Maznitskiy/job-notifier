@@ -7,7 +7,7 @@ NO_FLUFF_URL = "https://nofluffjobs.com/pl/praca-zdalna/"
 PRACUJ_URL = "https://www.pracuj.pl/praca/praca%20zdalna;wm,home-office"
 DOU_URL = "https://jobs.dou.ua/vacancies/?remote&"
 BULLDOG_URL = "https://bulldogjob.com/companies/jobs/s/city,Remote/"
-ROBOTA_UA_URL = "https://robota.ua/zapros/"
+ROBOTA_UA_URL = "https://robota.ua/zapros/ukraine/params;scheduleIds=3"
 
 
 # Jooble API settings
