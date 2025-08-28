@@ -48,7 +48,7 @@ async def parse_job_offer(offer):
     job_url = f"https://justjoin.it{href}" if href else None
 
     company_el = await offer.query_selector(
-        "div.MuiBox-root.mui-1kb0cuq > span"
+        "p.MuiTypography-root.MuiTypography-body1"
     )
     company = await company_el.text_content() if company_el else None
 
