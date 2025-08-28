@@ -1,18 +1,14 @@
 import asyncio
-import os
 import re
 from asyncio import gather
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 
-from dotenv import load_dotenv
 from playwright.async_api import async_playwright
 
 from logs.logger import logger
-from src.utils.convert_bool import str_to_bool
+from src.config import PRACUJ_HEADLESS, PRACUJ_MAX_JOBS
+from src.utils.fetching.anti_block import get_random_user_agent, random_wait
 from src.utils.fetching.fetcher_optimization import block_pracuj_resources
-
-load_dotenv()
-PRACUJ_HEADLESS = str_to_bool(os.getenv("PRACUJ_HEADLESS", "false"))
 
 
 async def accept_cookies_if_present(page):
@@ -101,7 +97,11 @@ async def fetch_pracuj_jobs(url: str) -> list[dict]:
     logger.info(f"Starting job fetch from: {url}")
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=PRACUJ_HEADLESS)
-        page = await browser.new_page()
+
+        # Random User-Agent
+        ua = get_random_user_agent()
+        logger.info(f"User-agent: {ua}")
+        page = await browser.new_page(user_agent=ua)
 
         await block_pracuj_resources(page)
 
@@ -109,10 +109,17 @@ async def fetch_pracuj_jobs(url: str) -> list[dict]:
         await page.wait_for_timeout(3000)
         await accept_cookies_if_present(page)
 
-        jobs = []
+        all_jobs = []
         page_number = 1
 
         while True:
+            # Jobs limit
+            if len(all_jobs) >= PRACUJ_MAX_JOBS:
+                logger.info(
+                    f"Reached max job count of {PRACUJ_MAX_JOBS}, stopping scraping."
+                )
+                break
+
             logger.info(f"Fetching page {page_number}")
             try:
                 await page.wait_for_selector(
@@ -205,7 +212,10 @@ async def fetch_pracuj_jobs(url: str) -> list[dict]:
             job_data_batch = await gather(
                 *(extract_job_data(i) for i in range(count))
             )
-            jobs.extend(job_data_batch)
+            all_jobs.extend(job_data_batch)
+
+            # Anti-block delay
+            await random_wait(0.5, 5.0)
 
             # Pagination
             next_button = page.locator(
@@ -240,5 +250,7 @@ async def fetch_pracuj_jobs(url: str) -> list[dict]:
 
         await browser.close()
 
-    logger.info(f"Finished fetching jobs, total collected: {len(jobs)}")
-    return jobs
+    logger.info(
+        f"Finished fetching all_jobs, total collected: {len(all_jobs)}"
+    )
+    return all_jobs
