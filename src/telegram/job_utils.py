@@ -12,6 +12,9 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from src.telegram.bot_config import bot
 
 
+ADMIN_ID = int(os.getenv("ADMIN_ID"))
+
+
 def get_keyboard(job: Job) -> InlineKeyboardMarkup:
     """Return inline keyboard with job.id in callback_data."""
     logger.info("-" * 60)
@@ -38,13 +41,12 @@ def get_keyboard(job: Job) -> InlineKeyboardMarkup:
 
 async def notify_admin_startup():
     """Notify admin that the bot has started."""
-    admin_id = os.getenv("ADMIN_ID")
-    if admin_id:
+    if ADMIN_ID:
         try:
             await bot.send_message(
-                chat_id=admin_id, text="🚀 Bot has started and is ready!"
+                chat_id=ADMIN_ID, text="🚀 Bot has started and is ready!"
             )
-            logger.info(f"Sent startup notification to admin {admin_id}")
+            logger.info(f"Sent startup notification to admin {ADMIN_ID}")
         except Exception as e:
             logger.error(f"Failed to notify admin on startup: {e}")
     else:
@@ -117,6 +119,10 @@ async def get_or_create_user(
     if user:
         return user  # return existing user
     logger.info(f"Creating new user with id={user_id}, username={username}")
+    await bot.send_message(
+        ADMIN_ID,
+        "New user joined 😉\nID: {user_id}\nUsername: {username}",
+    )
     return await create_user(
         session, user_id, username
     )  # create new if not found
