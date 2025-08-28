@@ -1,19 +1,12 @@
 import asyncio
-import os
 
-from dotenv import load_dotenv
 from playwright.async_api import async_playwright
 
+from src.config import ROBOTA_UA_URL, ROBOTA_UA_HEADLESS, ROBOTA_UA_MAX_JOBS
 from src.fetchers.robota_ua.pagination import click_next_page
 from logs.logger import logger
-from src.utils.convert_bool import str_to_bool
+from src.utils.fetching.anti_block import get_random_user_agent, random_wait
 from src.utils.fetching.fetcher_optimization import block_resources
-
-load_dotenv()
-
-ROBOTA_UA_URL = os.getenv("ROBOTA_UA_URL", "https://robota.ua/ua/jobs")
-ROBOTA_UA_HEADLESS = str_to_bool(os.getenv("ROBOTA_UA_HEADLESS", "true"))
-BASE_URL = "https://robota.ua"
 
 
 async def auto_scroll(page, scroll_step=1050, max_scrolls: int = 12):
@@ -49,7 +42,7 @@ async def extract_robota_ua_job(item) -> dict:
     # Job URL (relative -> absolute)
     url = await item.get_attribute("href")
     if url:
-        job["url"] = BASE_URL + url.strip()
+        job["url"] = ROBOTA_UA_URL + url.strip()
 
     # Job title
     title_el = await item.query_selector("h2.santa-typo-h3")
@@ -110,12 +103,11 @@ async def fetch_robota_ua_jobs():
             headless=ROBOTA_UA_HEADLESS,
             args=["--disable-blink-features=AutomationControlled"],
         )
-        page = await browser.new_page(
-            viewport={"width": 1280, "height": 800},
-            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/114.0.0.0 Safari/537.36",
-        )
+
+        # Random User-Agent
+        ua = get_random_user_agent()
+        logger.info(f"User-agent: {ua}")
+        page = await browser.new_page(user_agent=ua)
 
         await page.route("**/*", block_resources)
 
@@ -125,6 +117,13 @@ async def fetch_robota_ua_jobs():
         await page.goto(ROBOTA_UA_URL)
 
         while True:
+            # Jobs limit
+            if len(all_jobs) >= ROBOTA_UA_MAX_JOBS:
+                logger.info(
+                    f"Reached max job count of {ROBOTA_UA_MAX_JOBS}, stopping scraping."
+                )
+                break
+
             # Scroll page fully so all jobs load
             await auto_scroll(page)
             await page.wait_for_selector("a.card", timeout=30000)
@@ -177,6 +176,9 @@ async def fetch_robota_ua_jobs():
                 logger.info(
                     f"{len(all_jobs):>3}. {job['title']:<60} @ {job.get('company', 'unknown')}"
                 )
+
+                # Anti-block delay
+                await random_wait(0.5, 5.0)
 
             # Go to next page or break if no next page
             has_next = await click_next_page(page)
