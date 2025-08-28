@@ -7,6 +7,7 @@ from sqlalchemy import (
     UniqueConstraint,
     ARRAY,
     Text,
+    BigInteger,
 )
 from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
@@ -24,7 +25,7 @@ class User(Base):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(Integer, unique=True, index=True)
+    user_id: Mapped[int] = mapped_column(BigInteger, unique=True, index=True)
     username: Mapped[str] = mapped_column(String(100), nullable=True)
 
     jobs: Mapped[list["UserJob"]] = relationship(back_populates="user")
