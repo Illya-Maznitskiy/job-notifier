@@ -4,14 +4,11 @@ from src.db.models import UserFilteredJob
 
 
 # Create
-async def create_user_filtered_job(
-    session: AsyncSession, user_id: int, job_id: int, score: int
+async def create_user_filtered_jobs(
+    session: AsyncSession, entries: list[UserFilteredJob]
 ):
-    entry = UserFilteredJob(user_id=user_id, job_id=job_id, score=score)
-    session.add(entry)
+    session.add_all(entries)
     await session.commit()
-    await session.refresh(entry)
-    return entry
 
 
 # Read all for a user
