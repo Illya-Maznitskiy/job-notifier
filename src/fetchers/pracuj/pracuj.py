@@ -1,15 +1,10 @@
 import asyncio
-import os
-from dotenv import load_dotenv
 
+from src.config import PRACUJ_URL
 from src.db.db import AsyncSessionLocal
 from src.fetchers.pracuj.fetcher import fetch_pracuj_jobs
 from src.fetchers.save_jobs import save_jobs_to_db
 from logs.logger import logger
-
-
-load_dotenv()
-PRACUJ_URL = os.getenv("PRACUJ_URL")
 
 
 async def run_fetch_and_save_jobs():
@@ -17,7 +12,7 @@ async def run_fetch_and_save_jobs():
     logger.info("Starting full fetch and save operation")
 
     if not PRACUJ_URL:
-        logger.error("Environment variable NO_FLUFF_URL not found.")
+        logger.error("Config variable NO_FLUFF_URL not found.")
         return None
 
     jobs = await fetch_pracuj_jobs(PRACUJ_URL)
