@@ -28,7 +28,7 @@ async def get_user_keywords(session, user_id: int) -> dict[str, int]:
 
 def score_job(job: Job, keyword_weights: dict, user_id=None) -> int:
     """Score job based on keyword relevance."""
-    logger.info("-" * 60)
+    # logger.info("-" * 60)
 
     title = job.title or ""
     skills = job.skills or ""
@@ -43,7 +43,7 @@ def score_job(job: Job, keyword_weights: dict, user_id=None) -> int:
         if keyword in combined_text:
             score += weight
 
-    logger.debug(f"Job '{job.title}' scored {score} for user_id={user_id}")
+    # logger.debug(f"Job '{job.title}' scored {score} for user_id={user_id}")
     return score
 
 
