@@ -66,6 +66,7 @@ async def add_keyword(message: types.Message):
     await message.answer(
         f"Keyword '{keyword}' {action} with weight {weight} ✅"
     )
+    await message.answer(f"You can use /refresh now to filter jobs for you 😎")
 
 
 @dp.message(Command("list_keywords"))
