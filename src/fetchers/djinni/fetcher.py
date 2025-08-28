@@ -25,8 +25,9 @@ async def extract_job_data(item) -> dict:
     company_el = await item.query_selector("a.text-body.js-analytics-event")
     if company_el:
         company = await company_el.text_content()
-        if company:
-            job["company"] = company.strip()
+        job["company"] = company.strip() if company else "unknown"
+    else:
+        job["company"] = "unknown"
 
     location_el = await item.query_selector("span.location-text")
     if location_el:
