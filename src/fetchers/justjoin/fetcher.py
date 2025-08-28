@@ -28,7 +28,7 @@ async def setup_page(playwright, url):
     await page.goto(url)
 
     try:
-        await page.click("#cookiescript_reject", timeout=5000)
+        await page.click("#cookiescript_reject", timeout=30000)
         logger.info("Cookie consent rejected.")
     except Exception:
         logger.debug("No cookie popup found or already handled.")
