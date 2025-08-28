@@ -82,13 +82,6 @@ async def fetch_nofluff_jobs(url: str) -> list[dict]:
 
             # Make sure it's visible/enabled before clicking
             if await load_more_button.is_enabled():
-                # Jobs limit
-                if count_after >= NO_FLUFF_MAX_JOBS:
-                    logger.info(
-                        f"Reached max job count of {NO_FLUFF_MAX_JOBS}, stopping scraping."
-                    )
-                    break
-
                 await page.evaluate(
                     "window.scrollTo(0, document.body.scrollHeight)"
                 )
@@ -119,6 +112,13 @@ async def fetch_nofluff_jobs(url: str) -> list[dict]:
 
                 if count_after == count_before:
                     logger.info("No new all_jobs loaded — breaking.")
+                    break
+
+                # Jobs limit
+                if count_after >= NO_FLUFF_MAX_JOBS:
+                    logger.info(
+                        f"Reached max job count of {NO_FLUFF_MAX_JOBS}, stopping scraping."
+                    )
                     break
             else:
                 logger.info(
