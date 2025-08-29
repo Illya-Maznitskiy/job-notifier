@@ -1,3 +1,5 @@
+from typing import List
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from src.db.models import Job
@@ -9,11 +11,8 @@ MAX_LOCATION_LENGTH = 255
 MAX_TITLE_LENGTH = 255
 
 
-async def save_jobs_to_db(jobs, session: AsyncSession):
-    """
-    Efficiently save jobs to the database if not already existing.
-    Truncate fields that are too long. Uses bulk existence check.
-    """
+async def save_jobs_to_db(jobs: List[dict], session: AsyncSession):
+    """Efficiently save jobs to the database if not already existing."""
     if not jobs:
         return
 
@@ -53,5 +52,9 @@ async def save_jobs_to_db(jobs, session: AsyncSession):
         )
 
     if new_jobs:
-        # Bulk insert helper (needs to be defined in your crud layer)
         await create_multiple_jobs(session, new_jobs)
+        logger.info(
+            f"Successfully added {len(new_jobs)} new jobs to the database."
+        )
+    else:
+        logger.info("No new jobs to add to the database.")
