@@ -114,7 +114,7 @@ async def fetch_nofluff_jobs(url: str) -> list[dict]:
                 else:
                     break
 
-            total_count = await job_cards.count()
+            total_count = min(await job_cards.count(), NO_FLUFF_MAX_JOBS)
             logger.info(f"Total jobs loaded: {total_count}")
 
             for i in range(total_count):
