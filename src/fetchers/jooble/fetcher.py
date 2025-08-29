@@ -1,6 +1,7 @@
 import os
-
+from typing import Dict, Any, List
 import requests
+
 from dotenv import load_dotenv
 
 from logs.logger import logger
@@ -18,27 +19,28 @@ load_dotenv()
 api_key = os.getenv("JOOBLE_API_KEY")
 
 
-def sanitize_job(job):
+def ensure_company_name(job: Dict[str, Any]) -> Dict[str, Any]:
+    """Ensure job has a company name."""
     if not job.get("company"):
         job["company"] = "Unknown Company"
     return job
 
 
-def fetch_jooble_jobs(max_jobs=JOOBLE_MAX_JOBS):
+def fetch_jooble_jobs(max_jobs: int = JOOBLE_MAX_JOBS) -> List[Dict[str, Any]]:
+    """Fetch jobs from Jooble API."""
     logger.info("-" * 60)
     logger.info("Fetching jobs from Jooble...")
 
     if not api_key:
         logger.error(
-            "No Jooble API key found in environment variable "
-            "'JOOBLE_API_KEY'. Aborting fetch."
+            "No Jooble API key found in environment variable 'JOOBLE_API_KEY'."
         )
         return []
 
     api_url = f"https://jooble.org/api/{api_key}"
-    all_jobs = []
+    all_jobs: List[Dict[str, Any]] = []
     page = 1
-    max_pages = 1000  # Prevent infinite loops just in case
+    max_pages = 1000  # Prevent infinite loops, because infinity is scary
 
     while page <= max_pages:
         payload = {
@@ -50,30 +52,27 @@ def fetch_jooble_jobs(max_jobs=JOOBLE_MAX_JOBS):
             "searchMode": JOOBLE_SEARCH_MODE,
             "date": JOOBLE_DATE,
         }
-        logger.debug("Requesting page %d", page)
-        logger.debug("Request payload: %s", payload)
+        logger.debug(f"Requesting page {page}")
+        logger.debug(f"Request payload: {payload}")
 
-        response = requests.post(api_url, json=payload)
-        logger.debug("Response status code: %d", response.status_code)
+        try:
+            response: requests.Response = requests.post(api_url, json=payload)
+            response.raise_for_status()
+            jobs: List[Dict[str, Any]] = response.json().get("jobs", [])
+        except Exception as req_err:
+            logger.error(f"Jooble API request failed: {req_err}")
+            jobs = []
 
-        if response.status_code != 200:
-            logger.error(
-                "Jooble API error: %s %s", response.status_code, response.text
-            )
-            break
-
-        data = response.json()
-        jobs = data.get("jobs", [])
-        logger.info("Fetched %d jobs from page %d", len(jobs), page)
+        logger.info(f"Fetched {len(jobs)} jobs from page {page}")
 
         if not jobs:
-            break  # No more jobs on next page
+            break
 
         # Rename 'link' key to 'URL' in each job dict
         for i, job in enumerate(jobs):
             if "link" in job:
                 job["url"] = job.pop("link")
-            jobs[i] = sanitize_job(job)  # update the list with sanitized job
+            jobs[i] = ensure_company_name(job)
 
         for i, job in enumerate(jobs, len(all_jobs) + 1):
             company = job.get("company") or "Unknown Company"
@@ -82,14 +81,13 @@ def fetch_jooble_jobs(max_jobs=JOOBLE_MAX_JOBS):
 
         all_jobs.extend(jobs)
 
-        # Limit jobs
         if len(all_jobs) >= max_jobs:
-            all_jobs = all_jobs[:max_jobs]  # trim extra
+            all_jobs = all_jobs[:max_jobs]
             logger.info(f"Maximum jobs limit reached: {max_jobs}")
             break
 
         page += 1
 
-    logger.info("Total jobs fetched from Jooble: %d", len(all_jobs))
+    logger.info(f"Total jobs fetched from Jooble: {len(all_jobs)}")
 
     return all_jobs
