@@ -5,6 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.db.crud.user import get_user_by_user_id, create_user
+from src.db.crud.user_keyword import upsert_user_keyword
 from src.db.models import User, Job
 from logs.logger import logger
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
@@ -125,3 +126,28 @@ async def get_or_create_user(
     return await create_user(
         session, user_id, username
     )  # create new if not found
+
+
+async def add_or_update_user_keyword(
+    session: AsyncSession,
+    user_id: int,
+    username: str,
+    keyword: str,
+    weight: int,
+) -> str:
+    """Add or update user's keyword with weight."""
+    user = await get_user_by_user_id(session, user_id)
+    if not user:
+        user = await create_user(session, user_id, username)
+        await session.commit()
+
+    from src.db.crud.user_keyword import get_user_keyword
+
+    existing_kw = await get_user_keyword(session, user.id, keyword)
+    if existing_kw:
+        existing_kw.weight = weight
+        await session.flush()
+        return "updated"
+    else:
+        await upsert_user_keyword(session, user.id, keyword, weight)
+        return "created"
