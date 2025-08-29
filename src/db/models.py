@@ -121,6 +121,7 @@ class PendingUser(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(BigInteger, unique=True, index=True)
+    command: Mapped[str] = mapped_column(String(50))
     datetime_added: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.utcnow
     )
