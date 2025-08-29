@@ -11,6 +11,7 @@ from playwright.async_api import (
 
 from logs.logger import logger
 from src.config import PRACUJ_HEADLESS, PRACUJ_MAX_JOBS
+from src.fetchers.pracuj.pagination import paginate_jobs
 from src.utils.fetching.anti_block import get_random_user_agent, random_wait
 from src.utils.fetching.fetcher_optimization import block_pracuj_resources
 
@@ -159,9 +160,10 @@ async def fetch_jobs_on_page(page: Page) -> List[Dict[str, str]]:
 
 
 async def fetch_pracuj_jobs(url: str) -> List[Dict[str, str]]:
-    """Fetch job listings from Pracuj with pagination, cookies handling, and tracking removal."""
+    """Fetch jobs from Pracuj with cookies, tracking removal, pagination."""
     logger.info("-" * 60)
     logger.info(f"Starting job fetch from: {url}")
+
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=PRACUJ_HEADLESS)
 
@@ -174,59 +176,7 @@ async def fetch_pracuj_jobs(url: str) -> List[Dict[str, str]]:
         await page.wait_for_timeout(3000)
         await accept_cookies_if_present(page)
 
-        all_jobs: List[Dict[str, str]] = []
-        page_number = 1
-
-        while True:
-            # Jobs limit
-            if len(all_jobs) >= PRACUJ_MAX_JOBS:
-                logger.info(
-                    f"Reached max job count of {PRACUJ_MAX_JOBS}, stopping scraping."
-                )
-                break
-
-            try:
-                await page.wait_for_selector(
-                    "h2[data-test='offer-title']", timeout=10000
-                )
-            except PlaywrightTimeoutError:
-                logger.warning(
-                    f"No job listings found on page {page_number}, stopping."
-                )
-                break
-
-            jobs_on_page = await fetch_jobs_on_page(page)
-            all_jobs.extend(jobs_on_page)
-
-            # Anti-block delay
-            await random_wait(0.5, 5.0)
-
-            next_button = page.locator(
-                "button[data-test='bottom-pagination-button-next']"
-            )
-            try:
-                if await next_button.is_enabled(timeout=2000):
-                    logger.info(
-                        f"Next page button enabled, continuing pagination."
-                    )
-                    await next_button.click()
-                    await page.wait_for_timeout(3000)
-                    await page.wait_for_selector(
-                        "div[data-test='positioned-offer'], div[data-test='default-offer']",
-                        timeout=10000,
-                    )
-                    await page.wait_for_timeout(300)
-                    page_number += 1
-                else:
-                    logger.info(
-                        "Next page button disabled, ending pagination."
-                    )
-                    break
-            except PlaywrightError:
-                logger.info(
-                    "Next page button not clickable, ending pagination."
-                )
-                break
+        all_jobs = await paginate_jobs(page, PRACUJ_MAX_JOBS)
 
         await browser.close()
 
