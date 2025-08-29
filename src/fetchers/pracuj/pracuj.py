@@ -7,15 +7,20 @@ from src.fetchers.save_jobs import save_jobs_to_db
 from logs.logger import logger
 
 
-async def run_fetch_and_save_jobs():
+async def run_fetch_and_save_jobs() -> list[dict] | None:
+    """Fetch jobs and save to DB."""
     logger.info("-" * 60)
     logger.info("Starting full fetch and save operation")
 
     if not PRACUJ_URL:
-        logger.error("Config variable NO_FLUFF_URL not found.")
+        logger.error("Config variable PRACUJ_URL not found.")
         return None
 
-    jobs = await fetch_pracuj_jobs(PRACUJ_URL)
+    try:
+        jobs = await fetch_pracuj_jobs(PRACUJ_URL)
+    except Exception as fetch_err:
+        logger.error(f"Failed fetching jobs: {fetch_err}")
+        return []
 
     for i, job in enumerate(jobs, 1):
         logger.info(
@@ -24,14 +29,21 @@ async def run_fetch_and_save_jobs():
 
     if not jobs:
         logger.info("No jobs fetched from pracuj.")
-    else:
+        return []
+
+    try:
         async with AsyncSessionLocal() as session:
             await save_jobs_to_db(jobs, session)
+    except Exception as db_err:
+        logger.error(f"Failed saving jobs to DB: {db_err}")
+        return jobs
 
     logger.info("Pracuj job fetch process completed.")
-
     return jobs
 
 
 if __name__ == "__main__":
-    asyncio.run(run_fetch_and_save_jobs())
+    try:
+        asyncio.run(run_fetch_and_save_jobs())
+    except Exception as e:
+        logger.error(f"Fatal error in main: {e}")
