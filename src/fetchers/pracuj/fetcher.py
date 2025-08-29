@@ -1,9 +1,13 @@
 import asyncio
 import re
-from asyncio import gather
+from typing import Dict, List
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 
-from playwright.async_api import async_playwright
+from playwright.async_api import async_playwright, Page, Locator
+from playwright.async_api import (
+    TimeoutError as PlaywrightTimeoutError,
+    Error as PlaywrightError,
+)
 
 from logs.logger import logger
 from src.config import PRACUJ_HEADLESS, PRACUJ_MAX_JOBS
@@ -11,20 +15,20 @@ from src.utils.fetching.anti_block import get_random_user_agent, random_wait
 from src.utils.fetching.fetcher_optimization import block_pracuj_resources
 
 
-async def accept_cookies_if_present(page):
+async def accept_cookies_if_present(page: Page) -> None:
+    """Accept cookies if popup appears."""
     logger.info("-" * 60)
     await asyncio.sleep(1)
 
-    # Try clicking the first cookie button
     try:
         await page.locator("button[data-test='button-submitCookie']").click(
             timeout=3000
         )
         logger.info("Accepted cookies using data-test locator")
-    except Exception:
+        return
+    except (PlaywrightTimeoutError, PlaywrightError):
         logger.info("First cookie button not found")
 
-    # Try clicking the second cookie button
     try:
         await page.get_by_role("button", name="OK, rozumiem").click(
             timeout=3000
@@ -32,67 +36,69 @@ async def accept_cookies_if_present(page):
         logger.info(
             "Accepted cookies using fallback locator for 'OK, rozumiem'"
         )
-    except Exception:
+    except (PlaywrightTimeoutError, PlaywrightError):
         logger.debug("Second cookie button not found, continuing")
 
 
 def clean_text(text: str) -> str:
+    """Normalize whitespace and remove non-breaking spaces."""
     return re.sub(r"\s+", " ", text.replace("\xa0", " ")).strip()
 
 
-async def safe_text(locator, field_name=""):
+async def safe_text(locator: Locator, field_name: str = "") -> str:
+    """Return text content safely from locator."""
     try:
         return await locator.text_content(timeout=2000) or ""
-    except Exception:
+    except (PlaywrightTimeoutError, PlaywrightError):
         return ""
 
 
-async def safe_attr(locator, attr):
+async def safe_attr(locator: Locator, attr: str) -> str:
+    """Return attribute safely from locator."""
     try:
         return await locator.get_attribute(attr, timeout=3000) or ""
-    except Exception:
+    except (PlaywrightTimeoutError, PlaywrightError):
         return ""
 
 
 def remove_tracking_params(url: str) -> str:
+    """Remove tracking query parameters from URL."""
     parsed_url = urlparse(url)
     query_params = parse_qs(parsed_url.query)
 
-    # List of tracking params to remove
     tracking_keys = ["s", "ref", "searchId"]
-
     for key in tracking_keys:
-        query_params.pop(key, None)  # Remove if exists
+        query_params.pop(key, None)
 
     cleaned_query = urlencode(query_params, doseq=True)
     cleaned_url = parsed_url._replace(query=cleaned_query)
-    return urlunparse(cleaned_url)
+
+    return str(urlunparse(cleaned_url))
 
 
-async def extract_url_from_expanded_form(job):
+async def extract_url_from_expanded_form(job: Locator) -> str:
+    """Get first location URL from expanded job form."""
     try:
-        # Click the button or element that expands the form / location selector
         expand_button = job.locator(
             "div[title^='Zobacz ofertę'], span[role='button']"
         )
         if await expand_button.count() > 0:
             await expand_button.first.click()
-            await asyncio.sleep(0.5)  # wait for the form to expand
+            await asyncio.sleep(0.5)
 
-        # Now find the first location link inside the expanded section
         location_links = job.locator("a[data-test='link-offer']")
-        count_links = await location_links.count()
-        if count_links > 0:
+        if await location_links.count() > 0:
             href = await location_links.nth(0).get_attribute("href")
             if href:
                 return href
-    except Exception as e:
+    except (PlaywrightTimeoutError, PlaywrightError) as e:
         logger.debug(f"Failed to get URL from expanded form: {e}")
 
     return ""
 
 
-async def fetch_pracuj_jobs(url: str) -> list[dict]:
+async def fetch_pracuj_jobs(url: str) -> List[Dict[str, str]]:
+    """Fetch job listings from Pracuj website."""
     logger.info("-" * 60)
     logger.info(f"Starting job fetch from: {url}")
     async with async_playwright() as p:
@@ -102,14 +108,12 @@ async def fetch_pracuj_jobs(url: str) -> list[dict]:
         ua = get_random_user_agent()
         logger.info(f"User-agent: {ua}")
         page = await browser.new_page(user_agent=ua)
-
         await block_pracuj_resources(page)
-
         await page.goto(url)
         await page.wait_for_timeout(3000)
         await accept_cookies_if_present(page)
 
-        all_jobs = []
+        all_jobs: List[Dict[str, str]] = []
         page_number = 1
 
         while True:
@@ -125,15 +129,14 @@ async def fetch_pracuj_jobs(url: str) -> list[dict]:
                 await page.wait_for_selector(
                     "h2[data-test='offer-title']", timeout=10000
                 )
-            except Exception:
+            except PlaywrightTimeoutError:
                 logger.warning(
                     f"No job listings found on page {page_number}, stopping."
                 )
                 break
 
             cards = page.locator(
-                "div[data-test='positioned-offer'], "
-                "div[data-test='default-offer']"
+                "div[data-test='positioned-offer'], div[data-test='default-offer']"
             ).filter(
                 has_not=page.locator("div[data-test='section-ad-container']")
             )
@@ -141,7 +144,7 @@ async def fetch_pracuj_jobs(url: str) -> list[dict]:
             count = await cards.count()
             logger.info(f"Found {count} job cards on page {page_number}")
 
-            async def extract_job_data(i: int):
+            async def extract_job_data(i: int) -> Dict[str, str]:
                 job = cards.nth(i)
                 await job.scroll_into_view_if_needed()
                 await page.wait_for_timeout(300)
@@ -163,45 +166,30 @@ async def fetch_pracuj_jobs(url: str) -> list[dict]:
                     job.locator("ul.tiles_bfrsaoj li").first
                 )
 
-                link = ""
-
-                # Try preferred direct link first
-                link_locator = job.locator(
-                    "a[data-test='link-offer-title'], "
-                    "a[data-test='link-offer']"
-                ).first
-                link = await safe_attr(link_locator, "href")
-
-                # Fallback: search all anchors inside
-                # job card for an offer link
+                link = await safe_attr(
+                    job.locator(
+                        "a[data-test='link-offer-title'], a[data-test='link-offer']"
+                    ).first,
+                    "href",
+                )
                 if not link:
                     anchors = job.locator("a")
-                    count_anchors = await anchors.count()
-                    for j in range(count_anchors):
+                    for j in range(await anchors.count()):
                         href = await safe_attr(anchors.nth(j), "href")
                         if href and "/oferta/" in href:
                             link = href
                             break
-
-                # Final fallback: try to open expanded form
-                # and get first location URL
                 if not link:
                     link = await extract_url_from_expanded_form(job)
-
-                if not link:
-                    title_text = await safe_text(
-                        job.locator("h2[data-test='offer-title']")
-                    )
-                    logger.warning(
-                        f"No valid job link found for "
-                        f"job {i + 1} - Title: {title_text}"
-                    )
-
-                else:
+                if link:
                     link = remove_tracking_params(link)
+                else:
+                    logger.warning(
+                        f"No valid job link found for job {i + 1} - Title: {title}"
+                    )
 
                 return {
-                    "url": link,
+                    "url": link or "",
                     "title": clean_text(title),
                     "company": clean_text(company),
                     "salary": clean_text(salary),
@@ -209,42 +197,37 @@ async def fetch_pracuj_jobs(url: str) -> list[dict]:
                     "work_format": clean_text(work_fmt),
                 }
 
-            job_data_batch = await gather(
+            job_data_batch = await asyncio.gather(
                 *(extract_job_data(i) for i in range(count))
             )
             all_jobs.extend(job_data_batch)
 
-            # Anti-block delay
             await random_wait(0.5, 5.0)
 
-            # Pagination
             next_button = page.locator(
                 "button[data-test='bottom-pagination-button-next']"
             )
             try:
                 if await next_button.is_enabled(timeout=2000):
                     logger.info(
-                        "Next page button is enabled, continuing pagination."
+                        "Next page button enabled, continuing pagination."
                     )
                     await next_button.click()
                     await page.wait_for_timeout(3000)
                     await page.wait_for_selector(
-                        "div[data-test='positioned-offer'], "
-                        "div[data-test='default-offer']",
+                        "div[data-test='positioned-offer'], div[data-test='default-offer']",
                         timeout=10000,
                     )
                     await page.wait_for_timeout(300)
                     page_number += 1
                 else:
                     logger.info(
-                        "Next page button is disabled or not found, "
-                        "ending pagination."
+                        "Next page button disabled, ending pagination."
                     )
                     break
-            except Exception:
+            except PlaywrightError:
                 logger.info(
-                    "Next page button not found or not clickable, "
-                    "ending pagination."
+                    "Next page button not clickable, ending pagination."
                 )
                 break
 
