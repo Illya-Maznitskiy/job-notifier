@@ -112,3 +112,15 @@ class UserFilteredJob(Base):
 
     user: Mapped["User"] = relationship()
     job: Mapped["Job"] = relationship()
+
+
+class PendingUser(Base):
+    """Users queued for processing after bot restart."""
+
+    __tablename__ = "pending_users"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(BigInteger, unique=True, index=True)
+    datetime_added: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow
+    )
