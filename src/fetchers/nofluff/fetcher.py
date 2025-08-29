@@ -67,16 +67,18 @@ async def fetch_nofluff_jobs(url: str) -> list[dict]:
                     "button", has_text="Pokaż kolejne oferty"
                 )
 
-                try:
-                    await page.wait_for_selector(
-                        ".cdk-overlay-container",
-                        state="detached",
-                        timeout=15_000,
-                    )
-                except Exception as overlay_err:
-                    logger.debug(
-                        f"Overlay wait skipped or failed: {overlay_err}"
-                    )
+                # the fetcher at this moment works without that wait selector
+                # try:
+                #     await page.wait_for_selector(
+                #         ".cdk-overlay-container",
+                #         state="detached",
+                #         timeout=15_000,
+                #     )
+                # except TimeoutError as overlay_err:
+                #     pass
+                #     # logger.debug(
+                #     #     f"Overlay wait skipped or failed: {overlay_err}"
+                #     # )
 
                 if await load_more_button.count() == 0:
                     logger.info(
