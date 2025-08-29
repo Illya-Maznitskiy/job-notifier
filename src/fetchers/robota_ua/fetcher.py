@@ -1,6 +1,7 @@
 import asyncio
+from typing import List
 
-from playwright.async_api import async_playwright
+from playwright.async_api import async_playwright, ElementHandle
 
 from src.config import ROBOTA_UA_URL, ROBOTA_UA_HEADLESS, ROBOTA_UA_MAX_JOBS
 from src.fetchers.robota_ua.pagination import click_next_page
@@ -9,9 +10,11 @@ from src.utils.fetching.anti_block import get_random_user_agent, random_wait
 from src.utils.fetching.fetcher_optimization import block_resources
 
 
-async def auto_scroll(page, scroll_step=1050, max_scrolls: int = 12):
-    # Give the page time to settle before starting scroll
-    await asyncio.sleep(1)
+async def auto_scroll(
+    page, scroll_step: int = 1050, max_scrolls: int = 12
+) -> None:
+    """Auto-scroll page to load content."""
+    await asyncio.sleep(1)  # give page time to settle
 
     previous_scroll = None
     scroll_count = 0
@@ -36,10 +39,11 @@ async def auto_scroll(page, scroll_step=1050, max_scrolls: int = 12):
         scroll_count += 1
 
 
-async def extract_robota_ua_job(item) -> dict:
+async def extract_robota_ua_job(item: ElementHandle) -> dict:
+    """Extracts job details from an element handle."""
     job = {}
 
-    # Job URL (relative -> absolute)
+    # Job URL
     url = await item.get_attribute("href")
     if url:
         job["url"] = ROBOTA_UA_URL + url.strip()
@@ -51,38 +55,29 @@ async def extract_robota_ua_job(item) -> dict:
         if title:
             job["title"] = title.strip()
 
-    # 1) Try company name from alt or title attribute
-    # of img inside company-logo div
+    # Company name
     company_img = await item.query_selector("div.company-logo img")
     company = None
     if company_img:
-        company = await company_img.get_attribute("alt")
-        if not company:
-            company = await company_img.get_attribute("title")
-        if company:
-            company = company.strip()
-
-    # 2) If company not found, try getting company name from <span>
+        company = await company_img.get_attribute(
+            "alt"
+        ) or await company_img.get_attribute("title")
     if not company:
-        # Query all spans with class containing santa-mr-20 (or exact match)
         span_el = await item.query_selector("span.santa-mr-20")
         if span_el:
-            text = await span_el.text_content()
-            if text:
-                company = text.strip()
+            company = await span_el.text_content()
 
     if company:
-        job["company"] = company
+        job["company"] = company.strip()
 
-    # Salary info - first <span> inside div.santa-mb-10 with
-    # text containing digits or ₴
+    # Salary info
     salary_el = await item.query_selector("div.santa-mb-10 > span")
     if salary_el:
         salary = await salary_el.text_content()
-        if salary and any(ch.isdigit() for ch in salary):
+        if salary and any(char.isdigit() or char == "₴" for char in salary):
             job["salary"] = salary.strip()
 
-    # Location (with possible remote note)
+    # Location
     location_el = await item.query_selector(
         "div.santa-flex.santa-items-center > span"
     )
@@ -94,98 +89,90 @@ async def extract_robota_ua_job(item) -> dict:
     return job
 
 
-async def fetch_robota_ua_jobs():
+async def fetch_robota_ua_jobs() -> List[dict]:
+    """Fetches remote jobs from robota.ua."""
     logger.info("-" * 60)
     logger.info("Launching browser for robota.ua scraping")
+    all_jobs: List[dict] = []
 
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(
-            headless=ROBOTA_UA_HEADLESS,
-            args=["--disable-blink-features=AutomationControlled"],
-        )
+    try:
+        async with async_playwright() as p:
+            browser = await p.chromium.launch(
+                headless=ROBOTA_UA_HEADLESS,
+                args=["--disable-blink-features=AutomationControlled"],
+            )
 
-        # Random User-Agent
-        ua = get_random_user_agent()
-        logger.info(f"User-agent: {ua}")
-        page = await browser.new_page(user_agent=ua)
+            # Random User-Agent
+            ua = get_random_user_agent()
+            page = await browser.new_page(user_agent=ua)
+            await page.route("**/*", block_resources)
+            logger.info(f"User-agent: {ua}")
+            logger.info(f"Fetching robota.ua page: {ROBOTA_UA_URL}")
+            await page.goto(ROBOTA_UA_URL, timeout=60000)
 
-        await page.route("**/*", block_resources)
+            while len(all_jobs) < ROBOTA_UA_MAX_JOBS:
+                await auto_scroll(page)
+                await page.wait_for_selector("a.card", timeout=30000)
 
-        all_jobs = []
+                job_items = await page.query_selector_all("a.card")
+                if not job_items:
+                    logger.info("No job items found on the page.")
+                    break
 
-        logger.info(f"Fetching robota.ua page: {ROBOTA_UA_URL}")
-        await page.goto(ROBOTA_UA_URL)
-
-        while True:
-            # Jobs limit
-            if len(all_jobs) >= ROBOTA_UA_MAX_JOBS:
-                logger.info(
-                    f"Reached max job count of {ROBOTA_UA_MAX_JOBS}, stopping scraping."
-                )
-                break
-
-            # Scroll page fully so all jobs load
-            await auto_scroll(page)
-            await page.wait_for_selector("a.card", timeout=30000)
-
-            job_items = await page.query_selector_all("a.card")
-            if not job_items:
-                logger.info("No job items found on the page.")
-                break
-
-            # Filter out jobs inside recommended section
-            filtered_job_items = []
-            for card in job_items:
-                parent_alliance = await card.evaluate(
-                    "(node) => node.closest"
-                    "('alliance-recommended-vacancy-list')"
-                )
-                if not parent_alliance:
-                    filtered_job_items.append(card)
-
-            # Extract job details from filtered cards
-            for i, item in enumerate(filtered_job_items, start=1):
-                job = await extract_robota_ua_job(item)
-
-                if not job or "title" not in job or "url" not in job:
-                    logger.warning("Skipped job due to missing title or URL")
-                    continue
-
-                # Check if it's remote
-                tag_elements = await item.query_selector_all("div, span")
-                is_remote = False
-
-                for tag_el in tag_elements:
-                    tag_text = (await tag_el.inner_text()).strip().lower()
-                    if (
-                        "віддалена" in tag_text
-                        or "віддалена робота" in tag_text
-                    ):
-                        is_remote = True
-                        break
-
-                if not is_remote:
-                    logger.info(
-                        f"Skipped job #{job.get('company', 'unknown')} "
-                        f"{job.get('title', 'unknown')} — not remote"
+                for item in job_items:
+                    # Filter out jobs from 'recommended' section
+                    is_recommended = await item.evaluate(
+                        "node => node.closest('alliance-recommended-vacancy-list')"
                     )
-                    continue  # this prevents adding the job to the list
+                    if is_recommended:
+                        continue
 
-                # If remote, keep and log
-                all_jobs.append(job)
-                logger.info(
-                    f"{len(all_jobs):>3}. {job['title']:<60} @ {job.get('company', 'unknown')}"
-                )
+                    job = await extract_robota_ua_job(item)
+                    if not job.get("title") or not job.get("url"):
+                        logger.warning(
+                            "Skipped job due to missing title or URL"
+                        )
+                        continue
 
-                # Anti-block delay
-                await random_wait(0.5, 5.0)
+                    # Check for remote work tag
+                    tags = [
+                        (await tag.inner_text()).strip().lower()
+                        for tag in await item.query_selector_all("div, span")
+                    ]
+                    is_remote = any("віддалена" in tag for tag in tags)
 
-            # Go to next page or break if no next page
-            has_next = await click_next_page(page)
-            if not has_next:
-                logger.info("No more pages to fetch.")
-                break
+                    if not is_remote:
+                        logger.info(
+                            f"Skipped job #{job.get('company', 'unknown')} "
+                            f"{job.get('title', 'unknown')} — not remote"
+                        )
+                        continue
 
-        await browser.close()
-        logger.info(f"Scraping done. Total jobs fetched: {len(all_jobs)}")
-        return all_jobs
+                    all_jobs.append(job)
+                    logger.info(
+                        f"{len(all_jobs):>3}. {job['title']:<60} @ {job.get('company', 'unknown')}"
+                    )
+
+                    # Anti-block delay
+                    await random_wait(0.5, 5.0)
+
+                # Job limit
+                if len(all_jobs) >= ROBOTA_UA_MAX_JOBS:
+                    logger.info(
+                        f"Reached max job count of {ROBOTA_UA_MAX_JOBS}, stopping scraping."
+                    )
+                    break
+
+                if not await click_next_page(page):
+                    logger.info("No more pages to fetch.")
+                    break
+
+            await browser.close()
+    except Exception as e:
+        logger.error(f"An error occurred during scraping: {e}")
+    finally:
+        if browser:
+            await browser.close()
+
+    logger.info(f"Scraping done. Total jobs fetched: {len(all_jobs)}")
+    return all_jobs
