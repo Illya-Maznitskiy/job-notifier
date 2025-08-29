@@ -1,7 +1,7 @@
 import os
 import uvicorn
 import asyncio
-from src.utils.fastapi_app import app
+from src.api.fastapi_app import app
 from src.utils.job_loop import job_process_loop
 
 
@@ -19,3 +19,15 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
+
+# TODO:
+#   Clean telegram package, add simple docs, type annotation, logging to each function
+#   Clean db package, add simple docs, type annotation, logging to each function
+#   Clean api package, add simple docs, type annotation, logging to each function
+#   Clean utils package, add simple docs, type annotation, logging to each function
+#   Use type hints and short docstrings (max 12 words).
+#   Keep minimal logging/comments, only for non-obvious logic. Do not change existing logging.
+#   Handle errors and resources properly.
+#   Stick to concise, essential code changes only.
+#   Merge branches, add a version to the repo
