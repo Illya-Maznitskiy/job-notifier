@@ -45,7 +45,7 @@ def clean_text(text: str) -> str:
     return re.sub(r"\s+", " ", text.replace("\xa0", " ")).strip()
 
 
-async def safe_text(locator: Locator, field_name: str = "") -> str:
+async def safe_text(locator: Locator) -> str:
     """Return text content safely from locator."""
     try:
         return await locator.text_content(timeout=2000) or ""
@@ -97,8 +97,69 @@ async def extract_url_from_expanded_form(job: Locator) -> str:
     return ""
 
 
+async def extract_job_data(
+    job: Locator, page: Page, index: int
+) -> Dict[str, str]:
+    """Extract data for a single job card."""
+    await job.scroll_into_view_if_needed()
+    await page.wait_for_timeout(300)
+
+    title = await safe_text(job.locator("h2[data-test='offer-title']"))
+    salary = await safe_text(job.locator("span[data-test='offer-salary']"))
+    company = await safe_text(job.locator("h3[data-test='text-company-name']"))
+    city = await safe_text(job.locator("h4[data-test='text-region']"))
+    work_fmt = await safe_text(job.locator("ul.tiles_bfrsaoj li").first)
+
+    link = await safe_attr(
+        job.locator(
+            "a[data-test='link-offer-title'], a[data-test='link-offer']"
+        ).first,
+        "href",
+    )
+
+    if not link:
+        anchors = job.locator("a")
+        for j in range(await anchors.count()):
+            href = await safe_attr(anchors.nth(j), "href")
+            if href and "/oferta/" in href:
+                link = href
+                break
+
+    if not link:
+        link = await extract_url_from_expanded_form(job)
+
+    if link:
+        link = remove_tracking_params(link)
+    else:
+        logger.warning(
+            f"No valid job link found for job {index + 1} - Title: {title}"
+        )
+
+    return {
+        "url": link or "",
+        "title": clean_text(title),
+        "company": clean_text(company),
+        "salary": clean_text(salary),
+        "city": clean_text(city),
+        "work_format": clean_text(work_fmt),
+    }
+
+
+async def fetch_jobs_on_page(page: Page) -> List[Dict[str, str]]:
+    """Fetch all job cards on the current page."""
+    cards = page.locator(
+        "div[data-test='positioned-offer'], div[data-test='default-offer']"
+    ).filter(has_not=page.locator("div[data-test='section-ad-container']"))
+
+    count = await cards.count()
+    logger.info(f"Found {count} job cards on page")
+    return await asyncio.gather(
+        *(extract_job_data(cards.nth(i), page, i) for i in range(count))
+    )
+
+
 async def fetch_pracuj_jobs(url: str) -> List[Dict[str, str]]:
-    """Fetch job listings from Pracuj website."""
+    """Fetch job listings from Pracuj with pagination, cookies handling, and tracking removal."""
     logger.info("-" * 60)
     logger.info(f"Starting job fetch from: {url}")
     async with async_playwright() as p:
@@ -124,7 +185,6 @@ async def fetch_pracuj_jobs(url: str) -> List[Dict[str, str]]:
                 )
                 break
 
-            logger.info(f"Fetching page {page_number}")
             try:
                 await page.wait_for_selector(
                     "h2[data-test='offer-title']", timeout=10000
@@ -135,73 +195,10 @@ async def fetch_pracuj_jobs(url: str) -> List[Dict[str, str]]:
                 )
                 break
 
-            cards = page.locator(
-                "div[data-test='positioned-offer'], div[data-test='default-offer']"
-            ).filter(
-                has_not=page.locator("div[data-test='section-ad-container']")
-            )
+            jobs_on_page = await fetch_jobs_on_page(page)
+            all_jobs.extend(jobs_on_page)
 
-            count = await cards.count()
-            logger.info(f"Found {count} job cards on page {page_number}")
-
-            async def extract_job_data(i: int) -> Dict[str, str]:
-                job = cards.nth(i)
-                await job.scroll_into_view_if_needed()
-                await page.wait_for_timeout(300)
-
-                title = await safe_text(
-                    job.locator("h2[data-test='offer-title']")
-                )
-                salary = await safe_text(
-                    job.locator("span[data-test='offer-salary']"),
-                    "offer-salary",
-                )
-                company = await safe_text(
-                    job.locator("h3[data-test='text-company-name']")
-                )
-                city = await safe_text(
-                    job.locator("h4[data-test='text-region']")
-                )
-                work_fmt = await safe_text(
-                    job.locator("ul.tiles_bfrsaoj li").first
-                )
-
-                link = await safe_attr(
-                    job.locator(
-                        "a[data-test='link-offer-title'], a[data-test='link-offer']"
-                    ).first,
-                    "href",
-                )
-                if not link:
-                    anchors = job.locator("a")
-                    for j in range(await anchors.count()):
-                        href = await safe_attr(anchors.nth(j), "href")
-                        if href and "/oferta/" in href:
-                            link = href
-                            break
-                if not link:
-                    link = await extract_url_from_expanded_form(job)
-                if link:
-                    link = remove_tracking_params(link)
-                else:
-                    logger.warning(
-                        f"No valid job link found for job {i + 1} - Title: {title}"
-                    )
-
-                return {
-                    "url": link or "",
-                    "title": clean_text(title),
-                    "company": clean_text(company),
-                    "salary": clean_text(salary),
-                    "city": clean_text(city),
-                    "work_format": clean_text(work_fmt),
-                }
-
-            job_data_batch = await asyncio.gather(
-                *(extract_job_data(i) for i in range(count))
-            )
-            all_jobs.extend(job_data_batch)
-
+            # Anti-block delay
             await random_wait(0.5, 5.0)
 
             next_button = page.locator(
@@ -210,7 +207,7 @@ async def fetch_pracuj_jobs(url: str) -> List[Dict[str, str]]:
             try:
                 if await next_button.is_enabled(timeout=2000):
                     logger.info(
-                        "Next page button enabled, continuing pagination."
+                        f"Next page button enabled, continuing pagination."
                     )
                     await next_button.click()
                     await page.wait_for_timeout(3000)
