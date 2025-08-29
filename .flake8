@@ -4,3 +4,4 @@ exclude =
     .venv,
     .git,
     __pycache__,
+    alembic,

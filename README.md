@@ -35,18 +35,20 @@ pip install -r requirements.txt
 Create `.env` file in root by the [.env.sample](.env.sample).
 
 
-# Setup keyword_weights.yaml
-Create `keyword_weights.yaml` in the project root with content in lowercase, like this:
+# Database
+You can use your hosted PostgreSQL database or create one locally.
 
-```yaml
-positive:
-  python: 5
-  junior: 8
-  remote: 4
+Local database script (Make sure PostgreSQL is installed):
+```bash
+psql -U postgres
+CREATE DATABASE job_notifier;
+```
 
-negative:
-  senior: -20
-  javascript: -4
+
+# Database migrations
+After setting your db use this to set all models:
+```bash
+alembic upgrade head
 ```
 
 
@@ -82,3 +84,6 @@ docker build -t job-notifier . ; docker run --rm job-notifier
 
 ### Logging
 ![Logging](screenshots/logging.png)
+
+### DB Schema
+![DB Schema](screenshots/db_schema.png)

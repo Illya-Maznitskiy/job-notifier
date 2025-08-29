@@ -1,49 +1,33 @@
-import asyncio
 import os
-
-from fastapi import FastAPI
-
-from logs.logger import logger
-from notifier.email_sender import send_job_listings_email
-from notifier.telegram.telegram_bot import dp, bot
-from utils.fetch_orchestrator import run_all_fetchers
-from utils.jobs_saving_processes import save_backup_and_filter_jobs
-from utils.run_telegram_bot import run_telegram_bot
-
-app = FastAPI()
+import uvicorn
+import asyncio
+from src.api.fastapi_app import app
+from src.utils.job_loop import job_process_loop
 
 
-@app.get("/healthz")
-async def health_check():
-    return {"status": "ok"}
-
-
-async def job_process_loop():
-    """
-    Periodically runs job fetching, saving, emailing.
-    Runs every 12 hour.
-    """
-    while True:
-        logger.info("-" * 60)
-        logger.info("Job processing started")
-
-        await run_all_fetchers()
-        save_backup_and_filter_jobs()
-        send_job_listings_email()
-
-        await asyncio.sleep(12 * 3600)  # wait 12 hours before next fetch
-
-
-@app.on_event("startup")
-async def on_startup():
-    # Start job processing loop in background
+async def main():
+    """Start FastAPI server and background job loop"""
+    # Start background job loop
     asyncio.create_task(job_process_loop())
-    # Start telegram bot (this will block so run it in background)
-    asyncio.create_task(run_telegram_bot(dp, bot))
+
+    # Run FastAPI server
+    port = int(os.getenv("PORT", 8000))
+    config = uvicorn.Config(app, host="0.0.0.0", port=port)
+    server = uvicorn.Server(config)
+    await server.serve()
 
 
 if __name__ == "__main__":
-    import uvicorn
+    asyncio.run(main())
 
-    port = int(os.getenv("PORT", 8080))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+
+# TODO:
+#   Clean telegram package, add simple docs, type annotation, logging to each function
+#   Clean db package, add simple docs, type annotation, logging to each function
+#   Clean api package, add simple docs, type annotation, logging to each function
+#   Clean utils package, add simple docs, type annotation, logging to each function
+#   Use type hints and short docstrings (max 12 words).
+#   Keep minimal logging/comments, only for non-obvious logic. Do not change existing logging.
+#   Handle errors and resources properly.
+#   Stick to concise, essential code changes only.
+#   Merge branches, add a version to the repo
