@@ -5,15 +5,11 @@ from src.telegram.bot_config import dp, bot
 from src.telegram.job_utils import notify_admin_startup
 
 # THIS IMPORT IS CRITICAL to register command handlers!
-from src.telegram.commands.start_next import (  # noqa: F401
-    cmd_start,
-    send_next_vacancy,
-)
-from src.telegram.commands.admin import cmd_stop  # noqa: F401
-
-from src.telegram.commands.keywords import add_keyword  # noqa: F401
-from src.telegram.commands.refresh import refresh_jobs  # noqa: F401
-from src.telegram.random_text import handle_random_text  # noqa: F401
+# Register command handlers via module import
+import src.telegram.commands.start_next  # noqa: F401
+import src.telegram.commands.admin  # noqa: F401
+import src.telegram.commands.keywords  # noqa: F401
+import src.telegram.random_text  # noqa: F401
 
 
 async def start_bot():
