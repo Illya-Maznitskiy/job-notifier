@@ -125,9 +125,7 @@ async def remove_keyword(message: types.Message):
     """Remove a keyword for the current user."""
     user_id = message.from_user.id
     logger.info("-" * 60)
-    logger.info(
-        f"User {user_id} invoked /remove with text: {message.text!r}"
-    )
+    logger.info(f"User {user_id} invoked /remove with text: {message.text!r}")
 
     parts = message.text.split(maxsplit=1)
     if len(parts) != 2:
@@ -155,6 +153,9 @@ async def remove_keyword(message: types.Message):
         if deleted:
             await session.commit()
             await message.answer(f"Keyword '{keyword}' removed ✅")
+            await message.answer(
+                f"Use /refresh to filter jobs without that keyword 🙂"
+            )
             logger.info(f"User {user_id} removed keyword '{keyword}'")
         else:
             await message.answer(f"Keyword '{keyword}' not found ❌")
