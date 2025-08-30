@@ -42,12 +42,12 @@ async def setup_page(playwright: Playwright, url: str) -> Tuple[Browser, Page]:
         await page.goto(url)
 
         try:
-            await page.click("#cookiescript_reject", timeout=30000)
+            await page.click("#cookiescript_reject", timeout=60000)
             logger.info("Cookie consent rejected.")
         except PlaywrightTimeoutError:
             logger.debug("No cookie popup found or already handled.")
 
-        await page.wait_for_selector("a.offer-card", timeout=30000)
+        await page.wait_for_selector("a.offer-card", timeout=60000)
         return browser, page
 
     except Exception as err:
