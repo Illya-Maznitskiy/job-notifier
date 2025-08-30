@@ -11,7 +11,7 @@ from src.telegram.bot_config import (
     lambda message: not (message.text and message.text.startswith("/"))
 )
 async def handle_random_text(message: types.Message):
-    """Reply to random text with help info."""
+    """Replies to messages that aren’t commands with a friendly tip."""
     logger.info("-" * 60)
     user_id = message.from_user.id
     text = message.text
