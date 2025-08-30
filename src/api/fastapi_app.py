@@ -1,7 +1,7 @@
 import asyncio
 import os
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 import uvicorn
 
 from logs.logger import logger
@@ -12,9 +12,10 @@ from src.utils.job_loop import job_process_loop
 app = FastAPI()
 
 
-@app.get("/healthz")
-async def health_check():
+@app.api_route("/healthz", methods=["GET", "HEAD", "POST", "OPTIONS"])
+async def health_check(request: Request):
     logger.info("-" * 60)
+    logger.info(f"Health check received: {request.method}")
     return {"status": "ok"}
 
 
