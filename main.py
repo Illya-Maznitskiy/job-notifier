@@ -30,4 +30,3 @@ if __name__ == "__main__":
 #   Keep minimal logging/comments, only for non-obvious logic. Do not change existing logging.
 #   Handle errors and resources properly.
 #   Stick to concise, essential code changes only.
-#   Merge branches, add a version to the repo
