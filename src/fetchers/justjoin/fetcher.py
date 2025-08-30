@@ -47,7 +47,7 @@ async def setup_page(playwright: Playwright, url: str) -> Tuple[Browser, Page]:
         except PlaywrightTimeoutError:
             logger.debug("No cookie popup found or already handled.")
 
-        await page.wait_for_selector("a.offer-card", timeout=10000)
+        await page.wait_for_selector("a.offer-card", timeout=30000)
         return browser, page
 
     except Exception as err:
