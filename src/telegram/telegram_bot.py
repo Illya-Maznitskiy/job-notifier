@@ -9,6 +9,7 @@ from src.telegram.job_utils import notify_admin_startup
 import src.telegram.commands.start_next  # noqa: F401
 import src.telegram.commands.admin  # noqa: F401
 import src.telegram.commands.keywords  # noqa: F401
+import src.telegram.commands.refresh  # noqa: F401
 import src.telegram.random_text  # noqa: F401
 
 
