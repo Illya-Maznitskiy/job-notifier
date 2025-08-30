@@ -51,6 +51,7 @@ async def filter_jobs_for_user(
     session, user_id: int, jobs: List[Job]
 ) -> List[Tuple[Job, int]]:
     """Filter jobs for a single user based on their keywords and compute scores."""
+    logger.info("-" * 60)
     keyword_weights = await get_user_keywords(session, user_id)
 
     scored_jobs: List[Tuple[Job, int]] = []
@@ -61,6 +62,8 @@ async def filter_jobs_for_user(
 
     # sort by score descending
     scored_jobs.sort(key=lambda x: x[1], reverse=True)
+    logger.info(f"Fetched keywords for user {user_id}: {keyword_weights}")
+    logger.info(f"Found {len(scored_jobs)} jobs for user {user_id}")
     return scored_jobs  # list of (job, score)
 
 
