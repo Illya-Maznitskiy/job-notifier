@@ -17,11 +17,5 @@ async def handle_random_text(message: types.Message):
     text = message.text
     logger.info(f"User {user_id} sent random text: {text!r}")
 
-    help_text = (
-        "Hi! I'm a job notifier bot 🤖\n\n"
-        "Use the following commands:\n"
-        "/start - Start interaction\n"
-        "/next - Get next job vacancy\n"
-        "/stop - Stop the bot (admin only)"
-    )
+    help_text = "Hey! Wrong number? Nah, just kidding. Tap /start to begin 😎"
     await message.answer(help_text)
