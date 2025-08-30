@@ -54,5 +54,5 @@ async def refresh_jobs(message: types.Message):
         logger.info(f"Found {len(filtered_jobs)} jobs for user {user.id}")
 
     await message.answer(
-        f"✅ Found {len(filtered_jobs)} relevant jobs. Use /next to browse."
+        f"✅ Found {len(filtered_jobs)} relevant jobs. Use /vacancy to get your jobs"
     )
