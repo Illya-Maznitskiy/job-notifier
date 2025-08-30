@@ -1,4 +1,3 @@
-import asyncio
 import random
 from datetime import timedelta, datetime
 
@@ -33,11 +32,11 @@ async def cmd_start(message: types.Message):
 
     last_start[user_id] = now
     await message.answer(
-        "Hi! I'll send you new dev jobs. Use /next to get a vacancy 😉"
+        "Hi! I'll send you new IT jobs. Use /vacancy to get a job 😉"
     )
 
 
-@dp.message(Command(commands=["next"]))
+@dp.message(Command(commands=["vacancy"]))
 async def send_next_vacancy(message: types.Message):
     """Send next job vacancy to the user."""
     logger.info("-" * 60)
