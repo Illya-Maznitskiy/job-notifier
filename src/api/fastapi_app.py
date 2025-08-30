@@ -5,8 +5,7 @@ from fastapi import FastAPI, Request
 import uvicorn
 
 from logs.logger import logger
-from src.telegram.telegram_bot import dp, bot
-from src.utils.telegram.run_telegram_bot import run_telegram_bot
+from src.telegram.telegram_bot import start_bot
 from src.utils.job_loop import job_process_loop
 
 app = FastAPI()
@@ -28,7 +27,7 @@ async def on_startup():
 
     logger.info("Starting Telegram bot")
     # Start telegram bot (this will block so run it in background)
-    asyncio.create_task(run_telegram_bot(dp, bot))
+    asyncio.create_task(start_bot())
 
 
 if __name__ == "__main__":
