@@ -2,7 +2,6 @@ import os
 import uvicorn
 import asyncio
 from src.api.fastapi_app import app
-from src.utils.job_loop import job_process_loop
 
 
 async def main():
