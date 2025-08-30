@@ -91,7 +91,7 @@ async def add_keyword_save(message: Message, state: FSMContext):
     await state.clear()
 
 
-@dp.message(Command("list"))
+@dp.message(Command("keywords"))
 async def list_keywords(message: types.Message):
     """List all keywords for the current user."""
     user_id = message.from_user.id
