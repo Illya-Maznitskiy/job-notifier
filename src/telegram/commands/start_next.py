@@ -54,9 +54,6 @@ async def send_next_vacancy(message: types.Message):
         caption="Are you ready?! 🔥",
     )
 
-    # Optional: small pause for dramatic effect
-    await asyncio.sleep(2)
-
     # Then send the vacancy
     async with AsyncSessionLocal() as session:
         await send_vacancy_to_user(user_id, session, user_id)
