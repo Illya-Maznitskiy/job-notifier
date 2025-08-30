@@ -26,7 +26,7 @@ class AddKeywordStates(StatesGroup):
     waiting_for_weight: State = State()  # Waiting user to send weight
 
 
-@dp.message(Command("add_keyword"))
+@dp.message(Command("add"))
 async def add_keyword_start(message: Message, state: FSMContext):
     """Start adding keyword conversation."""
     user_id = message.from_user.id
@@ -91,7 +91,7 @@ async def add_keyword_save(message: Message, state: FSMContext):
     await state.clear()
 
 
-@dp.message(Command("list_keywords"))
+@dp.message(Command("list"))
 async def list_keywords(message: types.Message):
     """List all keywords for the current user."""
     user_id = message.from_user.id
@@ -120,7 +120,7 @@ async def list_keywords(message: types.Message):
         await message.answer(reply)
 
 
-@dp.message(Command("remove_keyword"))
+@dp.message(Command("remove"))
 async def remove_keyword(message: types.Message):
     """Remove a keyword for the current user."""
     user_id = message.from_user.id
