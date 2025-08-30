@@ -34,7 +34,9 @@ async def add_keyword_start(message: Message, state: FSMContext):
     await message.answer(
         f"Send me a keyword\nI'll use it to find jobs for you ✅"
     )
-    await message.answer("Example: Python")
+    await message.answer(
+        "Example: Python\n💡You can also use: aws, junior, and more"
+    )
     await state.set_state(AddKeywordStates.waiting_for_keyword)
 
 
@@ -56,7 +58,10 @@ async def add_keyword_receive(message: Message, state: FSMContext):
             ],
         ]
     )
-    await message.answer("Choose a weight:", reply_markup=keyboard)
+    await message.answer(
+        "Choose a score:\n💡Feel free to use custom and negative values like -10, 5 ...",
+        reply_markup=keyboard,
+    )
 
 
 @dp.message(StateFilter(AddKeywordStates.waiting_for_weight))
