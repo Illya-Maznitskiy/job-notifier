@@ -126,12 +126,13 @@ async def remove_keyword(message: types.Message):
     user_id = message.from_user.id
     logger.info("-" * 60)
     logger.info(
-        f"User {user_id} invoked /remove_keyword with text: {message.text!r}"
+        f"User {user_id} invoked /remove with text: {message.text!r}"
     )
 
     parts = message.text.split(maxsplit=1)
     if len(parts) != 2:
-        await message.answer("Usage: /remove_keyword <keyword> ❌")
+        await message.answer("Usage: /remove <keyword> ❌")
+        await message.answer("💡 Example: /remove python")
         return
 
     keyword = parts[1].lower()
@@ -143,7 +144,7 @@ async def remove_keyword(message: types.Message):
             logger.warning(
                 f"Unregistered user {user_id} tried to remove a keyword."
             )
-            await message.answer("You are not registered yet ❌")
+            await message.answer("Hmm, system issue 🤷‍♂️")
             return
 
         # Try to delete keyword
