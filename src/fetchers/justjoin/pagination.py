@@ -22,7 +22,7 @@ async def scroll_and_fetch_jobs(page: Page) -> List[Dict[str, Any]]:
             await page.evaluate(
                 "window.scrollBy(0, document.body.scrollHeight)"
             )
-            await page.wait_for_timeout(10000)
+            await page.wait_for_timeout(30000)
             new_height = await page.evaluate("document.body.scrollHeight")
             if new_height == previous_height:
                 break
