@@ -11,7 +11,13 @@ async def feedback_cmd(message: types.Message):
     """Send user feedback directly to admin via /feedback command."""
     logger.info("-" * 60)
 
-    text = message.get_args()
+    # Get everything after /feedback
+    text = message.text
+    if text:
+        # Remove the command part
+        parts = text.split(maxsplit=1)
+        text = parts[1] if len(parts) > 1 else None
+
     if not text:
         await message.reply(
             "Please send your feedback after the command, e.g., /feedback I love this bot!"
