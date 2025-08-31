@@ -35,7 +35,7 @@ async def add_keyword_start(message: Message, state: FSMContext):
         f"Send me a keyword\nI'll use it to find jobs for you ✅"
     )
     await message.answer(
-        "Example: Python\n💡You can also use: aws, junior, and more"
+        "Example: Python\n💡You can also try: SQL, Junior, or any skill"
     )
     await state.set_state(AddKeywordStates.waiting_for_keyword)
 
@@ -60,7 +60,7 @@ async def add_keyword_receive(message: Message, state: FSMContext):
             ],
             [
                 InlineKeyboardButton(
-                    text="❓ How does it work?", callback_data="how_it_works"
+                    text="❓ Info", callback_data="how_it_works"
                 )
             ],
         ]
@@ -219,13 +219,10 @@ async def process_weight_callback(cb: CallbackQuery, state: FSMContext):
 async def process_how_it_works(cb: CallbackQuery):
     """Explain briefly how keyword scoring works."""
     text = (
-        "🔎 How it works:\n\n"
-        "• Pick a keyword (e.g. Python, JavaScript)\n"
-        "• Give it a score (like 10)\n"
-        "• I’ll check job titles and skills for that keyword\n"
-        "• If it matches, I increase that job’s score\n"
-        "• Finally, I send you the top jobs with higher scores\n\n"
-        "That’s it! 🙂"
+        "• Add a keyword and score (e.g., JS → 10)\n"
+        "• I scan each job titles/skills and update scores\n"
+        "• Then I show the top jobs for you\n\n"
+        "That’s all! 😎"
     )
     await cb.message.answer(text)
     await cb.answer()
