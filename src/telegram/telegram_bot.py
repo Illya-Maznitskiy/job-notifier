@@ -11,6 +11,7 @@ import src.telegram.commands.admin  # noqa: F401
 import src.telegram.commands.keywords  # noqa: F401
 import src.telegram.commands.refresh  # noqa: F401
 import src.telegram.random_text  # noqa: F401
+import src.telegram.commands.feedback  # noqa: F401
 
 
 async def start_bot():
