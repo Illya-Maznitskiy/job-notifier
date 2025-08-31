@@ -2,11 +2,12 @@
 
 
 ## Description
-Sends recent, relevant job listings from top platforms via Telegram or email.
+Fetches the latest jobs from top platforms and sends them directly to your Telegram
 
 
 ## Technologies Used
 - Python
+- FastAPI
 - Playwright
 - Aiogram
 - Smtplib
@@ -78,9 +79,6 @@ docker build -t job-notifier . ; docker run --rm job-notifier
 
 ### Telegram Bot
 ![Telegram Bot](screenshots/telegram_bot.png)
-
-### Email Sender
-![Email Sender](screenshots/email_sender.png)
 
 ### Logging
 ![Logging](screenshots/logging.png)
