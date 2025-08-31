@@ -50,7 +50,7 @@ async def send_next_vacancy(message: types.Message):
     await bot.send_animation(
         chat_id=message.chat.id,
         animation=gif_url,
-        caption="Are you ready?! 🔥",
+        caption="Are you ready?! 🔥\n(Applied and Skip buttons are just to track vacancies in DB for now)",
     )
 
     # Then send the vacancy
