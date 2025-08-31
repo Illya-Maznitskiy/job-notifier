@@ -1,11 +1,12 @@
 from aiogram import types
+from aiogram.filters import Command
 
 from src.telegram.bot_config import dp, bot
 from src.telegram.job_utils import ADMIN_ID
 from logs.logger import logger
 
 
-@dp.message_handler(commands=["feedback"])
+@dp.message(Command(commands=["feedback"]))
 async def feedback_cmd(message: types.Message):
     """Send user feedback directly to admin via /feedback command."""
     logger.info("-" * 60)
