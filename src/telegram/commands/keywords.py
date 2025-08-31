@@ -43,7 +43,9 @@ async def add_keyword_start(message: Message, state: FSMContext):
 @dp.message(StateFilter(AddKeywordStates.waiting_for_keyword))
 async def add_keyword_receive(message: Message, state: FSMContext):
     """Receive keyword from user."""
-    await state.update_data(keyword=message.text.lower())
+    keyword = message.text.lower()
+    await state.update_data(keyword=keyword)
+
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
             [
@@ -56,10 +58,15 @@ async def add_keyword_receive(message: Message, state: FSMContext):
                     text="Custom", callback_data="weight_custom"
                 )
             ],
+            [
+                InlineKeyboardButton(
+                    text="❓ How does it work?", callback_data="how_it_works"
+                )
+            ],
         ]
     )
     await message.answer(
-        "Choose a score:\n💡Feel free to use custom and negative values like -10, 5 ...",
+        f"Choose a score for '{keyword}':\n💡Feel free to use custom and negative values like -10, 5 ...",
         reply_markup=keyboard,
     )
 
@@ -90,7 +97,7 @@ async def add_keyword_save(message: Message, state: FSMContext):
         f"User {user_id} {action} keyword '{keyword}' with weight {weight}"
     )
     await message.answer(
-        f"Keyword '{keyword}' {action} with weight {weight} ✅"
+        f"Keyword '{keyword}' {action} with score {weight} ✅"
     )
     await message.answer("You can use /refresh now to filter jobs for you 😎")
     await state.clear()
@@ -109,7 +116,7 @@ async def list_keywords(message: types.Message):
             logger.warning(
                 f"Unregistered user {user_id} tried to list keywords."
             )
-            await message.answer("You are not registered yet ❌")
+            await message.answer("Hmm, system issue 🤷‍♂️")
             return
 
         keywords = await get_user_all_keywords(session, user.id)
@@ -198,11 +205,27 @@ async def process_weight_callback(cb: CallbackQuery, state: FSMContext):
         await session.commit()
 
     await cb.message.answer(
-        f"Keyword '{keyword}' {action} with weight {weight} ✅"
+        f"Keyword '{keyword}' {action} with score {weight} ✅"
     )
     await cb.message.answer(
         "You can use /refresh now to filter jobs for you 😎"
     )
 
     await state.clear()
+    await cb.answer()
+
+
+@dp.callback_query(lambda c: c.data == "how_it_works")
+async def process_how_it_works(cb: CallbackQuery):
+    """Explain briefly how keyword scoring works."""
+    text = (
+        "🔎 How it works:\n\n"
+        "• Pick a keyword (e.g. Python, JavaScript)\n"
+        "• Give it a score (like 10)\n"
+        "• I’ll check job titles and skills for that keyword\n"
+        "• If it matches, I increase that job’s score\n"
+        "• Finally, I send you the top jobs with higher scores\n\n"
+        "That’s it! 🙂"
+    )
+    await cb.message.answer(text)
     await cb.answer()
