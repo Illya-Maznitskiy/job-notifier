@@ -5,7 +5,6 @@ from src.telegram.bot_config import dp, bot
 from src.telegram.job_utils import notify_admin_startup
 
 # THIS IMPORT IS CRITICAL to register command handlers!
-# Register command handlers via module import
 import src.telegram.commands.start_vacancy  # noqa: F401
 import src.telegram.commands.admin  # noqa: F401
 import src.telegram.commands.keywords  # noqa: F401
@@ -14,18 +13,25 @@ import src.telegram.random_text  # noqa: F401
 import src.telegram.commands.feedback  # noqa: F401
 
 
-async def start_bot():
+async def start_bot() -> None:
     """Start Telegram bot polling loop."""
     logger.info("-" * 60)
-    logger.info("Starting bot polling...")
+    logger.info("Starting bot...")
 
-    # Notify the admin
-    await notify_admin_startup()
+    try:
+        # Notify the admin
+        await notify_admin_startup()
 
-    # Start polling
-    await dp.start_polling(bot)
-    logger.info("Bot polling stopped.")
+        # Start the bot
+        await dp.start_polling(bot)
+    except Exception as err:
+        logger.exception(f"Bot crashed: {err}")
+    finally:
+        logger.info("Bot stopped.")
 
 
 if __name__ == "__main__":
-    asyncio.run(start_bot())
+    try:
+        asyncio.run(start_bot())
+    except Exception as e:
+        logger.exception(f"Unhandled error in start_bot(): {e}")
