@@ -20,6 +20,9 @@ def get_keyboard(job: Job) -> InlineKeyboardMarkup:
     logger.info("-" * 60)
     logger.debug(f"Generating keyboard for job id={job.id}, title={job.title}")
 
+    if not job or not hasattr(job, "id"):
+        raise ValueError("Invalid job object")
+
     def get_callback_data(action: str) -> str:
         return f"{action}|{job.id}"
 
@@ -39,7 +42,7 @@ def get_keyboard(job: Job) -> InlineKeyboardMarkup:
     )
 
 
-async def notify_admin_startup():
+async def notify_admin_startup() -> None:
     """Notify admin that the bot has started."""
     if ADMIN_ID:
         try:
@@ -53,52 +56,61 @@ async def notify_admin_startup():
         logger.warning("ADMIN_ID not set. Cannot notify admin on startup.")
 
 
-def clean_short_title(title: str, max_words=3):
+def clean_short_title(title: str, max_words: int = 3) -> str:
     """Make title shorter."""
-    words = title.split()
-    return " ".join(words[:max_words])
+    if not title:
+        return ""
+    return " ".join(title.split()[:max_words])
 
 
 def truncate_title(title: str, max_length: int = 34) -> str:
     """Truncate title without cutting words."""
+    if not title:
+        return ""
     words = title.split()
     truncated = ""
     for word in words:
-        if len(truncated + " " + word if truncated else word) > max_length:
+        if len(truncated + (" " if truncated else "") + word) > max_length:
             break
         truncated += (" " if truncated else "") + word
     return truncated or title[:max_length]
 
 
-def escape_markdown(text):
+def escape_markdown(text: str) -> str:
+    """Escape Markdown special characters."""
+    if not text:
+        return ""
     escape_chars = r"_*[]()~`>#+-=|{}.!"
     return re.sub(f"([{re.escape(escape_chars)}])", r"\\\1", text)
 
 
-# def get_job_id(job_url: str) -> str:
-#     """Create short unique ID to fit Telegram callback_data limit."""
-#     return hashlib.md5(job_url.encode()).hexdigest()[:8]
-
-
 async def get_job_id_by_url(session: AsyncSession, job_url: str) -> int | None:
     """Fetch job.id from DB using job.url."""
-    result = await session.execute(select(Job.id).where(Job.url == job_url))
-    return result.scalar_one_or_none()
+    if not job_url:
+        return None
+    try:
+        result = await session.execute(
+            select(Job.id).where(Job.url == job_url)
+        )
+        return result.scalar_one_or_none()
+    except Exception as e:
+        logger.error(f"Failed fetching job id: {e}")
+        return None
 
 
 def create_vacancy_message(
     job: Job, score: int | None = None
-) -> tuple[str, object]:
-    """
-    Create the formatted vacancy message and keyboard for a job.
-    """
+) -> tuple[str, InlineKeyboardMarkup]:
+    """Return vacancy message and keyboard."""
+    if not job:
+        raise ValueError("Invalid job object")
+
     url = job.url or ""
     keyboard = get_keyboard(job)
 
     company = escape_markdown(job.company or "Unknown")
     job_title = escape_markdown(truncate_title(job.title or "No Title"))
     score_text = score if score is not None else "No score"
-
     url_text = f"[🔗 View Job Posting]({url})" if url else "No URL provided"
 
     msg = (
@@ -114,18 +126,24 @@ def create_vacancy_message(
 async def get_or_create_user(
     session: AsyncSession, user_id: int, username: str | None = None
 ) -> User:
-    """Fetch user or create if not exists in database."""
-    user = await get_user_by_user_id(session, user_id)  # try to get user
+    """Return existing user or create new one."""
+    if not user_id or not session:
+        raise ValueError("Invalid user_id or session")
+
+    user = await get_user_by_user_id(session, user_id)
     if user:
-        return user  # return existing user
+        return user
+
     logger.info(f"Creating new user with id={user_id}, username={username}")
-    await bot.send_message(
-        ADMIN_ID,
-        f"New user joined 😉\nID: {user_id}\nUsername: {username}",
-    )
-    return await create_user(
-        session, user_id, username
-    )  # create new if not found
+    try:
+        await bot.send_message(
+            ADMIN_ID,
+            f"New user joined 😉\nID: {user_id}\nUsername: {username}",
+        )
+    except Exception as e:
+        logger.error(f"Failed notifying admin: {e}")
+
+    return await create_user(session, user_id, username)
 
 
 async def add_or_update_user_keyword(
@@ -135,7 +153,10 @@ async def add_or_update_user_keyword(
     keyword: str,
     weight: int,
 ) -> str:
-    """Add or update user's keyword with weight."""
+    """Add or update user's keyword rating."""
+    if not user_id or not keyword:
+        raise ValueError("Invalid user_id or keyword")
+
     user = await get_user_by_user_id(session, user_id)
     if not user:
         user = await create_user(session, user_id, username)
@@ -148,6 +169,6 @@ async def add_or_update_user_keyword(
         existing_kw.weight = weight
         await session.flush()
         return "updated"
-    else:
-        await upsert_user_keyword(session, user.id, keyword, weight)
-        return "created"
+
+    await upsert_user_keyword(session, user.id, keyword, weight)
+    return "created"
