@@ -12,6 +12,10 @@ API_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 if not API_TOKEN:
     raise ValueError("TELEGRAM_BOT_TOKEN not set")
 
+ADMIN_ID = os.getenv("ADMIN_ID")
+if not ADMIN_ID:
+    raise ValueError("ADMIN_ID not set")
+
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher()
 
