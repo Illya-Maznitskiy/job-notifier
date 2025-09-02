@@ -1,4 +1,3 @@
-import os
 import re
 
 from sqlalchemy import select
@@ -10,10 +9,7 @@ from src.db.models import User, Job
 from logs.logger import logger
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-from src.telegram.bot_config import bot
-
-
-ADMIN_ID = int(os.getenv("ADMIN_ID"))
+from src.telegram.bot_config import bot, ADMIN_ID
 
 
 def get_keyboard(job: Job) -> InlineKeyboardMarkup:
