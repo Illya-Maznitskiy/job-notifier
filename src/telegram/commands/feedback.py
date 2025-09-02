@@ -7,8 +7,8 @@ from logs.logger import logger
 
 
 @dp.message(Command(commands=["feedback"]))
-async def feedback_cmd(message: types.Message):
-    """Send user feedback directly to admin via /feedback command."""
+async def feedback_cmd(message: types.Message) -> None:
+    """Send user feedback to admin."""
     logger.info("-" * 60)
 
     # Get everything after /feedback
