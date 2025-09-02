@@ -20,7 +20,6 @@ if __name__ == "__main__":
 # TODO:
 #   Delete previous jobs while new fetching
 #   Add delete all keywords command
-#   Clean telegram package, add simple docs, type annotation, logging to each function
 #   Clean db package, add simple docs, type annotation, logging to each function
 #   Clean api package, add simple docs, type annotation, logging to each function
 #   Clean utils package, add simple docs, type annotation, logging to each function
