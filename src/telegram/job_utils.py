@@ -12,6 +12,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from src.telegram.bot_config import bot
 
+
 ADMIN_ID = int(os.getenv("ADMIN_ID"))
 
 
