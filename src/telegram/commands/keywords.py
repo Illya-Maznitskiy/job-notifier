@@ -20,19 +20,23 @@ from src.telegram.job_utils import add_or_update_user_keyword
 
 
 class AddKeywordStates(StatesGroup):
-    """States for adding a keyword conversation flow."""
+    """Add keyword conversation states."""
 
-    waiting_for_keyword: State = State()  # Waiting user to send keyword
-    waiting_for_weight: State = State()  # Waiting user to send weight
+    waiting_for_keyword: State = State()
+    waiting_for_weight: State = State()
 
 
 @dp.message(Command("add"))
-async def add_keyword_start(message: Message, state: FSMContext):
+async def add_keyword_start(message: Message, state: FSMContext) -> None:
     """Start adding keyword conversation."""
+    if not message or not state:
+        logger.error("Message or state is None")
+        return
+
     user_id = message.from_user.id
     logger.info(f"User {user_id} started adding keyword")
     await message.answer(
-        f"Send me a keyword\nI'll use it to find jobs for you ✅"
+        "Send me a keyword\nI'll use it to find jobs for you ✅"
     )
     await message.answer(
         "Example: Python\n💡You can also try: SQL, Junior, or any skill"
@@ -41,8 +45,12 @@ async def add_keyword_start(message: Message, state: FSMContext):
 
 
 @dp.message(StateFilter(AddKeywordStates.waiting_for_keyword))
-async def add_keyword_receive(message: Message, state: FSMContext):
+async def add_keyword_receive(message: Message, state: FSMContext) -> None:
     """Receive keyword from user."""
+    if not message.text:
+        logger.warning("Received empty keyword")
+        return
+
     keyword = message.text.lower()
     await state.update_data(keyword=keyword)
 
@@ -72,7 +80,7 @@ async def add_keyword_receive(message: Message, state: FSMContext):
 
 
 @dp.message(StateFilter(AddKeywordStates.waiting_for_weight))
-async def add_keyword_save(message: Message, state: FSMContext):
+async def add_keyword_save(message: Message, state: FSMContext) -> None:
     """Save keyword and weight in DB."""
     user_id = message.from_user.id
     data = await state.get_data()
@@ -104,7 +112,7 @@ async def add_keyword_save(message: Message, state: FSMContext):
 
 
 @dp.message(Command("keywords"))
-async def list_keywords(message: types.Message):
+async def list_keywords(message: types.Message) -> None:
     """List all keywords for the current user."""
     user_id = message.from_user.id
     logger.info("-" * 60)
@@ -133,7 +141,7 @@ async def list_keywords(message: types.Message):
 
 
 @dp.message(Command("remove"))
-async def remove_keyword(message: types.Message):
+async def remove_keyword(message: types.Message) -> None:
     """Remove a keyword for the current user."""
     user_id = message.from_user.id
     logger.info("-" * 60)
@@ -179,7 +187,9 @@ async def remove_keyword(message: types.Message):
 @dp.callback_query(
     lambda c: isinstance(c.data, str) and c.data.startswith("weight_")
 )
-async def process_weight_callback(cb: CallbackQuery, state: FSMContext):
+async def process_weight_callback(
+    cb: CallbackQuery, state: FSMContext
+) -> None:
     """Handle weight selection buttons."""
 
     if cb.data == "weight_custom":
@@ -216,8 +226,12 @@ async def process_weight_callback(cb: CallbackQuery, state: FSMContext):
 
 
 @dp.callback_query(lambda c: c.data == "how_it_works")
-async def process_how_it_works(cb: CallbackQuery):
+async def process_how_it_works(cb: CallbackQuery) -> None:
     """Explain briefly how keyword scoring works."""
+    if not cb.message:
+        await cb.answer("Message not available")
+        return
+
     text = (
         "• Add a keyword and score (e.g., JS → 10)\n"
         "• I scan each job titles/skills and update scores\n"
