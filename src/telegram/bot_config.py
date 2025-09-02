@@ -6,7 +6,11 @@ from aiogram import Bot, Dispatcher
 
 
 load_dotenv()
+
+
 API_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+if not API_TOKEN:
+    raise ValueError("TELEGRAM_BOT_TOKEN not set")
 
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher()
