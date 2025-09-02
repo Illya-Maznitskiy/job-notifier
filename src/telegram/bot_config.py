@@ -1,5 +1,6 @@
 import os
 from collections import defaultdict
+from datetime import timedelta
 
 from dotenv import load_dotenv
 from aiogram import Bot, Dispatcher
@@ -48,3 +49,7 @@ READY_GIF_URLS = [
 ]
 
 user_request_count = defaultdict(int)
+
+# /start command anti-spam logic
+last_start = {}
+COOLDOWN = timedelta(seconds=30)
