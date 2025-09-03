@@ -1,13 +1,19 @@
 import asyncio
+import logging
 import os
+from typing import AsyncGenerator
 
 from sqlalchemy import text
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.asyncio import (
+    create_async_engine,
+    AsyncSession,
+    async_sessionmaker,
+)
 from dotenv import load_dotenv
 
 
 load_dotenv()
+
 
 DB_USER = os.getenv("DB_USER", "user")
 DB_PASS = os.getenv("DB_PASS", "password")
@@ -26,23 +32,29 @@ engine = create_async_engine(
     pool_recycle=1800,  # recycle connections every 30 minutes (seconds)
 )
 
-
-AsyncSessionLocal = sessionmaker(
+AsyncSessionLocal = async_sessionmaker(
     bind=engine,
-    class_=AsyncSession,
     expire_on_commit=False,
 )
 
 
-async def get_session() -> AsyncSession:
-    async with AsyncSessionLocal() as session:
-        yield session
+async def get_session() -> AsyncGenerator[AsyncSession, None]:
+    """Yield async DB session safely."""
+    try:
+        async with AsyncSessionLocal() as session:
+            yield session
+    except Exception as e:
+        logging.error("Session creation failed:", e)
 
 
-async def test_connection():
-    async with AsyncSessionLocal() as session:
-        result = await session.execute(text("SELECT 1"))
-        print("Test query result:", result.scalar())
+async def test_connection() -> None:
+    """Test DB connection."""
+    try:
+        async with AsyncSessionLocal() as session:
+            result = await session.execute(text("SELECT 1"))
+            logging.info("Test query result:", result.scalar())
+    except Exception as e:
+        logging.error("DB connection failed:", e)
 
 
 if __name__ == "__main__":
