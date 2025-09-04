@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING
+
 from sqlalchemy import (
     String,
     BigInteger,
@@ -5,8 +7,11 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.db.models.base import Base
-from src.db.models.user_job import UserJob
-from src.db.models.user_keyword import UserKeyword
+
+# Imports for type checking only; prevents circular imports at runtime
+if TYPE_CHECKING:
+    from src.db.models.user_job import UserJob
+    from src.db.models.user_keyword import UserKeyword
 
 
 class User(Base):

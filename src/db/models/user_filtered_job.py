@@ -1,3 +1,4 @@
+from typing import TYPE_CHECKING
 from datetime import datetime, timezone
 
 from sqlalchemy import (
@@ -9,8 +10,11 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.db.models.base import Base
-from src.db.models.user import User
-from src.db.models.job import Job
+
+# Imports for type checking only; prevents circular imports at runtime
+if TYPE_CHECKING:
+    from src.db.models.user import User
+    from src.db.models.job import Job
 
 
 class UserFilteredJob(Base):
