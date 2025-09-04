@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import (
     String,
@@ -25,7 +25,7 @@ class UserJob(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     job_id: Mapped[int] = mapped_column(ForeignKey("jobs.id"))
     datetime_sent: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.utcnow
+        DateTime, default=datetime.now(timezone.utc)
     )
     status: Mapped[str] = mapped_column(
         String(50), default="sent"
