@@ -6,7 +6,13 @@ from sqlalchemy import pool
 from alembic import context
 
 from src.db.db import DATABASE_URL
-from src.db.models import Base
+from src.db.models.base import Base
+from src.db.models.job import Job
+from src.db.models.user import User
+from src.db.models.user_job import UserJob
+from src.db.models.user_filtered_job import UserFilteredJob
+from src.db.models.user_keyword import UserKeyword
+
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
