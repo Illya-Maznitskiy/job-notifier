@@ -48,6 +48,7 @@ async def create_user_job(
         await session.refresh(user_job)
         return user_job
     except Exception as e:
+        await session.rollback()
         logger.error(
             f"Failed to create UserJob {job_id} for user {user_id}: {e}"
         )
