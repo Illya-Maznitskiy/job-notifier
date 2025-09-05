@@ -1,17 +1,28 @@
 from sqlalchemy import select, insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.db.models import Job
+from logs.logger import logger
+from src.db.models.job import Job
 
 
 async def get_job_by_url(session: AsyncSession, url: str) -> Job | None:
-    result = await session.execute(select(Job).where(Job.url == url))
-    return result.scalars().first()
+    """Fetch a Job by URL."""
+    try:
+        result = await session.execute(select(Job).where(Job.url == url))
+        return result.scalars().first()
+    except Exception as e:
+        logger.error(f"Failed to fetch job by URL '{url}': {e}")
+        return None
 
 
 async def get_job_by_id(session: AsyncSession, job_id: int) -> Job | None:
-    result = await session.execute(select(Job).where(Job.id == job_id))
-    return result.scalars().first()
+    """Fetch a Job by ID."""
+    try:
+        result = await session.execute(select(Job).where(Job.id == job_id))
+        return result.scalars().first()
+    except Exception as e:
+        logger.error(f"Failed to fetch job {job_id}: {e}")
+        return None
 
 
 async def create_job(
@@ -23,29 +34,35 @@ async def create_job(
     skills: list[str] | None,
     score: int,
     url: str,
-) -> Job:
-    job = Job(
-        title=title,
-        company=company,
-        location=location,
-        salary=salary,
-        skills=skills,
-        score=score,
-        url=url,
-    )
-    session.add(job)
-    await session.commit()
-    await session.refresh(job)
-    return job
+) -> Job | None:
+    """Create and save a new Job."""
+    try:
+        job = Job(
+            title=title,
+            company=company,
+            location=location,
+            salary=salary,
+            skills=skills,
+            score=score,
+            url=url,
+        )
+        session.add(job)
+        await session.commit()
+        await session.refresh(job)
+        return job
+    except Exception as e:
+        logger.error(f"Failed to create job '{title}': {e}")
+        return None
 
 
-async def create_multiple_jobs(session, jobs_data: list[dict]):
-    """
-    Insert multiple jobs in one query.
-    """
+async def create_multiple_jobs(session: AsyncSession, jobs_data: list[dict]):
+    """Insert multiple jobs at once."""
     if not jobs_data:
         return
 
-    stmt = insert(Job).values(jobs_data)
-    await session.execute(stmt)
-    await session.commit()
+    try:
+        stmt = insert(Job).values(jobs_data)
+        await session.execute(stmt)
+        await session.commit()
+    except Exception as e:
+        logger.error(f"Failed to insert multiple jobs: {e}")
