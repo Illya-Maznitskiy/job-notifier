@@ -5,7 +5,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.db.crud.user import get_user_by_user_id, create_user
 from src.db.crud.user_keyword import upsert_user_keyword
-from src.db.models import User, Job
+from src.db.models.user import User
+from src.db.models.job import Job
 from logs.logger import logger
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 

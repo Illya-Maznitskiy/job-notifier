@@ -2,7 +2,8 @@ from aiogram import types
 from sqlalchemy import select, delete
 
 from src.db.db import AsyncSessionLocal
-from src.db.models import Job, UserFilteredJob
+from src.db.models.job import Job
+from src.db.models.user_filtered_job import UserFilteredJob
 from logs.logger import logger
 from src.telegram.bot_config import dp
 from aiogram.filters import Command

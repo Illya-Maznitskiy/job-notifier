@@ -2,7 +2,7 @@ from typing import List
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from src.db.models import Job
+from src.db.models.job import Job
 from src.db.crud.job import create_multiple_jobs
 from logs.logger import logger
 

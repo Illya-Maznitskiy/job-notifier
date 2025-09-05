@@ -12,7 +12,7 @@ from src.db.crud.user_job import (
     update_user_job_status,
 )
 from src.db.db import AsyncSessionLocal
-from src.db.models import Job
+from src.db.models.job import Job
 from .bot_config import (
     bot,
     dp,

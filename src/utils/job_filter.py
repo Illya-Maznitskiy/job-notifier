@@ -6,7 +6,8 @@ from dotenv import load_dotenv
 from sqlalchemy import select
 
 from src.db.db import AsyncSessionLocal
-from src.db.models import UserKeyword, Job
+from src.db.models.user_keyword import UserKeyword
+from src.db.models.job import Job
 from logs.logger import logger
 
 
