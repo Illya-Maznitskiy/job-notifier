@@ -25,7 +25,7 @@ async def on_startup():
     logger.info("-" * 60)
     logger.info("Starting background job loop")
     # Start job processing loop in background
-    asyncio.create_task(job_process_loop())
+    # asyncio.create_task(job_process_loop())
 
     if not bot_started:
         # Start telegram bot (this will block so run it in background)
