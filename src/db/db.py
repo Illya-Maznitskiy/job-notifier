@@ -1,5 +1,4 @@
 import asyncio
-import logging
 import os
 from typing import AsyncGenerator
 
@@ -10,6 +9,8 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
 )
 from dotenv import load_dotenv
+
+from logs.logger import logger
 
 
 load_dotenv()
@@ -44,7 +45,7 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
         async with AsyncSessionLocal() as session:
             yield session
     except Exception as e:
-        logging.error("Session creation failed:", e)
+        logger.error(f"Session creation failed: {e}")
 
 
 async def test_connection() -> None:
@@ -52,9 +53,9 @@ async def test_connection() -> None:
     try:
         async with AsyncSessionLocal() as session:
             result = await session.execute(text("SELECT 1"))
-            logging.info("Test query result:", result.scalar())
+            logger.info(f"Test query result: {result.scalar()}")
     except Exception as e:
-        logging.error("DB connection failed:", e)
+        logger.error(f"DB connection failed: {e}")
 
 
 if __name__ == "__main__":
