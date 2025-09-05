@@ -30,7 +30,7 @@ class UserFilteredJob(Base):
     job_id: Mapped[int] = mapped_column(ForeignKey("jobs.id"))
     score: Mapped[int] = mapped_column(Integer, nullable=True)
     datetime_added: Mapped[datetime] = mapped_column(
-        DateTime, default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
     user: Mapped["User"] = relationship()
     job: Mapped["Job"] = relationship()
