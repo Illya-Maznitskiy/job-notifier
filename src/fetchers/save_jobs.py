@@ -2,9 +2,9 @@ from datetime import datetime, timezone
 from typing import List
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, update
 from src.db.models.job import Job
-from src.db.crud.job import create_multiple_jobs
+from src.db.crud.job import create_multiple_jobs, update_jobs_last_seen
 from logs.logger import logger
 
 
@@ -21,6 +21,14 @@ async def save_jobs_to_db(jobs: List[dict], session: AsyncSession):
     urls = [job["url"] for job in jobs if "url" in job]
     result = await session.execute(select(Job.url).where(Job.url.in_(urls)))
     existing_urls = set(row[0] for row in result.all())
+
+    # Update last_seen for old jobs
+    existing_urls_list = list(existing_urls)
+    logger.info(
+        f"Updating last_seen for {len(existing_urls_list)} existing jobs."
+    )
+    await update_jobs_last_seen(session, existing_urls_list)
+    logger.info("Finished updating last_seen for existing jobs.")
 
     # Filter out jobs that already exist
     new_jobs = []

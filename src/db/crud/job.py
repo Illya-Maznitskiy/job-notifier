@@ -1,4 +1,6 @@
-from sqlalchemy import select, insert
+from datetime import datetime, timezone
+
+from sqlalchemy import select, insert, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from logs.logger import logger
@@ -66,3 +68,19 @@ async def create_multiple_jobs(session: AsyncSession, jobs_data: list[dict]):
         await session.commit()
     except Exception as e:
         logger.error(f"Failed to insert multiple jobs: {e}")
+
+
+async def update_jobs_last_seen(session: AsyncSession, urls: list[str]) -> None:
+    """Update last_seen for existing jobs by URLs."""
+    if not urls:
+        logger.info(f"No URLs found for jobs updating last seen.")
+        return
+    try:
+        await session.execute(
+            update(Job)
+            .where(Job.url.in_(urls))
+            .values(last_seen=datetime.now(timezone.utc))
+        )
+        await session.commit()
+    except Exception as e:
+        logger.error(f"Failed to update last_seen for jobs: {e}")
