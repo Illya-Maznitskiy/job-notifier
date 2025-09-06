@@ -30,14 +30,13 @@ async def save_jobs_to_db(jobs: List[dict], session: AsyncSession):
     await update_jobs_last_seen(session, existing_urls_list)
     logger.info("Finished updating last_seen for existing jobs.")
 
-    # Filter out jobs that already exist
+    # Filter out jobs that already exist and new jobs
+    skipped_count = 0
     new_jobs = []
     for job_data in jobs:
         url = job_data.get("url")
         if not url or url in existing_urls:
-            logger.info(
-                f"Skipping {job_data.get('title')} because it already exists."
-            )
+            skipped_count += 1
             continue
 
         title = job_data.get("title")
@@ -61,6 +60,9 @@ async def save_jobs_to_db(jobs: List[dict], session: AsyncSession):
                 "archived_at": None,
             }
         )
+
+    if skipped_count:
+        logger.info(f"Skipped {skipped_count} existing jobs.")
 
     if new_jobs:
         await create_multiple_jobs(session, new_jobs)
