@@ -58,7 +58,7 @@ async def filter_jobs_for_user(
     scored_jobs: List[Tuple[Job, int]] = []
     for job in jobs:
         score = score_job(job, keyword_weights, user_id)
-        if score >= SCORE_THRESHOLD:
+        if score > SCORE_THRESHOLD:
             scored_jobs.append((job, score))
 
     # sort by score descending
@@ -89,7 +89,7 @@ async def main():
         filtered_jobs = []
         for job in jobs:
             score = score_job(job, keyword_weights, user_id)
-            if score >= SCORE_THRESHOLD:
+            if score > SCORE_THRESHOLD:
                 filtered_jobs.append((job, score))
 
         print(filtered_jobs)
