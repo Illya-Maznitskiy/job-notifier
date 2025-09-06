@@ -88,7 +88,7 @@ async def fetch_jobs() -> List[Dict]:
 
                 try:
                     await page.wait_for_selector(
-                        "ul.list-unstyled > li", timeout=30000
+                        "ul.list-unstyled > li", timeout=60000
                     )
                 except TimeoutError:
                     logger.info("No job listings found. Stopping pagination.")
