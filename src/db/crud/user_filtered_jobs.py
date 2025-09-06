@@ -4,6 +4,7 @@ from sqlalchemy import select, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from logs.logger import logger
+from src.db.models import Job
 from src.db.models.user_filtered_job import UserFilteredJob
 
 
@@ -21,12 +22,13 @@ async def create_user_filtered_jobs(
 async def get_filtered_jobs_by_user(
     session: AsyncSession, user_id: int
 ) -> Sequence[UserFilteredJob]:
-    """Fetch filtered jobs for a user ordered by score."""
+    """Fetch filtered jobs for a user ordered by score and newest jobs first."""
     try:
         result = await session.execute(
             select(UserFilteredJob)
             .where(UserFilteredJob.user_id == user_id)
-            .order_by(UserFilteredJob.score.desc())
+            .join(UserFilteredJob.job)
+            .order_by(UserFilteredJob.score.desc(), Job.last_seen.desc())
         )
         return result.scalars().all()
     except Exception as e:
