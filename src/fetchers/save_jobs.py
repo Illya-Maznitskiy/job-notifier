@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from typing import List
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -48,6 +49,8 @@ async def save_jobs_to_db(jobs: List[dict], session: AsyncSession):
                 "skills": job_data.get("skills"),
                 "score": job_data.get("score", 0),
                 "url": url,
+                "last_seen": datetime.now(timezone.utc),
+                "archived_at": None,
             }
         )
 
