@@ -18,9 +18,6 @@ if __name__ == "__main__":
 
 
 # TODO:
-#   Delete previous jobs while new fetching
-#   Add delete all keywords command
-#   Clean db package, add simple docs, type annotation, logging to each function
 #   Clean api package, add simple docs, type annotation, logging to each function
 #   Clean utils package, add simple docs, type annotation, logging to each function
 #   Use type hints and short docstrings (max 12 words).
