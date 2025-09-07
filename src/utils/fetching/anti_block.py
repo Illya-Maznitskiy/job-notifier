@@ -13,7 +13,7 @@ USER_AGENTS = [
 ]
 
 
-async def random_wait(min_sec: float = 1.0, max_sec: float = 5.0):
+async def random_wait(min_sec: float = 1.0, max_sec: float = 5.0) -> None:
     """Wait a random time between requests."""
     delay = random.uniform(min_sec, max_sec)
     formatted_delay = str(delay)[:5]
