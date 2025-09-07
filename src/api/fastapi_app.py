@@ -6,7 +6,6 @@ import uvicorn
 
 from logs.logger import logger
 from src.telegram.telegram_bot import start_bot
-from src.utils.job_loop import job_process_loop
 
 app = FastAPI()
 bot_started = False
