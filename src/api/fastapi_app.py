@@ -23,7 +23,7 @@ async def health_check(request: Request) -> dict:
 
 
 @asynccontextmanager
-async def lifespan() -> AsyncIterator[None]:
+async def lifespan(_fastapi_app: FastAPI) -> AsyncIterator[None]:
     """Start background jobs and Telegram bot."""
     global bot_started
 
