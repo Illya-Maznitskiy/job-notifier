@@ -37,7 +37,10 @@ def fetch_motivational_quote() -> str:
     except Exception as e:
         logger.error(f"Error fetching quote: {e}")
 
-    return "<hr><blockquote><em>“You're not stuck. The API is.” – Monday</em></blockquote>"
+    return (
+        "<hr><blockquote><em>“You're not stuck. "
+        "The API is.” – Monday</em></blockquote>"
+    )
 
 
 def send_job_listings_email() -> bool | None:

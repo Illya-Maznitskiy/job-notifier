@@ -7,9 +7,12 @@ from logs.logger import logger
 
 
 USER_AGENTS = [
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15",
-    "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:126.0) Gecko/20100101 Firefox/126.0",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+    "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15",
+    "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:126.0) "
+    "Gecko/20100101 Firefox/126.0",
 ]
 
 
@@ -29,7 +32,8 @@ def get_random_user_agent() -> str:
 # async def fetch_proxies() -> list[str]:
 #     """Fetch a list of working proxies from ProxyScrape."""
 #     # CAN BE ISSUES WITH THAT FREE OPTION!!!
-#     url = "https://api.proxyscrape.com/v2/?request=getproxies&protocol=http&timeout=5000&country=all"
+#     url = ("https://api.proxyscrape.com/v2/"
+#            "?request=getproxies&protocol=http&timeout=5000&country=all")
 #     try:
 #         async with httpx.AsyncClient(timeout=10) as client:
 #             resp = await client.get(url)
