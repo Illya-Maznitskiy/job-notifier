@@ -29,7 +29,7 @@ def clean_location(text: str) -> str:
 
 async def fetch_nofluff_jobs(url: str) -> list[dict]:
     """Fetch NoFluffJobs postings."""
-    logger.info(f"Opening NoFluffJobs URL")
+    logger.info("Opening NoFluffJobs URL")
     all_jobs: list[dict] = []
 
     try:

@@ -70,10 +70,12 @@ async def create_multiple_jobs(session: AsyncSession, jobs_data: list[dict]):
         logger.error(f"Failed to insert multiple jobs: {e}")
 
 
-async def update_jobs_last_seen(session: AsyncSession, urls: list[str]) -> None:
+async def update_jobs_last_seen(
+    session: AsyncSession, urls: list[str]
+) -> None:
     """Update last_seen for existing jobs by URLs."""
     if not urls:
-        logger.info(f"No URLs found for jobs updating last seen.")
+        logger.info("No URLs found for jobs updating last seen.")
         return
     try:
         await session.execute(
