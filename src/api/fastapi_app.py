@@ -30,7 +30,8 @@ async def lifespan(_fastapi_app: FastAPI) -> AsyncIterator[None]:
     logger.info("-" * 60)
     logger.info("Starting background job loop")
 
-    asyncio.create_task(job_process_loop())
+    # TODO: Optimize – current implementation causes memory leaks under load
+    # asyncio.create_task(job_process_loop())
 
     if not bot_started:
         bot_started = True
