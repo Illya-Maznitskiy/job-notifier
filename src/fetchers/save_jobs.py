@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from typing import List
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update
+from sqlalchemy import select
 from src.db.models.job import Job
 from src.db.crud.job import create_multiple_jobs, update_jobs_last_seen
 from logs.logger import logger

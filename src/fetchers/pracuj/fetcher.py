@@ -12,7 +12,7 @@ from playwright.async_api import (
 from logs.logger import logger
 from src.config import PRACUJ_HEADLESS, PRACUJ_MAX_JOBS
 from src.fetchers.pracuj.pagination import paginate_jobs
-from src.utils.fetching.anti_block import get_random_user_agent, random_wait
+from src.utils.fetching.anti_block import get_random_user_agent
 from src.utils.fetching.fetcher_optimization import block_pracuj_resources
 
 
