@@ -32,8 +32,8 @@ async def click_next_page(page: Page) -> bool:
     await next_link.click()
 
     try:
-        await page.wait_for_url(lambda url: url != old_url, timeout=10000)
-        await page.wait_for_selector("a.card", timeout=10000)
+        await page.wait_for_url(lambda url: url != old_url, timeout=60000)
+        await page.wait_for_selector("a.card", timeout=60000)
     except Exception as e:
         logger.warning(f"Navigation or content load failed: {e}")
         return False

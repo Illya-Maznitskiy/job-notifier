@@ -112,7 +112,7 @@ async def fetch_robota_ua_jobs() -> List[dict]:
 
             while len(all_jobs) < ROBOTA_UA_MAX_JOBS:
                 await auto_scroll(page)
-                await page.wait_for_selector("a.card", timeout=30000)
+                await page.wait_for_selector("a.card", timeout=60000)
 
                 job_items = await page.query_selector_all("a.card")
                 if not job_items:
