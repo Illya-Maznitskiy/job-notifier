@@ -20,7 +20,8 @@ async def feedback_cmd(message: types.Message) -> None:
 
     if not text:
         await message.reply(
-            "🕵️ Please send your feedback after the command, e.g., /feedback I love this bot!"
+            "🕵️ Please send your feedback after the command, e.g., "
+            "/feedback I love this bot!"
         )
         logger.info(
             f"User {message.from_user.id} tried /feedback with no text."
@@ -32,7 +33,8 @@ async def feedback_cmd(message: types.Message) -> None:
     try:
         await bot.send_message(
             ADMIN_ID,
-            f"👤 Feedback from @{message.from_user.username} ({message.from_user.id}):\n{text}",
+            f"👤 Feedback from @{message.from_user.username}"
+            f" ({message.from_user.id}):\n{text}",
         )
         await message.reply("💌 Thanks! Your feedback has been sent")
         logger.info(

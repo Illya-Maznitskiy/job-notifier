@@ -74,7 +74,8 @@ async def add_keyword_receive(message: Message, state: FSMContext) -> None:
         ]
     )
     await message.answer(
-        f"Choose a score for '{keyword}':\n💡Feel free to use custom and negative values like -10, 5 ...",
+        f"Choose a score for '{keyword}':\n💡Feel free to use custom and "
+        f"negative values like -10, 5 ...",
         reply_markup=keyboard,
     )
 
@@ -174,13 +175,14 @@ async def remove_keyword(message: types.Message) -> None:
             await session.commit()
             await message.answer(f"Keyword '{keyword}' removed ✅")
             await message.answer(
-                f"Use /refresh to filter jobs without that keyword 🙂"
+                "Use /refresh to filter jobs without that keyword 🙂"
             )
             logger.info(f"User {user_id} removed keyword '{keyword}'")
         else:
             await message.answer(f"Keyword '{keyword}' not found ❌")
             logger.info(
-                f"User {user_id} tried to remove non-existent keyword '{keyword}'"
+                f"User {user_id} tried to remove non-existent "
+                f"keyword '{keyword}'"
             )
 
 
