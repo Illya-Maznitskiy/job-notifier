@@ -82,7 +82,8 @@ async def fetch_nofluff_jobs(url: str) -> list[dict]:
 
                 if await load_more_button.count() == 0:
                     logger.info(
-                        "'Pokaż kolejne oferty' button not found — reached end."
+                        "'Pokaż kolejne oferty' "
+                        "button not found — reached end."
                     )
                     break
 
@@ -94,18 +95,21 @@ async def fetch_nofluff_jobs(url: str) -> list[dict]:
                     await page.evaluate(
                         """
                         Array.from(document.querySelectorAll('button'))
-                             .find(b => b.textContent.includes('Pokaż kolejne oferty'))
+                             .find(b => b.textContent.includes
+                             ('Pokaż kolejne oferty'))
                              ?.click()
                         """
                     )
                     await page.wait_for_timeout(3000)
                     await page.wait_for_function(
-                        f"document.querySelectorAll('a.posting-list-item').length > {count_before}",
+                        f"document.querySelectorAll"
+                        f"('a.posting-list-item').length > {count_before}",
                         timeout=30_000,
                     )
                     count_after = await job_cards.count()
                     logger.info(
-                        f"Loaded {count_after - count_before} new jobs (total: {count_after})."
+                        f"Loaded {count_after - count_before} "
+                        f"new jobs (total: {count_after})."
                     )
 
                     if (
@@ -155,7 +159,8 @@ async def fetch_nofluff_jobs(url: str) -> list[dict]:
                     }
                     all_jobs.append(job_data)
                     logger.info(
-                        f"{i+1:>3}. {job_data['title']:<60} @ {job_data['company']}"
+                        f"{i+1:>3}. {job_data['title']:<60} @ "
+                        f"{job_data['company']}"
                     )
 
                     # Anti-block delay

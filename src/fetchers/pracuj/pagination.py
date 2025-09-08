@@ -38,12 +38,14 @@ async def paginate_jobs(page: Page, max_jobs: int) -> List[Dict[str, str]]:
         try:
             if await next_button.is_enabled(timeout=2000):
                 logger.info(
-                    f"Next page button enabled, going to page {page_number + 1}."
+                    f"Next page button enabled, going to page "
+                    f"{page_number + 1}."
                 )
                 await next_button.click()
                 await page.wait_for_timeout(3000)
                 await page.wait_for_selector(
-                    "div[data-test='positioned-offer'], div[data-test='default-offer']",
+                    "div[data-test='positioned-offer'], div["
+                    "data-test='default-offer']",
                     timeout=10000,
                 )
                 await page.wait_for_timeout(300)

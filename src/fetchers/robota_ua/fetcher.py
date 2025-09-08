@@ -122,7 +122,8 @@ async def fetch_robota_ua_jobs() -> List[dict]:
                 for item in job_items:
                     # Filter out jobs from 'recommended' section
                     is_recommended = await item.evaluate(
-                        "node => node.closest('alliance-recommended-vacancy-list')"
+                        "node => node.closest("
+                        "'alliance-recommended-vacancy-list')"
                     )
                     if is_recommended:
                         continue
@@ -150,7 +151,8 @@ async def fetch_robota_ua_jobs() -> List[dict]:
 
                     all_jobs.append(job)
                     logger.info(
-                        f"{len(all_jobs):>3}. {job['title']:<60} @ {job.get('company', 'unknown')}"
+                        f"{len(all_jobs):>3}. {job['title']:<60} @ "
+                        f"{job.get('company', 'unknown')}"
                     )
 
                     # Anti-block delay
@@ -159,7 +161,8 @@ async def fetch_robota_ua_jobs() -> List[dict]:
                 # Job limit
                 if len(all_jobs) >= ROBOTA_UA_MAX_JOBS:
                     logger.info(
-                        f"Reached max job count of {ROBOTA_UA_MAX_JOBS}, stopping scraping."
+                        f"Reached max job count of {ROBOTA_UA_MAX_JOBS}, "
+                        f"stopping scraping."
                     )
                     break
 

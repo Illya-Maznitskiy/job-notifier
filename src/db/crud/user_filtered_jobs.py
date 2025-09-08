@@ -22,7 +22,8 @@ async def create_user_filtered_jobs(
 async def get_filtered_jobs_by_user(
     session: AsyncSession, user_id: int
 ) -> Sequence[UserFilteredJob]:
-    """Fetch filtered jobs for a user ordered by score and newest jobs first."""
+    """Fetch filtered jobs for a user ordered by score
+    and newest jobs first."""
     try:
         result = await session.execute(
             select(UserFilteredJob)

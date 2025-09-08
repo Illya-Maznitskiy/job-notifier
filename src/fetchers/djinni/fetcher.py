@@ -104,7 +104,8 @@ async def fetch_jobs() -> List[Dict]:
                 for i, item in enumerate(job_items, start=1):
                     if len(all_jobs) >= DJINNI_MAX_JOBS:
                         logger.info(
-                            f"Reached max job count of {DJINNI_MAX_JOBS}, stopping scraping."
+                            f"Reached max job count of {DJINNI_MAX_JOBS}, "
+                            f"stopping scraping."
                         )
                         break
 
@@ -112,7 +113,8 @@ async def fetch_jobs() -> List[Dict]:
                     if "title" in job and "url" in job:
                         all_jobs.append(job)
                         logger.info(
-                            f"{len(all_jobs):>3}. {job['title']:<60} @ {job.get('company', 'unknown')}"
+                            f"{len(all_jobs):>3}. {job['title']:<60} @ "
+                            f"{job.get('company', 'unknown')}"
                         )
                     else:
                         logger.warning(
@@ -139,7 +141,8 @@ async def fetch_jobs() -> List[Dict]:
 
                 if (page_num + 1) not in page_numbers:
                     logger.info(
-                        f"No button for page {page_num + 1}. Stopping pagination."
+                        f"No button for page {page_num + 1}. "
+                        f"Stopping pagination."
                     )
                     break
 

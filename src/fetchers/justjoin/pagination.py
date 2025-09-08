@@ -36,7 +36,8 @@ async def scroll_and_fetch_jobs(page: Page) -> List[Dict[str, Any]]:
                 # Use total count to stop, not just current batch
                 if len(results) + len(all_jobs) >= JUST_JOIN_MAX_JOBS:
                     logger.info(
-                        f"Reached max job count of {JUST_JOIN_MAX_JOBS}, stopping scraping."
+                        f"Reached max job count of {JUST_JOIN_MAX_JOBS}, "
+                        f"stopping scraping."
                     )
                     break
 
@@ -45,7 +46,8 @@ async def scroll_and_fetch_jobs(page: Page) -> List[Dict[str, Any]]:
                     seen_urls.add(job_data["url"])
                     all_jobs.append(job_data)
                     logger.info(
-                        f"{job_counter:>3}. {job_data['title']:<60} @ {job_data['company']}"
+                        f"{job_counter:>3}. {job_data['title']:<60} @ "
+                        f"{job_data['company']}"
                     )
                     job_counter += 1
 

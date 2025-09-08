@@ -105,7 +105,8 @@ async def fetch_bulldog_jobs() -> List[Dict[str, Any]]:
                     # Jobs limit
                     if len(all_jobs) >= BULLDOG_MAX_JOBS:
                         logger.info(
-                            f"Reached max job count of {BULLDOG_MAX_JOBS}, stopping scraping."
+                            f"Reached max job count of {BULLDOG_MAX_JOBS}, "
+                            f"stopping scraping."
                         )
                         break
 
@@ -113,7 +114,8 @@ async def fetch_bulldog_jobs() -> List[Dict[str, Any]]:
                     if "title" in job and "url" in job:
                         all_jobs.append(job)
                         logger.info(
-                            f"{len(all_jobs):>3}. {job['title']:<60} @ {job.get('company', 'unknown')}"
+                            f"{len(all_jobs):>3}. {job['title']:<60} @ "
+                            f"{job.get('company', 'unknown')}"
                         )
                     else:
                         logger.warning(

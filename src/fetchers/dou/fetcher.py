@@ -43,7 +43,8 @@ async def fetch_jobs() -> list[dict]:
             for i in range(count):
                 if len(all_jobs) >= DOU_MAX_JOBS:
                     logger.info(
-                        f"Reached max job count of {DOU_MAX_JOBS}, stopping scraping."
+                        f"Reached max job count of "
+                        f"{DOU_MAX_JOBS}, stopping scraping."
                     )
                     break
 
@@ -64,7 +65,8 @@ async def fetch_jobs() -> list[dict]:
                 }
                 all_jobs.append(clean_job)
                 logger.info(
-                    f"{i+1:>3}. {clean_job['title']:<60} @ {clean_job.get('company', 'unknown')}"
+                    f"{i+1:>3}. {clean_job['title']:<60} @ "
+                    f"{clean_job.get('company', 'unknown')}"
                 )
 
                 # Anti-block delay
