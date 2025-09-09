@@ -58,3 +58,9 @@ JOOBLE_MAX_JOBS = 1000
 
 # set a job threshold to not show vacancies under this score
 SCORE_THRESHOLD = 0
+
+
+# Archiving settings
+
+# Number of days after which a job should be archived if not seen
+JOB_ARCHIVE_DAYS = 7

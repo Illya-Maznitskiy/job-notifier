@@ -1,10 +1,15 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import List
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+
+from src.config import JOB_ARCHIVE_DAYS
 from src.db.models.job import Job
-from src.db.crud.job import create_multiple_jobs, update_jobs_last_seen
+from src.db.crud.job import (
+    create_multiple_jobs,
+    update_jobs_last_seen_archived_at,
+)
 from logs.logger import logger
 
 
@@ -22,13 +27,16 @@ async def save_jobs_to_db(jobs: List[dict], session: AsyncSession):
     result = await session.execute(select(Job.url).where(Job.url.in_(urls)))
     existing_urls = set(row[0] for row in result.all())
 
-    # Update last_seen for old jobs
+    # Update last_seen and archived_at for jobs which are already in db
     existing_urls_list = list(existing_urls)
     logger.info(
-        f"Updating last_seen for {len(existing_urls_list)} existing jobs."
+        f"Updating last_seen and archived_at for"
+        f" {len(existing_urls_list)} existing jobs."
     )
-    await update_jobs_last_seen(session, existing_urls_list)
-    logger.info("Finished updating last_seen for existing jobs.")
+    await update_jobs_last_seen_archived_at(session, existing_urls_list)
+    logger.info(
+        "Finished updating last_seen and archived_at for existing jobs."
+    )
 
     # Filter out jobs that already exist and new jobs
     skipped_count = 0
@@ -57,7 +65,8 @@ async def save_jobs_to_db(jobs: List[dict], session: AsyncSession):
                 "score": job_data.get("score", 0),
                 "url": url,
                 "last_seen": datetime.now(timezone.utc),
-                "archived_at": None,
+                "archived_at": datetime.now(timezone.utc)
+                + timedelta(days=JOB_ARCHIVE_DAYS),
             }
         )
 

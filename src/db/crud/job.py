@@ -1,9 +1,10 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 from sqlalchemy import select, insert, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from logs.logger import logger
+from src.config import JOB_ARCHIVE_DAYS
 from src.db.models.job import Job
 
 
@@ -70,19 +71,28 @@ async def create_multiple_jobs(session: AsyncSession, jobs_data: list[dict]):
         logger.error(f"Failed to insert multiple jobs: {e}")
 
 
-async def update_jobs_last_seen(
+async def update_jobs_last_seen_archived_at(
     session: AsyncSession, urls: list[str]
 ) -> None:
-    """Update last_seen for existing jobs by URLs."""
+    """Update last_seen and extend archived_at for jobs found again."""
     if not urls:
-        logger.info("No URLs found for jobs updating last seen.")
+        logger.info("No URLs provided for updating jobs.")
         return
+
+    now = datetime.now(timezone.utc)
+    new_archived_at = now + timedelta(days=JOB_ARCHIVE_DAYS)
+
     try:
         await session.execute(
             update(Job)
             .where(Job.url.in_(urls))
-            .values(last_seen=datetime.now(timezone.utc))
+            .values(last_seen=now, archived_at=new_archived_at)
         )
         await session.commit()
+        logger.info(
+            f"Updated last_seen and extended archived_at for {len(urls)} jobs."
+        )
     except Exception as e:
-        logger.error(f"Failed to update last_seen for jobs: {e}")
+        logger.error(
+            f"Failed to update last_seen or archived_at for jobs: {e}"
+        )
