@@ -125,7 +125,13 @@ async def list_keywords(message: types.Message) -> None:
             logger.warning(
                 f"Unregistered user {user_id} tried to list keywords."
             )
-            await message.answer("Hmm, system issue 🤷‍♂️")
+            logger.warning(
+                f"Unregistered user {user_id} message: {message.text}"
+            )
+            await message.answer(
+                "Telegram rules say you need to hit"
+                " /start first 🤷‍♂️ Rules are rules!"
+            )
             return
 
         keywords = await get_user_all_keywords(session, user.id)
