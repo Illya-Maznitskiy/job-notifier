@@ -12,7 +12,6 @@ from src.telegram.bot_config import (
     bot,
     READY_GIF_URLS,
     last_start,
-    COOLDOWN,
 )
 
 
@@ -26,13 +25,11 @@ async def cmd_start(message: types.Message) -> None:
         user_id = message.from_user.id
         now = datetime.now()
 
-        if user_id in last_start and now - last_start[user_id] < COOLDOWN:
-            return  # ignore repeated /start
-
         last_start[user_id] = now
         await message.answer(
             "Hi! I'll send you new IT jobs. Use /vacancy to get a job 😉"
         )
+        logger.info(f"Hi message was sent to {user_id}")
     except Exception as e:
         logger.error(f"Error in /start for user {message.from_user.id}: {e}")
         await message.answer("⚠️ Something went wrong. Please try again.")
