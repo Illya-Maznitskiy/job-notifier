@@ -20,18 +20,19 @@ SCORE_THRESHOLD = int(os.getenv("SCORE_THRESHOLD", 0))
 def score_job(job: Job, keyword_weights: dict[str, int]) -> int:
     """Score job based on keyword relevance."""
     try:
-        title = job.title or ""
+        title = (job.title or "").lower()
         skills = job.skills or ""
-
         if isinstance(skills, list):
-            skills = " ".join(skills)
-
-        combined_text = " ".join([title, skills]).lower()
+            skills = " ".join(skills).lower()
+        else:
+            skills = skills.lower()
 
         score = 0
         for keyword, weight in keyword_weights.items():
-            if keyword in combined_text:
+            if keyword in title:
                 score += weight
+            elif keyword in skills:
+                score += weight // 2
 
         return score
     except Exception as e:
@@ -54,9 +55,7 @@ async def filter_jobs_for_user(
 
         scored_jobs: List[Tuple[Job, int]] = []
         for job in jobs:
-            score = score_job(
-                job, keyword_weights
-            )  # removed user_id, not used
+            score = score_job(job, keyword_weights)
             if score > SCORE_THRESHOLD:
                 scored_jobs.append((job, score))
 
