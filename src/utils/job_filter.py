@@ -1,20 +1,13 @@
 import asyncio
-import os
+from datetime import datetime, timezone
 from typing import List, Tuple
 
-from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.config import SCORE_THRESHOLD
 from src.db.crud.user_keyword import get_user_all_keywords
 from src.db.models.job import Job
 from logs.logger import logger
-
-
-load_dotenv()
-
-
-# Get SCORE_THRESHOLD as an integer, default to 0 if not set
-SCORE_THRESHOLD = int(os.getenv("SCORE_THRESHOLD", 0))
 
 
 def score_job(job: Job, keyword_weights: dict[str, int]) -> int:
@@ -52,9 +45,13 @@ async def filter_jobs_for_user(
         keyword_weights: dict[str, int] = {
             kw.keyword.lower(): kw.weight for kw in keywords_list
         }
+        now = datetime.now(timezone.utc)
 
         scored_jobs: List[Tuple[Job, int]] = []
         for job in jobs:
+            if job.archived_at and job.archived_at <= now:
+                continue
+
             score = score_job(job, keyword_weights)
             if score > SCORE_THRESHOLD:
                 scored_jobs.append((job, score))
