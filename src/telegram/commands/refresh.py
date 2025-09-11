@@ -55,12 +55,23 @@ async def refresh_jobs(message: types.Message) -> None:
             ]
             await create_user_filtered_jobs(session, entries)
 
+            if filtered_jobs:
+                await message.answer(
+                    f"✅ Found {len(filtered_jobs)} relevant jobs. Use "
+                    f"/vacancy to get your jobs"
+                )
+            else:
+                await message.answer(
+                    "No jobs found for your keywords 🥲\n"
+                    "Try more keywords, or report issues via /feedback!"
+                )
+                logger.info(
+                    f"No jobs found for user {user.id} with keywords "
+                    f"{[kw.keyword for kw in user.keywords]}"
+                )
+
             logger.info(f"Found {len(filtered_jobs)} jobs for user {user.id}")
 
-        await message.answer(
-            f"✅ Found {len(filtered_jobs)} relevant jobs. Use /vacancy to "
-            f"get your jobs"
-        )
     except Exception as e:
         logger.error(
             f"Error refreshing jobs for user {message.from_user.id}: {e}"

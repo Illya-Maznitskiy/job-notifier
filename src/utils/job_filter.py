@@ -1,4 +1,5 @@
 import asyncio
+import re
 from datetime import datetime, timezone
 from typing import List, Tuple
 
@@ -45,6 +46,16 @@ async def filter_jobs_for_user(
         keyword_weights: dict[str, int] = {
             kw.keyword.lower(): kw.weight for kw in keywords_list
         }
+
+        for kw in keywords_list:
+            for k in re.split(r"[, ]+", kw.keyword):
+                k_clean = k.strip().lower()
+                if k_clean:
+                    keyword_weights[k_clean] = kw.weight
+                    logger.info(
+                        f"Added keyword '{k_clean}' with weight {kw.weight}"
+                    )
+
         now = datetime.now(timezone.utc)
 
         scored_jobs: List[Tuple[Job, int]] = []
