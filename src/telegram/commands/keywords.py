@@ -220,26 +220,31 @@ async def process_weight_callback(
     # Extract weight from callback data
     weight = int(cb.data.split("_")[1])
     data = await state.get_data()
-    keyword = data["keyword"]
+    keywords = data["keywords"]
 
-    # Save keyword in DB (you can reuse the DB part from add_keyword_save)
     async with AsyncSessionLocal() as session:
-        action = await add_or_update_user_keyword(
-            session=session,
-            user_id=cb.from_user.id,
-            username=str(cb.from_user.username),
-            keyword=keyword,
-            weight=weight,
-        )
-        await session.commit()
+        for keyword in keywords:
+            action = await add_or_update_user_keyword(
+                session=session,
+                user_id=cb.from_user.id,
+                username=str(cb.from_user.username),
+                keyword=keyword,
+                weight=weight,
+            )
+            await session.commit()
 
-    await cb.message.answer(
-        f"Keyword '{keyword}' {action} with score {weight} ✅"
-    )
+            logger.info(
+                f"User {cb.from_user.id} {action} keyword '{keyword}' "
+                f"with weight {weight}"
+            )
+
+            await cb.message.answer(
+                f"Keyword '{keyword}' {action} with score {weight} ✅"
+            )
+
     await cb.message.answer(
         "You can use /refresh now to filter jobs for you 😎"
     )
-
     await state.clear()
     await cb.answer()
 
