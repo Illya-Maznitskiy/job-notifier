@@ -1,3 +1,5 @@
+import re
+
 from aiogram.filters import Command, StateFilter
 from aiogram import types
 from aiogram.fsm.context import FSMContext
@@ -51,8 +53,14 @@ async def add_keyword_receive(message: Message, state: FSMContext) -> None:
         logger.warning("Received empty keyword")
         return
 
-    keyword = message.text.lower()
-    await state.update_data(keyword=keyword)
+    keywords = [
+        k.strip().lower()
+        for k in re.split(r"[, ]+", message.text)
+        if k.strip()
+    ]
+    logger.info(f"Processed keywords: {keywords}")
+
+    await state.update_data(keywords=keywords)
 
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
@@ -74,7 +82,7 @@ async def add_keyword_receive(message: Message, state: FSMContext) -> None:
         ]
     )
     await message.answer(
-        f"Choose a score for '{keyword}':\n💡Feel free to use custom and "
+        f"Choose a score for '{keywords}':\n💡Feel free to use custom and "
         f"negative values like -10, 5 ...",
         reply_markup=keyboard,
     )
@@ -82,10 +90,10 @@ async def add_keyword_receive(message: Message, state: FSMContext) -> None:
 
 @dp.message(StateFilter(AddKeywordStates.waiting_for_weight))
 async def add_keyword_save(message: Message, state: FSMContext) -> None:
-    """Save keyword and weight in DB."""
+    """Save multiple keywords and weight in DB."""
     user_id = message.from_user.id
     data = await state.get_data()
-    keyword = data["keyword"]
+    keywords = data["keywords"]
 
     try:
         weight = int(message.text)
@@ -93,21 +101,24 @@ async def add_keyword_save(message: Message, state: FSMContext) -> None:
         weight = 10  # default
 
     async with AsyncSessionLocal() as session:
-        action = await add_or_update_user_keyword(
-            session=session,
-            user_id=message.from_user.id,
-            username=str(message.from_user.username),
-            keyword=keyword,
-            weight=weight,
-        )
-        await session.commit()
+        for keyword in keywords:
+            action = await add_or_update_user_keyword(
+                session=session,
+                user_id=user_id,
+                username=str(message.from_user.username),
+                keyword=keyword,
+                weight=weight,
+            )
+            await session.commit()
 
-    logger.info(
-        f"User {user_id} {action} keyword '{keyword}' with weight {weight}"
-    )
-    await message.answer(
-        f"Keyword '{keyword}' {action} with score {weight} ✅"
-    )
+            logger.info(
+                f"User {user_id} {action} keyword '{keyword}' with weight {weight}"
+            )
+
+            await message.answer(
+                f"Keyword '{keyword}' {action} with score {weight} ✅"
+            )
+
     await message.answer("You can use /refresh now to filter jobs for you 😎")
     await state.clear()
 
