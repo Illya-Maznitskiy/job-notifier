@@ -7,7 +7,9 @@ from src.telegram.job_utils import notify_admin_startup
 # THIS IMPORT IS CRITICAL to register command handlers!
 import src.telegram.commands.start_vacancy  # noqa: F401
 import src.telegram.commands.admin  # noqa: F401
-import src.telegram.commands.keywords  # noqa: F401
+import src.telegram.commands.keywords.add_keywords  # noqa: F401
+import src.telegram.commands.keywords.list_keywords  # noqa: F401
+import src.telegram.commands.keywords.remove_keywords  # noqa: F401
 import src.telegram.commands.refresh  # noqa: F401
 import src.telegram.random_text  # noqa: F401
 import src.telegram.commands.feedback  # noqa: F401
