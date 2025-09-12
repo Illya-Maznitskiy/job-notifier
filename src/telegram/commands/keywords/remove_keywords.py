@@ -43,9 +43,7 @@ async def remove_keyword(message: Message, state: FSMContext) -> None:
     logger.info("-" * 60)
     logger.info(f"User {user_id} invoked /remove with text: {message.text!r}")
 
-    await message.answer(
-        "Send me a keyword from your keywords\nI'll remove it for you 🧹"
-    )
+    await message.answer("Send me a keyword from your keywords🧹")
 
     reply = "🗝️ Your keywords:\n"
     reply += "\n".join(f"• {kw.keyword} ({kw.weight})" for kw in user_keywords)
@@ -79,8 +77,11 @@ async def remove_keyword_receive(message: Message, state: FSMContext) -> None:
 
     if removed:
         logger.info(f"Removed {len(removed)} keywords")
-        await message.answer(f"Removed: {', '.join(removed)} ✅")
+        await message.answer(f"💅 Successfully removed:{', '.join(removed)}")
+        await message.answer(
+            "Use /refresh to filter jobs without that keyword 🕵️‍♂️"
+        )
     if not_found:
         logger.info(f"Not found {len(not_found)} keywords")
-        await message.answer(f"Not found: {', '.join(not_found)} ❌")
+        await message.answer(f"Can't find: {', '.join(not_found)} 👀")
     await state.clear()

@@ -17,7 +17,7 @@ class SendFeedbackStates(StatesGroup):
 @dp.message(Command("feedback"))
 async def feedback_start(message: Message, state: FSMContext) -> None:
     """Start feedback conversation."""
-    await message.answer("Please type your feedback 🌟")
+    await message.answer("🌟 Please type your opinion below ⬇️")
     await state.set_state(SendFeedbackStates.waiting_for_feedback)
 
 
@@ -31,9 +31,9 @@ async def feedback_receive(message: Message, state: FSMContext) -> None:
             f"👤 Feedback from @{message.from_user.username} "
             f"({message.from_user.id}):\n{text}",
         )
-        await message.answer("💌 Thanks! Your feedback has been sent.")
+        await message.answer("💌 Thanks! Your feedback has been sent!")
     except Exception as e:
         logger.error(f"Failed to send feedback: {e}")
-        await message.answer("❌ Failed to send feedback, try later.")
+        await message.answer("❌ Failed to send feedback, try later 🤷‍♂️")
     finally:
         await state.clear()
