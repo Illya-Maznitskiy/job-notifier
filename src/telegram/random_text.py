@@ -9,7 +9,7 @@ from src.telegram.bot_config import (
 
 @dp.message(
     StateFilter(None),
-    lambda message: not (message.text and message.text.startswith("/"))
+    lambda message: not (message.text and message.text.startswith("/")),
 )
 async def handle_random_text(message: types.Message) -> None:
     """Reply to non-command messages with tip."""
