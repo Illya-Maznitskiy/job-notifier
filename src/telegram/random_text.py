@@ -1,4 +1,5 @@
 from aiogram import types
+from aiogram.filters import StateFilter
 
 from logs.logger import logger
 from src.telegram.bot_config import (
@@ -7,6 +8,7 @@ from src.telegram.bot_config import (
 
 
 @dp.message(
+    StateFilter(None),
     lambda message: not (message.text and message.text.startswith("/"))
 )
 async def handle_random_text(message: types.Message) -> None:

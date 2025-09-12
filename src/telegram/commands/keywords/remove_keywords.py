@@ -30,7 +30,10 @@ async def remove_keyword(message: Message, state: FSMContext) -> None:
     user_id = message.from_user.id
 
     async with AsyncSessionLocal() as session:
-        user_keywords = await get_user_all_keywords(session, user_id)
+        user = await get_user_by_user_id(session, user_id)
+        user_keywords = await get_user_all_keywords(
+            session, user.id  # type: ignore
+        )
 
         if not user_keywords:
             await message.answer("You have no keywords to remove 🤷‍♂️😺")
