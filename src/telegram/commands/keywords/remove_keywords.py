@@ -11,6 +11,7 @@ from src.telegram.bot_config import (
     dp,
 )
 from src.telegram.commands.keywords.utils import parse_keywords
+from src.db.crud.user_keyword import delete_user_keyword
 
 
 class RemoveKeywordStates(StatesGroup):
@@ -27,12 +28,14 @@ async def remove_keyword(message: Message, state: FSMContext) -> None:
         return
 
     user_id = message.from_user.id
-    user_keywords = await get_user_all_keywords(AsyncSessionLocal, user_id)
 
-    if not user_keywords:
-        await message.answer("You have no keywords to remove 🤷‍♂️😺")
-        logger.error("User has no keywords")
-        return
+    async with AsyncSessionLocal() as session:
+        user_keywords = await get_user_all_keywords(session, user_id)
+
+        if not user_keywords:
+            await message.answer("You have no keywords to remove 🤷‍♂️😺")
+            logger.error("User has no keywords")
+            return
 
     logger.info("-" * 60)
     logger.info(f"User {user_id} invoked /remove with text: {message.text!r}")
@@ -61,8 +64,6 @@ async def remove_keyword_receive(message: Message, state: FSMContext) -> None:
             )
             await message.answer("Hmm, system issue 🤷‍♂️")
             return
-
-        from src.db.crud.user_keyword import delete_user_keyword
 
         removed, not_found = [], []
         for kw in keywords:
