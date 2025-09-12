@@ -1,5 +1,3 @@
-import re
-
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
@@ -15,6 +13,7 @@ from logs.logger import logger
 from src.telegram.bot_config import (
     dp,
 )
+from src.telegram.commands.keywords.utils import parse_keywords
 from src.telegram.job_utils import add_or_update_user_keyword
 
 
@@ -25,12 +24,6 @@ class AddKeywordStates(StatesGroup):
     waiting_for_weight: State = State()
 
 
-class RemoveKeywordStates(StatesGroup):
-    """Remove keyword conversation states."""
-
-    waiting_for_keyword: State = State()
-
-
 @dp.message(Command("add"))
 async def add_keyword_start(message: Message, state: FSMContext) -> None:
     """Start adding keyword conversation."""
@@ -39,6 +32,7 @@ async def add_keyword_start(message: Message, state: FSMContext) -> None:
         return
 
     user_id = message.from_user.id
+    logger.info("-" * 60)
     logger.info(f"User {user_id} started adding keyword")
     await message.answer(
         "Send me a keyword\nI'll use it to find jobs for you ✅"
@@ -56,11 +50,7 @@ async def add_keyword_receive(message: Message, state: FSMContext) -> None:
         logger.warning("Received empty keyword")
         return
 
-    keywords = [
-        k.strip().lower()
-        for k in re.split(r"[, ]+", message.text)
-        if k.strip()
-    ]
+    keywords = parse_keywords(message.text)
     logger.info(f"Processed keywords: {keywords}")
 
     await state.update_data(keywords=keywords)
