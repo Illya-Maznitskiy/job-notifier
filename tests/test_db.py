@@ -25,7 +25,8 @@ async def test_test_connection_runs_without_error():
 
     # The result of `session.execute()` is a mock result object
     mock_result = AsyncMock(spec=CursorResult)
-    # The `scalar()` method on the result object is async, so it must return an awaitable
+    # The `scalar()` method on the result object is async,
+    # so it must return an awaitable
     # We set its return_value to the value we want to simulate
     mock_result.scalar.return_value = 1
 

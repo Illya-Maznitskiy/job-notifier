@@ -105,7 +105,8 @@ async def add_keyword_save(message: Message, state: FSMContext) -> None:
             await session.commit()
 
             logger.info(
-                f"User {user_id} {action} keyword '{keyword}' with weight {weight}"
+                f"User {user_id} {action} keyword '{keyword}'"
+                f" with weight {weight}"
             )
 
             await message.answer(
