@@ -1,6 +1,8 @@
-# tests/test_db.py
 import pytest
 from unittest.mock import AsyncMock, patch
+
+from sqlalchemy import CursorResult
+
 from src.db.db import get_session, test_connection
 
 pytestmark = pytest.mark.asyncio
@@ -18,8 +20,18 @@ async def test_get_session_yields_session():
 
 
 async def test_test_connection_runs_without_error():
+    # Create an AsyncMock for the session
     mock_session = AsyncMock()
-    mock_session.execute.return_value.scalar.return_value = 1
+
+    # The result of `session.execute()` is a mock result object
+    mock_result = AsyncMock(spec=CursorResult)
+    # The `scalar()` method on the result object is async, so it must return an awaitable
+    # We set its return_value to the value we want to simulate
+    mock_result.scalar.return_value = 1
+
+    # Now, we set up the `execute` method of the session mock
+    # to return our mock result object
+    mock_session.execute.return_value = mock_result
 
     mock_context = AsyncMock()
     mock_context.__aenter__.return_value = mock_session
