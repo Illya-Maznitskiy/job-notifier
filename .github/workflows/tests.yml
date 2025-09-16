@@ -26,5 +26,6 @@ jobs:
     - name: Run Pytest tests
       env:
         TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        ADMIN_ID: ${{ secrets.ADMIN_ID }}
       run: |
         pytest
