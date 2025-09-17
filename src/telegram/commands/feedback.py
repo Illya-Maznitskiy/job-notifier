@@ -30,7 +30,8 @@ async def feedback_receive(message: Message, state: FSMContext) -> None:
     text = message.text
     try:
         logger.info(
-            f"Received feedback from @{message.from_user.username} ({message.from_user.id}): {text}"
+            f"Received feedback from @{message.from_user.username} "
+            f"({message.from_user.id}): {text}"
         )
         await bot.send_message(
             ADMIN_ID,
@@ -38,7 +39,8 @@ async def feedback_receive(message: Message, state: FSMContext) -> None:
             f"({message.from_user.id}):\n{text}",
         )
         logger.info(
-            f"Feedback successfully sent to admin for user {message.from_user.id}"
+            f"Feedback successfully sent to admin for user "
+            f"{message.from_user.id}"
         )
         await message.answer("💌 Thanks! Your feedback has been sent!")
     except Exception as e:
