@@ -76,7 +76,7 @@ async def remove_keyword_receive(message: Message, state: FSMContext) -> None:
 
     if removed:
         logger.info(f"Removed {len(removed)} keywords")
-        await message.answer(f"💅 Successfully removed:{', '.join(removed)}")
+        await message.answer(f"💅 Successfully removed: {', '.join(removed)}")
         await message.answer(
             "Use /refresh to filter jobs without that keyword 🕵️‍♂️"
         )
