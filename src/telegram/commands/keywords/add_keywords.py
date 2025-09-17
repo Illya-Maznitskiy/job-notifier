@@ -27,6 +27,9 @@ class AddKeywordStates(StatesGroup):
 @dp.message(Command("add"))
 async def add_keyword_start(message: Message, state: FSMContext) -> None:
     """Start adding keyword conversation."""
+    if await state.get_state() is not None:
+        await state.clear()
+
     if not message or not state:
         logger.error("Message or state is None")
         return
@@ -84,6 +87,10 @@ async def add_keyword_receive(message: Message, state: FSMContext) -> None:
 @dp.message(StateFilter(AddKeywordStates.waiting_for_weight))
 async def add_keyword_save(message: Message, state: FSMContext) -> None:
     """Save multiple keywords and weight in DB."""
+    if message.text.startswith("/"):
+        await state.clear()
+        return
+
     user_id = message.from_user.id
     data = await state.get_data()
     keywords = data["keywords"]
