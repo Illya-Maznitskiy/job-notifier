@@ -24,12 +24,21 @@ async def feedback_start(message: Message, state: FSMContext) -> None:
 @dp.message(StateFilter(SendFeedbackStates.waiting_for_feedback))
 async def feedback_receive(message: Message, state: FSMContext) -> None:
     """Receive feedback and send to admin."""
+    logger.info("-" * 60)
+    logger.info(f"User {message.from_user.id} used /feedback")
+
     text = message.text
     try:
+        logger.info(
+            f"Received feedback from @{message.from_user.username} ({message.from_user.id}): {text}"
+        )
         await bot.send_message(
             ADMIN_ID,
             f"👤 Feedback from @{message.from_user.username} "
             f"({message.from_user.id}):\n{text}",
+        )
+        logger.info(
+            f"Feedback successfully sent to admin for user {message.from_user.id}"
         )
         await message.answer("💌 Thanks! Your feedback has been sent!")
     except Exception as e:
