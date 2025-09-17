@@ -27,14 +27,15 @@ class AddKeywordStates(StatesGroup):
 @dp.message(Command("add"))
 async def add_keyword_start(message: Message, state: FSMContext) -> None:
     """Start adding keyword conversation."""
-    if await state.get_state() is not None:
-        await state.clear()
+    user_id = message.from_user.id
+
+    await state.clear()
+    logger.info(f"Cleared previous state for user {user_id}")
 
     if not message or not state:
         logger.error("Message or state is None")
         return
 
-    user_id = message.from_user.id
     logger.info("-" * 60)
     logger.info(f"User {user_id} started adding keyword")
     await message.answer(
@@ -50,7 +51,10 @@ async def add_keyword_start(message: Message, state: FSMContext) -> None:
 async def add_keyword_receive(message: Message, state: FSMContext) -> None:
     """Receive keyword from user."""
     if message.text.startswith("/"):
+        user_id = message.from_user.id
+
         await state.clear()
+        logger.info(f"Cleared previous state for user {user_id}")
         return
 
     keywords = parse_keywords(message.text)
