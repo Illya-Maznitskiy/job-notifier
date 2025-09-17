@@ -49,8 +49,8 @@ async def add_keyword_start(message: Message, state: FSMContext) -> None:
 @dp.message(StateFilter(AddKeywordStates.waiting_for_keyword))
 async def add_keyword_receive(message: Message, state: FSMContext) -> None:
     """Receive keyword from user."""
-    if not message.text:
-        logger.warning("Received empty keyword")
+    if message.text.startswith("/"):
+        await state.clear()
         return
 
     keywords = parse_keywords(message.text)
