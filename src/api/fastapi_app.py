@@ -9,7 +9,7 @@ import uvicorn
 from logs.logger import logger
 from src.telegram.telegram_bot import start_bot
 
-# from src.utils.fetching.job_loop import job_process_loop
+from src.utils.fetching.job_loop import job_process_loop
 
 app = FastAPI()
 bot_started = False
@@ -31,8 +31,7 @@ async def lifespan(_fastapi_app: FastAPI) -> AsyncIterator[None]:
     logger.info("-" * 60)
     logger.info("Starting background job loop")
 
-    # TODO: Optimize – current implementation causes memory leaks under load
-    # asyncio.create_task(job_process_loop())
+    asyncio.create_task(job_process_loop())
 
     if not bot_started:
         bot_started = True
