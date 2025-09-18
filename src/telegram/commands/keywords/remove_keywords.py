@@ -53,6 +53,11 @@ async def remove_keyword(message: Message, state: FSMContext) -> None:
 
 @dp.message(StateFilter(RemoveKeywordStates.waiting_for_keyword))
 async def remove_keyword_receive(message: Message, state: FSMContext) -> None:
+    if message.text.startswith("/"):
+        await state.clear()
+        await dp.process_updates([message])
+        return
+
     user_id = message.from_user.id
     keywords = parse_keywords(message.text)
 
