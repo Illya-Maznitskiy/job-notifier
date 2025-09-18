@@ -60,6 +60,11 @@ async def add_keyword_receive(message: Message, state: FSMContext) -> None:
     keywords = parse_keywords(message.text)
     logger.info(f"Processed keywords: {keywords}")
 
+    if len(keywords) == 1:
+        keywords_text = f"'{keywords[0]}'"
+    else:
+        keywords_text = ", ".join(f"'{k}'" for k in keywords)
+
     await state.update_data(keywords=keywords)
 
     keyboard = InlineKeyboardMarkup(
@@ -82,7 +87,8 @@ async def add_keyword_receive(message: Message, state: FSMContext) -> None:
         ]
     )
     await message.answer(
-        f"Choose a score for '{keywords}':\n💡Feel free to use custom and "
+        f"Choose a score for {keywords_text}:\n"
+        f"💡Feel free to use custom and "
         f"negative values like -10, 5 ...",
         reply_markup=keyboard,
     )
