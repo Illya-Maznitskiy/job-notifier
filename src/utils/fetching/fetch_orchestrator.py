@@ -1,4 +1,7 @@
 import asyncio
+import os
+
+import psutil
 
 from src.fetchers.justjoin.justjoin import (
     run_fetch_and_save_jobs as fetch_justjoin,
@@ -38,13 +41,23 @@ async def run_all_fetchers() -> list[dict]:
     all_jobs = []
 
     for name, fetcher in FETCHERS.items():
+        process = psutil.Process(os.getpid())
         logger.info("-" * 60)
+        logger.info(
+            f"Memory before fetching {name}:"
+            f" {process.memory_info().rss / 1024**2:.2f} MB"
+        )
         logger.info(f"Fetching jobs from {name}...")
         try:
             jobs = await fetcher()
             all_jobs.extend(jobs)
         except Exception as e:
             logger.error(f"Error fetching from {name}: {e}", exc_info=True)
+        finally:
+            logger.info(
+                f"Memory after fetching {name}:"
+                f" {process.memory_info().rss / 1024**2:.2f} MB"
+            )
 
     logger.info(f"Total jobs fetched: {len(all_jobs)}")
 
