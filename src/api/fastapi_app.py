@@ -33,7 +33,7 @@ async def lifespan(_fastapi_app: FastAPI) -> AsyncIterator[None]:
     log_memory()
     logger.info("Starting background job loop")
 
-    asyncio.create_task(job_process_loop())
+    await job_process_loop()
 
     if not bot_started:
         bot_started = True
