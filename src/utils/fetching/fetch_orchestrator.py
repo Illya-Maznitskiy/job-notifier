@@ -1,3 +1,5 @@
+import asyncio
+
 from src.fetchers.justjoin.justjoin import (
     run_fetch_and_save_jobs as fetch_justjoin,
 )
@@ -47,3 +49,8 @@ async def run_all_fetchers() -> list[dict]:
     logger.info(f"Total jobs fetched: {len(all_jobs)}")
 
     return all_jobs
+
+
+if __name__ == "__main__":
+
+    asyncio.run(run_all_fetchers())
