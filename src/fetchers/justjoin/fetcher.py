@@ -21,6 +21,7 @@ from logs.logger import logger
 from src.utils.fetching.anti_block import get_random_user_agent
 
 from src.utils.fetching.fetcher_optimization import block_resources
+from src.utils.memory_logging import log_memory
 
 
 async def setup_page(playwright: Playwright, url: str) -> Tuple[Browser, Page]:
@@ -128,13 +129,16 @@ async def fetch_jobs() -> List[Dict[str, Any]]:
 
     logger.info("-" * 60)
     logger.info(f"Starting fetch_jobs for URL: {url}")
+    log_memory()
 
     try:
         async with async_playwright() as p:
             browser, page = await setup_page(p, url)
+            log_memory()
 
             # Scroll and fetch incrementally
             results = await scroll_and_fetch_jobs(page)
+            log_memory()
 
             await browser.close()
             logger.info("Browser closed. Finished fetching jobs.")

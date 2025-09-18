@@ -10,6 +10,7 @@ from logs.logger import logger
 from src.telegram.telegram_bot import start_bot
 
 from src.utils.fetching.job_loop import job_process_loop
+from src.utils.memory_logging import log_memory
 
 app = FastAPI()
 bot_started = False
@@ -29,6 +30,7 @@ async def lifespan(_fastapi_app: FastAPI) -> AsyncIterator[None]:
     global bot_started
 
     logger.info("-" * 60)
+    log_memory()
     logger.info("Starting background job loop")
 
     asyncio.create_task(job_process_loop())

@@ -1,11 +1,9 @@
 import asyncio
-import os
 from datetime import datetime, timedelta
-
-import psutil
 
 from logs.logger import logger
 from src.utils.fetching.fetch_orchestrator import run_all_fetchers
+from src.utils.memory_logging import log_memory
 
 
 async def job_process_loop() -> None:
@@ -17,11 +15,7 @@ async def job_process_loop() -> None:
     sleep_seconds = sleep_hours * 60 * 60
 
     while True:
-        process = psutil.Process(os.getpid())
-        logger.info(
-            f"Memory usage before fetch:"
-            f" {process.memory_info().rss / 1024**2:.2f} MB"
-        )
+        log_memory()
         start_time = datetime.now()
         next_run_time = start_time + timedelta(seconds=sleep_seconds)
 
@@ -37,10 +31,7 @@ async def job_process_loop() -> None:
 
         finally:
             end_time = datetime.now()
-            logger.info(
-                f"Memory usage after fetch: "
-                f"{process.memory_info().rss / 1024**2:.2f} MB"
-            )
+            log_memory()
             logger.info(f"Job processing finished at {end_time}")
             logger.info(f"Next job processing will be at {next_run_time}")
 
