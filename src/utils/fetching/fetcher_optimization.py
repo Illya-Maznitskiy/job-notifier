@@ -3,10 +3,20 @@ from playwright.async_api import Route, Page
 from logs.logger import logger
 
 
+BLOCKED_RESOURCES = {
+    "image",
+    "stylesheet",
+    "font",
+    "media",
+    "other",
+    "websocket",
+}
+
+
 async def block_resources(route: Route) -> None:
     """Block images, stylesheets, and fonts to save resources."""
     try:
-        if route.request.resource_type in ["image", "stylesheet", "font"]:
+        if route.request.resource_type in BLOCKED_RESOURCES:
             await route.abort()
         else:
             await route.continue_()
