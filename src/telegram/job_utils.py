@@ -61,7 +61,7 @@ def clean_short_title(title: str, max_words: int = 3) -> str:
     return " ".join(title.split()[:max_words])
 
 
-def truncate_title(title: str, max_length: int = 34) -> str:
+def truncate_title(title: str, max_length: int = 55) -> str:
     """Truncate title without cutting words."""
     if not title:
         return ""
