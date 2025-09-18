@@ -54,8 +54,11 @@ async def remove_keyword(message: Message, state: FSMContext) -> None:
 @dp.message(StateFilter(RemoveKeywordStates.waiting_for_keyword))
 async def remove_keyword_receive(message: Message, state: FSMContext) -> None:
     if message.text.startswith("/"):
+        logger.info(
+            f"RemoveKeyword FSM stopped by new command: {message.text!r} "
+            f"from user {message.from_user.id}"
+        )
         await state.clear()
-        await dp.process_updates([message])
         return
 
     user_id = message.from_user.id
