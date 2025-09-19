@@ -24,16 +24,24 @@ async def health_check(request: Request) -> dict:
     return {"status": "ok"}
 
 
+async def log_memory_periodically() -> None:
+    """Log memory usage every 60 seconds."""
+    while True:
+        log_memory()
+        await asyncio.sleep(60)
+
+
 @asynccontextmanager
 async def lifespan(_fastapi_app: FastAPI) -> AsyncIterator[None]:
     """Start background jobs and Telegram bot."""
     global bot_started
 
     logger.info("-" * 60)
-    log_memory()
-    logger.info("Starting background job loop")
+    logger.info("Starting memory logging process")
+    asyncio.create_task(log_memory_periodically())
 
-    await job_process_loop()
+    logger.info("Starting background job loop")
+    asyncio.create_task(job_process_loop())
 
     if not bot_started:
         bot_started = True
