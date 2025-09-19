@@ -27,7 +27,7 @@ async def cmd_start(message: types.Message) -> None:
 
         last_start[user_id] = now
         await message.answer(
-            "Hi! I'll send you new IT jobs. Use /vacancy to get a job 😉"
+            "Hi! I'll send you new IT jobs. Use /add to unlock jobs 😉"
         )
         logger.info(f"Hi message was sent to {user_id}")
     except Exception as e:

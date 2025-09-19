@@ -39,7 +39,7 @@ async def add_keyword_start(message: Message, state: FSMContext) -> None:
     logger.info("-" * 60)
     logger.info(f"User {user_id} started adding keyword")
     await message.answer(
-        "Send me a keyword\nI'll use it to find jobs for you ✅"
+        "Send me a keyword or keywords\nI'll use it to find jobs for you ✅"
     )
     await message.answer(
         "Example: Python\n💡You can also try: SQL, Junior, or any skill"
