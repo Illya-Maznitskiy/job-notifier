@@ -7,6 +7,7 @@ from playwright.async_api import (
     Page,
     ElementHandle,
     Playwright,
+    ViewportSize,
 )
 from playwright.async_api import (
     TimeoutError as PlaywrightTimeoutError,
@@ -37,8 +38,9 @@ async def setup_page(playwright: Playwright, url: str) -> Tuple[Browser, Page]:
         # Random User-Agent
         ua = get_random_user_agent()
         logger.info(f"User-agent: {ua}")
-        page: Page = await browser.new_page(user_agent=ua)
-
+        page = await browser.new_page(
+            viewport=ViewportSize(width=600, height=400)
+        )
         await page.route("**/*", block_resources)
         await page.goto(url)
 

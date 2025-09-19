@@ -1,6 +1,6 @@
 import re
 
-from playwright.async_api import async_playwright
+from playwright.async_api import async_playwright, ViewportSize
 
 from logs.logger import logger
 from src.config import NO_FLUFF_HEADLESS, NO_FLUFF_MAX_JOBS
@@ -42,7 +42,9 @@ async def fetch_nofluff_jobs(url: str) -> list[dict]:
             # Random User-Agent
             ua = get_random_user_agent()
             logger.info(f"User-agent: {ua}")
-            page = await browser.new_page(user_agent=ua)
+            page = await browser.new_page(
+                viewport=ViewportSize(width=600, height=400)
+            )
             await page.route("**/*", block_resources)
             await page.goto(url)
             await page.wait_for_load_state("networkidle")

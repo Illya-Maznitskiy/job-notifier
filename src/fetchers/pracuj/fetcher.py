@@ -3,7 +3,7 @@ import re
 from typing import Dict, List
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 
-from playwright.async_api import async_playwright, Page, Locator
+from playwright.async_api import async_playwright, Page, Locator, ViewportSize
 from playwright.async_api import (
     TimeoutError as PlaywrightTimeoutError,
     Error as PlaywrightError,
@@ -170,7 +170,9 @@ async def fetch_pracuj_jobs(url: str) -> List[Dict[str, str]]:
         # Random User-Agent
         ua = get_random_user_agent()
         logger.info(f"User-agent: {ua}")
-        page = await browser.new_page(user_agent=ua)
+        page = await browser.new_page(
+            viewport=ViewportSize(width=600, height=400)
+        )
         await block_pracuj_resources(page)
         await page.goto(url)
         await page.wait_for_timeout(3000)

@@ -1,6 +1,6 @@
 from typing import Dict, Any, Union, List
 
-from playwright.async_api import async_playwright
+from playwright.async_api import async_playwright, ViewportSize
 
 from src.config import BULLDOG_MAX_JOBS, BULLDOG_HEADLESS
 from src.fetchers.bulldog.pagination import (
@@ -81,7 +81,9 @@ async def fetch_bulldog_jobs() -> List[Dict[str, Any]]:
             # Random User-Agent
             ua = get_random_user_agent()
             logger.info(f"User-agent: {ua}")
-            page = await browser.new_page(user_agent=ua)
+            page = await browser.new_page(
+                viewport=ViewportSize(width=600, height=400)
+            )
             await page.route("**/*", block_resources)
 
             max_pages = await get_bulldog_max_pages(page)

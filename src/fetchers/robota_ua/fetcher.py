@@ -1,7 +1,7 @@
 import asyncio
 from typing import List
 
-from playwright.async_api import async_playwright, ElementHandle
+from playwright.async_api import async_playwright, ElementHandle, ViewportSize
 
 from src.config import ROBOTA_UA_URL, ROBOTA_UA_HEADLESS, ROBOTA_UA_MAX_JOBS
 from src.fetchers.robota_ua.pagination import click_next_page
@@ -104,7 +104,9 @@ async def fetch_robota_ua_jobs() -> List[dict]:
 
             # Random User-Agent
             ua = get_random_user_agent()
-            page = await browser.new_page(user_agent=ua)
+            page = await browser.new_page(
+                viewport=ViewportSize(width=600, height=400)
+            )
             await page.route("**/*", block_resources)
             logger.info(f"User-agent: {ua}")
             logger.info(f"Fetching robota.ua page: {ROBOTA_UA_URL}")

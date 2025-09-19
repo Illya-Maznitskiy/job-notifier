@@ -1,5 +1,5 @@
 import re
-from playwright.async_api import async_playwright
+from playwright.async_api import async_playwright, ViewportSize
 
 from src.config import DOU_URL, DOU_HEADLESS, DOU_MAX_JOBS
 from src.fetchers.dou.pagination import click_all_pagination_buttons
@@ -29,7 +29,9 @@ async def fetch_jobs() -> list[dict]:
             # Random User-Agent
             ua = get_random_user_agent()
             logger.info(f"User-agent: {ua}")
-            page = await browser.new_page(user_agent=ua)
+            page = await browser.new_page(
+                viewport=ViewportSize(width=600, height=400)
+            )
             await page.route("**/*", block_resources)
 
             await page.goto(DOU_URL)

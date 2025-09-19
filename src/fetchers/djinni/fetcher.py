@@ -1,4 +1,4 @@
-from playwright.async_api import async_playwright
+from playwright.async_api import async_playwright, ViewportSize
 
 from typing import Dict, List, Union
 
@@ -75,7 +75,9 @@ async def fetch_jobs() -> List[Dict]:
             # Random User-Agent
             ua = get_random_user_agent()
             logger.info(f"User-agent: {ua}")
-            page = await browser.new_page(user_agent=ua)
+            page = await browser.new_page(
+                viewport=ViewportSize(width=600, height=400)
+            )
             await page.route("**/*", block_resources)
 
             all_jobs: List[Dict] = []
