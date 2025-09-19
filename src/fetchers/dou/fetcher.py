@@ -73,7 +73,8 @@ async def fetch_jobs() -> list[dict]:
                 await random_wait(0.5, 5.0)
 
         logger.info(
-            f"Finished fetching all_jobs. Total all_jobs fetched: {len(all_jobs)}"
+            f"Finished fetching all_jobs. Total all_jobs fetched:"
+            f" {len(all_jobs)}"
         )
         return all_jobs
 
