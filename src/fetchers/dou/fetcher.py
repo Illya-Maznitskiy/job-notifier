@@ -71,11 +71,16 @@ async def fetch_jobs() -> list[dict]:
 
                 # Anti-block delay
                 await random_wait(0.5, 5.0)
+
+        logger.info(
+            f"Finished fetching all_jobs. Total all_jobs fetched: {len(all_jobs)}"
+        )
+        return all_jobs
+
     except Exception as e:
         logger.exception(f"Error fetching jobs: {e}")
         return []
 
-    logger.info(
-        f"Finished fetching all_jobs. Total all_jobs fetched: {len(all_jobs)}"
-    )
-    return all_jobs
+    finally:
+        if browser:
+            await browser.close()
