@@ -13,19 +13,19 @@ import src.telegram.commands.keywords.remove_keywords  # noqa: F401
 import src.telegram.commands.refresh  # noqa: F401
 import src.telegram.random_text  # noqa: F401
 import src.telegram.commands.feedback  # noqa: F401
-from src.utils.memory_logging import log_memory
+from src.utils.resources_logging import log_resources
 
 
 async def start_bot() -> None:
     """Start Telegram bot polling loop."""
     logger.info("-" * 60)
-    log_memory()
+    log_resources()
     logger.info("Starting bot...")
 
     try:
         # Notify the admin
         await notify_admin_startup()
-        log_memory()
+        log_resources()
 
         # Start the bot
         await dp.start_polling(bot)

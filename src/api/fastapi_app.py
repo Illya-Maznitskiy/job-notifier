@@ -10,7 +10,7 @@ from logs.logger import logger
 from src.telegram.telegram_bot import start_bot
 
 from src.utils.fetching.job_loop import job_process_loop
-from src.utils.memory_logging import log_memory
+from src.utils.resources_logging import log_resources
 
 app = FastAPI()
 bot_started = False
@@ -27,7 +27,7 @@ async def health_check(request: Request) -> dict:
 async def log_memory_periodically() -> None:
     """Log memory usage every 60 seconds."""
     while True:
-        log_memory()
+        log_resources()
         await asyncio.sleep(60)
 
 

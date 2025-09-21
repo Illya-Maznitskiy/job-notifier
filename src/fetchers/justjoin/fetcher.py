@@ -22,7 +22,7 @@ from logs.logger import logger
 from src.utils.fetching.anti_block import get_random_user_agent
 
 from src.utils.fetching.fetcher_optimization import block_resources
-from src.utils.memory_logging import log_memory
+from src.utils.resources_logging import log_resources
 
 
 async def setup_page(playwright: Playwright, url: str) -> Tuple[Browser, Page]:
@@ -34,6 +34,7 @@ async def setup_page(playwright: Playwright, url: str) -> Tuple[Browser, Page]:
         browser: Browser = await playwright.chromium.launch(
             headless=JUST_JOIN_HEADLESS
         )
+        log_resources()
 
         # Random User-Agent
         ua = get_random_user_agent()
@@ -43,6 +44,7 @@ async def setup_page(playwright: Playwright, url: str) -> Tuple[Browser, Page]:
         )
         await page.route("**/*", block_resources)
         await page.goto(url)
+        log_resources()
 
         try:
             await page.click("#cookiescript_reject", timeout=60000)
@@ -74,6 +76,7 @@ async def parse_job_offer(offer: ElementHandle) -> Dict[str, Any]:
     company = (
         (await company_el.text_content()).strip() if company_el else "Unknown"
     )
+    log_resources()
 
     salary_els = await offer.query_selector_all("div.mui-18ypp16 span")
     if len(salary_els) >= 2:
@@ -98,6 +101,7 @@ async def parse_job_offer(offer: ElementHandle) -> Dict[str, Any]:
     else:
         salary = None
         currency = None
+    log_resources()
 
     location_el = await offer.query_selector("span.mui-1o4wo1x")
     location = (
@@ -111,6 +115,7 @@ async def parse_job_offer(offer: ElementHandle) -> Dict[str, Any]:
         s.strip()
         for s in (await asyncio.gather(*[s.text_content() for s in skill_els]))
     ]
+    log_resources()
 
     return {
         "title": title.strip() if title else "Unknown",
@@ -131,19 +136,20 @@ async def fetch_jobs() -> List[Dict[str, Any]]:
 
     logger.info("-" * 60)
     logger.info(f"Starting fetch_jobs for URL: {url}")
-    log_memory()
+    log_resources()
 
     try:
         async with async_playwright() as p:
             browser, page = await setup_page(p, url)
-            log_memory()
+            log_resources()
 
             # Scroll and fetch incrementally
             results = await scroll_and_fetch_jobs(page)
-            log_memory()
+            log_resources()
 
             await browser.close()
             logger.info("Browser closed. Finished fetching jobs.")
+            log_resources()
             return results
 
     except PlaywrightTimeoutError as timeout_err:

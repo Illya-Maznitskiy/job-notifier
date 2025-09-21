@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 
 from logs.logger import logger
 from src.utils.fetching.fetch_orchestrator import run_all_fetchers
-from src.utils.memory_logging import log_memory
+from src.utils.resources_logging import log_resources
 
 
 async def job_process_loop() -> None:
@@ -15,7 +15,7 @@ async def job_process_loop() -> None:
     sleep_seconds = sleep_hours * 60 * 60
 
     while True:
-        log_memory()
+        log_resources()
         start_time = datetime.now()
         next_run_time = start_time + timedelta(seconds=sleep_seconds)
 
@@ -31,7 +31,7 @@ async def job_process_loop() -> None:
 
         finally:
             end_time = datetime.now()
-            log_memory()
+            log_resources()
             logger.info(f"Job processing finished at {end_time}")
             logger.info(f"Next job processing will be at {next_run_time}")
 
