@@ -1,8 +1,11 @@
+from datetime import date
 from typing import TYPE_CHECKING
 
 from sqlalchemy import (
     String,
     BigInteger,
+    Date as SQLDate,
+    Integer,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -22,6 +25,11 @@ class User(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(BigInteger, unique=True, index=True)
     username: Mapped[str] = mapped_column(String(100), nullable=True)
+
+    # daily limit tracking
+    refresh_count: Mapped[int] = mapped_column(Integer, default=0)
+    vacancies_count: Mapped[int] = mapped_column(Integer, default=0)
+    last_reset_date: Mapped[date] = mapped_column(SQLDate, default=None)
 
     jobs: Mapped[list["UserJob"]] = relationship(back_populates="user")
     keywords: Mapped[list["UserKeyword"]] = relationship(
