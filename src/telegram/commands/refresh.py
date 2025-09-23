@@ -1,3 +1,5 @@
+from datetime import date
+
 from aiogram import types
 from sqlalchemy import select, delete
 
@@ -15,6 +17,9 @@ from src.db.crud.user_filtered_jobs import (
 )
 
 
+MAX_REFRESH_PER_DAY = 3
+
+
 @dp.message(Command("refresh"))
 async def refresh_jobs(message: types.Message) -> None:
     """Filter and save jobs for user browsing."""
@@ -24,18 +29,29 @@ async def refresh_jobs(message: types.Message) -> None:
     try:
         async with AsyncSessionLocal() as session:
             await message.answer("⏳ Filtering jobs, please wait…")
-
-            # Ensure user exists
             user = await get_or_create_user(
                 session, message.from_user.id, message.from_user.username
             )
-
-            # Delete old filtered jobs for this user
-            await session.execute(
-                delete(UserFilteredJob).where(
-                    UserFilteredJob.user_id == user.id
-                )
+            logger.info(
+                f"User {user.id} refresh count: {user.refresh_count}/{MAX_REFRESH_PER_DAY}"
             )
+
+            today = date.today()
+            if user.last_reset_date != today:
+                user.refresh_count = 0
+                user.vacancies_count = 0
+                user.last_reset_date = today
+                logger.info(f"User {user.id} daily counters reset for {today}")
+
+            if user.refresh_count >= MAX_REFRESH_PER_DAY:
+                await message.answer(
+                    f"Yo 😬 You've reached your daily refresh limit "
+                    f"({MAX_REFRESH_PER_DAY})"
+                )
+                await message.answer("Support the bot for future upgrades ⚡")
+                return
+
+            user.refresh_count += 1
             await session.commit()
 
             # Fetch all jobs
