@@ -5,30 +5,30 @@ from logs.logger import logger
 from src.db.models.user import User
 
 
-async def get_user_by_user_id(
-    session: AsyncSession, user_id: int
+async def get_user_by_telegram_id(
+    session: AsyncSession, telegram_id: int
 ) -> User | None:
-    """Fetch a User by user_id."""
+    """Fetch a User by telegram_id."""
     try:
         result = await session.execute(
-            select(User).where(User.user_id == user_id)
+            select(User).where(User.telegram_id == telegram_id)
         )
         return result.scalars().first()
     except Exception as e:
-        logger.error(f"Failed to fetch user {user_id}: {e}")
+        logger.error(f"Failed to fetch user {telegram_id}: {e}")
         return None
 
 
 async def create_user(
-    session: AsyncSession, user_id: int, username: str | None
+    session: AsyncSession, telegram_id: int, username: str | None
 ) -> User | None:
     """Create and save a new User."""
     try:
-        user = User(user_id=user_id, username=username)
+        user = User(telegram_id=telegram_id, username=username)
         session.add(user)
         await session.commit()
         await session.refresh(user)
         return user
     except Exception as e:
-        logger.error(f"Failed to create user {user_id}: {e}")
+        logger.error(f"Failed to create user {telegram_id}: {e}")
         return None
