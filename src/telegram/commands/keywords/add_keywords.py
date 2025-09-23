@@ -7,14 +7,19 @@ from aiogram.types import (
     InlineKeyboardButton,
     CallbackQuery,
 )
+from sqlalchemy import select, func
 
 from src.db.db import AsyncSessionLocal
 from logs.logger import logger
+from src.db.models import UserKeyword
 from src.telegram.bot_config import (
     dp,
 )
 from src.telegram.commands.keywords.utils import parse_keywords
 from src.telegram.job_utils import add_or_update_user_keyword
+
+
+MAX_KEYWORDS = 5
 
 
 class AddKeywordStates(StatesGroup):
@@ -32,8 +37,20 @@ async def add_keyword_start(message: Message, state: FSMContext) -> None:
     await state.clear()
     logger.info(f"Cleared previous state for user {user_id}")
 
-    if not message or not state:
-        logger.error("Message or state is None")
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(
+            select(func.count(UserKeyword.id)).where(
+                UserKeyword.user_id == user_id
+            )
+        )
+        current_count = result.scalar() or 0
+        logger.info(f"User {user_id} currently has {current_count} keywords")
+    if current_count >= MAX_KEYWORDS:
+        logger.info(f"User {user_id} currently has maximum keywords")
+        await message.answer(f"Yo, you already have {current_count} keywords")
+        await message.answer(
+            "That's too many for now 💀💀 Support the bot for future upgrades 💖"
+        )
         return
 
     logger.info("-" * 60)
