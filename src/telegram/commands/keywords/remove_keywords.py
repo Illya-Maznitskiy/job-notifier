@@ -3,7 +3,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types.message import Message
 from aiogram.fsm.state import StatesGroup, State
 
-from src.db.crud.user import get_user_by_user_id
+from src.db.crud.user import get_user_by_telegram_id
 from src.db.crud.user_keyword import get_user_all_keywords
 from src.db.db import AsyncSessionLocal
 from logs.logger import logger
@@ -30,7 +30,7 @@ async def remove_keyword(message: Message, state: FSMContext) -> None:
     user_id = message.from_user.id
 
     async with AsyncSessionLocal() as session:
-        user = await get_user_by_user_id(session, user_id)
+        user = await get_user_by_telegram_id(session, user_id)
         user_keywords = await get_user_all_keywords(
             session, user.id  # type: ignore
         )
@@ -65,7 +65,7 @@ async def remove_keyword_receive(message: Message, state: FSMContext) -> None:
     keywords = parse_keywords(message.text)
 
     async with AsyncSessionLocal() as session:
-        user = await get_user_by_user_id(session, user_id)
+        user = await get_user_by_telegram_id(session, user_id)
         if not user:
             logger.warning(
                 f"Unregistered user {user_id} tried to remove keywords."

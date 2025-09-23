@@ -16,8 +16,10 @@ from src.telegram.bot_config import (
     dp,
 )
 from src.telegram.commands.keywords.utils import parse_keywords
-from src.telegram.job_utils import add_or_update_user_keyword
-
+from src.telegram.job_utils import (
+    add_or_update_user_keyword,
+    get_or_create_user,
+)
 
 MAX_KEYWORDS = 5
 
@@ -32,21 +34,29 @@ class AddKeywordStates(StatesGroup):
 @dp.message(Command("add"))
 async def add_keyword_start(message: Message, state: FSMContext) -> None:
     """Start adding keyword conversation."""
-    user_id = message.from_user.id
+    telegram_id = message.from_user.id
 
     await state.clear()
-    logger.info(f"Cleared previous state for user {user_id}")
+    logger.info(f"Cleared previous state for user {telegram_id}")
 
     async with AsyncSessionLocal() as session:
+        user = await get_or_create_user(
+            session=session,
+            telegram_id=telegram_id,
+            username=message.from_user.username,
+        )
+
         result = await session.execute(
             select(func.count(UserKeyword.id)).where(
-                UserKeyword.user_id == user_id
+                UserKeyword.user_id == user.id
             )
         )
         current_count = result.scalar() or 0
-        logger.info(f"User {user_id} currently has {current_count} keywords")
+        logger.info(
+            f"User {telegram_id} currently has {current_count} keywords"
+        )
     if current_count >= MAX_KEYWORDS:
-        logger.info(f"User {user_id} currently has maximum keywords")
+        logger.info(f"User {telegram_id} currently has maximum keywords")
         await message.answer(f"Yo, you already have {current_count} keywords")
         await message.answer(
             "That's too many for now 💀💀 Support the bot for future upgrades 💖"
@@ -54,7 +64,7 @@ async def add_keyword_start(message: Message, state: FSMContext) -> None:
         return
 
     logger.info("-" * 60)
-    logger.info(f"User {user_id} started adding keyword")
+    logger.info(f"User {telegram_id} started adding keyword")
     await message.answer(
         "Send me a keyword or keywords\nI'll use it to find jobs for you ✅"
     )
@@ -118,7 +128,7 @@ async def add_keyword_save(message: Message, state: FSMContext) -> None:
         await state.clear()
         return
 
-    user_id = message.from_user.id
+    telegram_id = message.from_user.id
     data = await state.get_data()
     keywords = data["keywords"]
 
@@ -131,7 +141,7 @@ async def add_keyword_save(message: Message, state: FSMContext) -> None:
         for keyword in keywords:
             action = await add_or_update_user_keyword(
                 session=session,
-                user_id=user_id,
+                telegram_id=telegram_id,
                 username=str(message.from_user.username),
                 keyword=keyword,
                 weight=weight,
@@ -139,7 +149,7 @@ async def add_keyword_save(message: Message, state: FSMContext) -> None:
             await session.commit()
 
             logger.info(
-                f"User {user_id} {action} keyword '{keyword}'"
+                f"User {telegram_id} {action} keyword '{keyword}'"
                 f" with weight {weight}"
             )
 
@@ -174,7 +184,7 @@ async def process_weight_callback(
         for keyword in keywords:
             action = await add_or_update_user_keyword(
                 session=session,
-                user_id=cb.from_user.id,
+                telegram_id=cb.from_user.id,
                 username=str(cb.from_user.username),
                 keyword=keyword,
                 weight=weight,

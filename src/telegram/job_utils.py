@@ -3,7 +3,7 @@ import re
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.db.crud.user import get_user_by_user_id, create_user
+from src.db.crud.user import get_user_by_telegram_id, create_user
 from src.db.crud.user_keyword import upsert_user_keyword
 from src.db.models.user import User
 from src.db.models.job import Job
@@ -122,42 +122,44 @@ def create_vacancy_message(
 
 
 async def get_or_create_user(
-    session: AsyncSession, user_id: int, username: str | None = None
+    session: AsyncSession, telegram_id: int, username: str | None = None
 ) -> User:
     """Return existing user or create new one."""
-    if not user_id or not session:
+    if not telegram_id or not session:
         raise ValueError("Invalid user_id or session")
 
-    user = await get_user_by_user_id(session, user_id)
+    user = await get_user_by_telegram_id(session, telegram_id)
     if user:
         return user
 
-    logger.info(f"Creating new user with id={user_id}, username={username}")
+    logger.info(
+        f"Creating new user with id={telegram_id}, username={username}"
+    )
     try:
         await bot.send_message(
             ADMIN_ID,
-            f"New user joined 😉\nID: {user_id}\nUsername: {username}",
+            f"New user joined 😉\nID: {telegram_id}\nUsername: {username}",
         )
     except Exception as e:
         logger.error(f"Failed notifying admin: {e}")
 
-    return await create_user(session, user_id, username)
+    return await create_user(session, telegram_id, username)
 
 
 async def add_or_update_user_keyword(
     session: AsyncSession,
-    user_id: int,
+    telegram_id: int,
     username: str,
     keyword: str,
     weight: int,
 ) -> str:
     """Add or update user's keyword rating."""
-    if not user_id or not keyword:
+    if not telegram_id or not keyword:
         raise ValueError("Invalid user_id or keyword")
 
-    user = await get_user_by_user_id(session, user_id)
+    user = await get_user_by_telegram_id(session, telegram_id)
     if not user:
-        user = await create_user(session, user_id, username)
+        user = await create_user(session, telegram_id, username)
         await session.commit()
 
     from src.db.crud.user_keyword import get_user_keyword

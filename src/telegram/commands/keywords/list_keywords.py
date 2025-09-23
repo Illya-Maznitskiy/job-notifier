@@ -2,7 +2,7 @@ from aiogram.filters import Command
 from aiogram import types
 
 
-from src.db.crud.user import get_user_by_user_id
+from src.db.crud.user import get_user_by_telegram_id
 from src.db.crud.user_keyword import get_user_all_keywords
 from src.db.db import AsyncSessionLocal
 from logs.logger import logger
@@ -19,7 +19,7 @@ async def list_keywords(message: types.Message) -> None:
     logger.info(f"User {user_id} invoked /list_keywords")
 
     async with AsyncSessionLocal() as session:
-        user = await get_user_by_user_id(session, user_id)
+        user = await get_user_by_telegram_id(session, user_id)
         if not user:
             logger.warning(
                 f"Unregistered user {user_id} tried to list keywords."
