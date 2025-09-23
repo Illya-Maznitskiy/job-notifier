@@ -33,7 +33,8 @@ async def refresh_jobs(message: types.Message) -> None:
                 session, message.from_user.id, message.from_user.username
             )
             logger.info(
-                f"User {user.id} refresh count: {user.refresh_count}/{MAX_REFRESH_PER_DAY}"
+                f"User {user.id} refresh count: "
+                f"{user.refresh_count}/{MAX_REFRESH_PER_DAY}"
             )
 
             today = date.today()
@@ -52,6 +53,14 @@ async def refresh_jobs(message: types.Message) -> None:
                 return
 
             user.refresh_count += 1
+            await session.commit()
+
+            # Delete old filtered jobs for this user
+            await session.execute(
+                delete(UserFilteredJob).where(
+                    UserFilteredJob.user_id == user.id
+                )
+            )
             await session.commit()
 
             # Fetch all jobs
