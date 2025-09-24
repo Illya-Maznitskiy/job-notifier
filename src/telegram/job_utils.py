@@ -126,7 +126,7 @@ async def get_or_create_user(
 ) -> User:
     """Return existing user or create new one."""
     if not telegram_id or not session:
-        raise ValueError("Invalid user_id or session")
+        raise ValueError("Invalid telegram_id or session")
 
     user = await get_user_by_telegram_id(session, telegram_id)
     if user:
