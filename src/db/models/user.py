@@ -31,7 +31,7 @@ class User(Base):
     # daily limit tracking
     refresh_count: Mapped[int] = mapped_column(Integer, default=0)
     vacancies_count: Mapped[int] = mapped_column(Integer, default=0)
-    last_reset_date: Mapped[date] = mapped_column(SQLDate, default=None)
+    last_reset_date: Mapped[date] = mapped_column(SQLDate, default=date.today)
 
     jobs: Mapped[list["UserJob"]] = relationship(back_populates="user")
     keywords: Mapped[list["UserKeyword"]] = relationship(
