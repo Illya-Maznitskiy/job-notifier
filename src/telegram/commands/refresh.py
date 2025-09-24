@@ -28,7 +28,6 @@ async def refresh_jobs(message: types.Message) -> None:
 
     try:
         async with AsyncSessionLocal() as session:
-            await message.answer("⏳ Filtering jobs, please wait…")
             user = await get_or_create_user(
                 session, message.from_user.id, message.from_user.username
             )
@@ -54,6 +53,8 @@ async def refresh_jobs(message: types.Message) -> None:
 
             user.refresh_count += 1
             await session.commit()
+
+            await message.answer("⏳ Filtering jobs, please wait…")
 
             # Delete old filtered jobs for this user
             await session.execute(
