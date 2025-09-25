@@ -46,6 +46,7 @@ async def send_vacancy_to_user(
             user.vacancies_count = 0
             user.last_reset_date = date.today()
             await session.commit()
+            logger.info(f"Reset daily counters for user {user.id}")
 
         if user.vacancies_count >= MAX_VACANCIES_PER_DAY:
             await bot.send_message(
@@ -54,6 +55,7 @@ async def send_vacancy_to_user(
             await bot.send_message(
                 user_id, "Support the bot for future updates 💎"
             )
+            logger.info(f"User {user.id} reached daily limit")
             return
 
         user_filtered_jobs = await get_filtered_jobs_by_user(session, user.id)
@@ -80,6 +82,10 @@ async def send_vacancy_to_user(
 
             user.vacancies_count += 1
             await session.commit()
+            logger.info(
+                f"Sent job to user {user.id},"
+                f" updated count {user.vacancies_count}"
+            )
 
             msg, keyboard = create_vacancy_message(job, score=ufj.score)
             await bot.send_message(
