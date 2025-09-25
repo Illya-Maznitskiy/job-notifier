@@ -14,6 +14,14 @@ async def job_process_loop() -> None:
     sleep_hours = 12
     sleep_seconds = sleep_hours * 60 * 60
 
+    # Initial delay to let the bot settle before first fetch
+    initial_sleep = 3 * 60
+    logger.info(
+        f"Waiting {initial_sleep // 60} minutes before first job fetch..."
+    )
+    await asyncio.sleep(initial_sleep)
+    logger.info("Starting first job fetch now.")
+
     while True:
         log_resources()
         start_time = datetime.now()
