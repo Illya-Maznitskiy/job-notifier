@@ -1,4 +1,5 @@
 import random
+from datetime import date
 
 from aiogram import types
 from aiogram.exceptions import TelegramBadRequest
@@ -27,6 +28,9 @@ from src.telegram.job_utils import (
 )
 
 
+MAX_VACANCIES_PER_DAY = 7
+
+
 async def send_vacancy_to_user(
     user_id: str, session: AsyncSession, username: str | None = None
 ) -> None:
@@ -36,6 +40,22 @@ async def send_vacancy_to_user(
 
     try:
         user = await get_or_create_user(session, int(user_id), username)
+
+        if user.last_reset_date < date.today():
+            user.refresh_count = 0
+            user.vacancies_count = 0
+            user.last_reset_date = date.today()
+            await session.commit()
+
+        if user.vacancies_count >= MAX_VACANCIES_PER_DAY:
+            await bot.send_message(
+                user_id, f"⚡ {MAX_VACANCIES_PER_DAY} jobs done today!"
+            )
+            await bot.send_message(
+                user_id, "Support the bot for future updates 💎"
+            )
+            return
+
         user_filtered_jobs = await get_filtered_jobs_by_user(session, user.id)
         job_sent = False
 
@@ -57,6 +77,9 @@ async def send_vacancy_to_user(
                 continue
 
             await create_user_job(session, user.id, job.id, status="sent")
+
+            user.vacancies_count += 1
+            await session.commit()
 
             msg, keyboard = create_vacancy_message(job, score=ufj.score)
             await bot.send_message(

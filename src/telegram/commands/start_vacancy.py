@@ -1,21 +1,16 @@
 import random
-from datetime import date
 
 from aiogram.filters import Command
 from aiogram import types
 
 from src.db.db import AsyncSessionLocal
 from logs.logger import logger
-from src.telegram.job_utils import get_or_create_user
 from src.telegram.jobs import send_vacancy_to_user
 from src.telegram.bot_config import (
     dp,
     bot,
     READY_GIF_URLS,
 )
-
-
-MAX_VACANCIES_PER_DAY = 7
 
 
 @dp.message(Command(commands=["start"]))
@@ -44,28 +39,6 @@ async def send_next_vacancy(message: types.Message) -> None:
 
     try:
         async with AsyncSessionLocal() as session:
-            user = await get_or_create_user(
-                session,
-                telegram_id,
-                username=message.from_user.username,
-            )
-
-            if user.last_reset_date < date.today():
-                user.refresh_count = 0
-                user.vacancies_count = 0
-                user.last_reset_date = date.today()
-                await session.commit()
-
-            if user.vacancies_count >= MAX_VACANCIES_PER_DAY:
-                await message.answer(
-                    f"⚡ {MAX_VACANCIES_PER_DAY} jobs done today!"
-                )
-                await message.answer("Support the bot for future updates 💎")
-                return
-
-            user.vacancies_count += 1
-            await session.commit()
-
             gif_url = random.choice(READY_GIF_URLS)
             await bot.send_animation(
                 chat_id=message.chat.id,
