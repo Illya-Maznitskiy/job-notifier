@@ -21,6 +21,7 @@ from src.telegram.job_utils import (
     get_or_create_user,
 )
 
+
 MAX_KEYWORDS = 5
 
 
@@ -77,14 +78,44 @@ async def add_keyword_start(message: Message, state: FSMContext) -> None:
 @dp.message(StateFilter(AddKeywordStates.waiting_for_keyword))
 async def add_keyword_receive(message: Message, state: FSMContext) -> None:
     """Receive keyword from user."""
-    if message.text.startswith("/"):
-        user_id = message.from_user.id
+    telegram_id = message.from_user.id
 
+    if message.text.startswith("/"):
         await state.clear()
-        logger.info(f"Cleared previous state for user {user_id}")
+        logger.info(f"Cleared previous state for user {telegram_id}")
         return
 
     keywords = parse_keywords(message.text)
+
+    async with AsyncSessionLocal() as session:
+        user = await get_or_create_user(
+            session=session,
+            telegram_id=telegram_id,
+            username=message.from_user.username,
+        )
+        result = await session.execute(
+            select(func.count(UserKeyword.id)).where(
+                UserKeyword.user_id == user.id
+            )
+        )
+        current_count = result.scalar() or 0
+
+    if current_count + len(keywords) > MAX_KEYWORDS:
+        allowed = MAX_KEYWORDS - current_count
+        logger.info(
+            f"User {telegram_id} tried to add {len(keywords)} keyword(s) "
+            f"but only {allowed} allowed "
+            f"(current: {current_count}, max: {MAX_KEYWORDS})"
+        )
+        if allowed <= 0:
+            await message.answer(
+                f"Yo, you already have {current_count} keywords. "
+                f"Max is {MAX_KEYWORDS} 💀"
+            )
+            await state.clear()
+        await message.answer(f"You can only add {allowed} more keyword(s)")
+        return
+
     logger.info(f"Processed keywords: {keywords}")
 
     if len(keywords) == 1:
