@@ -21,7 +21,7 @@ async def handle_random_text(message: types.Message) -> None:
         logger.info(f"User {user_id} sent random text: {text!r}")
 
         await message.answer(
-            "Hey! Wrong number? Nah, just kidding. Tap /start to begin 😎"
+            "Ehhh… letters? Symbols? I’m lost… 🫠 [Commands work better 🤖]"
         )
     except Exception as err:
         logger.exception(f"Failed handling random text: {err}")
