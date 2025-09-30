@@ -13,6 +13,7 @@ import src.telegram.commands.keywords.remove_keywords  # noqa: F401
 import src.telegram.commands.refresh  # noqa: F401
 import src.telegram.random_text  # noqa: F401
 import src.telegram.commands.feedback  # noqa: F401
+import src.telegram.commands.region  # noqa: F401
 from src.utils.resources_logging import log_resources
 
 
