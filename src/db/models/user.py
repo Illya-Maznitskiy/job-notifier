@@ -15,6 +15,7 @@ from src.db.models.base import Base
 if TYPE_CHECKING:
     from src.db.models.user_job import UserJob
     from src.db.models.user_keyword import UserKeyword
+    from src.db.models.user_region import UserRegion
 
 
 class User(Base):
@@ -35,5 +36,8 @@ class User(Base):
 
     jobs: Mapped[list["UserJob"]] = relationship(back_populates="user")
     keywords: Mapped[list["UserKeyword"]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
+    regions: Mapped[list["UserRegion"]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
