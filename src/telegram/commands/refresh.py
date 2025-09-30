@@ -7,6 +7,7 @@ from src.db.db import AsyncSessionLocal
 from src.db.models.job import Job
 from src.db.models.user_filtered_job import UserFilteredJob
 from logs.logger import logger
+from src.db.models.user_region import UserRegion
 from src.telegram.bot_config import dp
 from aiogram.filters import Command
 
@@ -20,16 +21,30 @@ from src.db.crud.user_filtered_jobs import (
 MAX_REFRESH_PER_DAY = 3
 
 
+REGION_MAP = {
+    "robota_ua": "Ukraine",
+    "djinni": "Ukraine",
+    "dou": "Ukraine",
+    "justjoin": "Poland",
+    "nofluff": "Poland",
+    "pracuj": "Poland",
+    "bulldog": "Poland",
+    "jooble": "All",
+}
+
+
 @dp.message(Command("refresh"))
 async def refresh_jobs(message: types.Message) -> None:
     """Filter and save jobs for user browsing."""
+    telegram_id = message.from_user.id
+
     logger.info("-" * 60)
-    logger.info(f"Refreshing jobs for user: {message.from_user.id}")
+    logger.info(f"Refreshing jobs for user: {telegram_id}")
 
     try:
         async with AsyncSessionLocal() as session:
             user = await get_or_create_user(
-                session, message.from_user.id, message.from_user.username
+                session, telegram_id, message.from_user.username
             )
             logger.info(
                 f"User {user.id} refresh count: "
@@ -56,6 +71,12 @@ async def refresh_jobs(message: types.Message) -> None:
 
             await message.answer("⏳ Filtering jobs, please wait…")
 
+            # Get user's region
+            result = await session.execute(
+                select(UserRegion.region).where(UserRegion.user_id == user.id)
+            )
+            region = result.scalar()  # None if not set
+
             # Delete old filtered jobs for this user
             await session.execute(
                 delete(UserFilteredJob).where(
@@ -67,6 +88,17 @@ async def refresh_jobs(message: types.Message) -> None:
             # Fetch all jobs
             all_jobs = await session.execute(select(Job))
             jobs = list(all_jobs.scalars())
+
+            # URL-based region filtering
+            if region and region != "all":
+                allowed_keys = [
+                    key for key, reg in REGION_MAP.items() if reg == region
+                ]
+                jobs = [
+                    job
+                    for job in jobs
+                    if any(key in job.url for key in allowed_keys)
+                ]
 
             # Filter jobs for the user (returns list of tuples: (job, score))
             logger.info("Starting job filtering")
@@ -99,7 +131,5 @@ async def refresh_jobs(message: types.Message) -> None:
             logger.info(f"Found {len(filtered_jobs)} jobs for user {user.id}")
 
     except Exception as e:
-        logger.error(
-            f"Error refreshing jobs for user {message.from_user.id}: {e}"
-        )
+        logger.error(f"Error refreshing jobs for user {telegram_id}: {e}")
         await message.answer("⚠️ Failed to refresh jobs. Try again later.")
