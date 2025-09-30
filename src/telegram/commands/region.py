@@ -83,6 +83,9 @@ async def process_region_selection(
             await session.commit()
 
         await cb.message.answer(f"Region set to {region} ✅")
+        await cb.message.answer(
+            "💡 Run /refresh now to get jobs by that region"
+        )
 
     except Exception as e:
         logger.error(f"Failed to set region for {user_id}: {e}")
