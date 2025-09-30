@@ -113,7 +113,7 @@ async def add_keyword_receive(message: Message, state: FSMContext) -> None:
                 f"Max is {MAX_KEYWORDS} 💀"
             )
             await state.clear()
-        await message.answer(f"You can only add {allowed} more keyword(s)")
+        await message.answer(f"You can only add {allowed} more keyword(s) 🤷‍♂️")
         return
 
     logger.info(f"Processed keywords: {keywords}")
