@@ -12,7 +12,7 @@ from src.telegram.bot_config import dp
 from aiogram.filters import Command
 
 from src.telegram.job_utils import get_or_create_user
-from src.utils.job_filter import filter_jobs_for_user
+from src.utils.telegram.job_filter import filter_jobs_for_user
 from src.db.crud.user_filtered_jobs import (
     create_user_filtered_jobs,
 )
