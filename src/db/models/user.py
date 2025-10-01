@@ -15,7 +15,7 @@ from src.db.models.base import Base
 if TYPE_CHECKING:
     from src.db.models.user_job import UserJob
     from src.db.models.user_keyword import UserKeyword
-    from src.db.models.user_region import UserRegion
+from src.db.models.user_region import UserRegion
 
 
 class User(Base):
