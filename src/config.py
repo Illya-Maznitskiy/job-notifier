@@ -64,3 +64,6 @@ SCORE_THRESHOLD = 0
 
 # Number of days after which a job should be archived if not seen
 JOB_ARCHIVE_DAYS = 7
+
+# Number of days after which an archived job can be deleted
+ARCHIVE_LIFETIME_DAYS = 30

@@ -2,7 +2,9 @@ import asyncio
 from datetime import datetime, timedelta
 
 from logs.logger import logger
+from src.db.db import AsyncSessionLocal
 from src.utils.fetching.fetch_orchestrator import run_all_fetchers
+from src.utils.job_cleanup import delete_old_jobs
 from src.utils.resources_logging import log_resources
 
 
@@ -33,6 +35,9 @@ async def job_process_loop() -> None:
             logger.info(f"Next job processing scheduled at {next_run_time}")
 
             await run_all_fetchers()
+
+            async with AsyncSessionLocal() as session:
+                await delete_old_jobs(session)
 
         except Exception as e:
             logger.warning(f"Job process failed: {e}")
