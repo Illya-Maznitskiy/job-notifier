@@ -33,6 +33,9 @@ class User(Base):
     refresh_count: Mapped[int] = mapped_column(Integer, default=0)
     vacancies_count: Mapped[int] = mapped_column(Integer, default=0)
     last_reset_date: Mapped[date] = mapped_column(SQLDate, default=date.today)
+    last_notification_date: Mapped[date] = mapped_column(
+        SQLDate, nullable=True
+    )
 
     jobs: Mapped[list["UserJob"]] = relationship(back_populates="user")
     keywords: Mapped[list["UserKeyword"]] = relationship(
