@@ -63,7 +63,7 @@ async def add_region_start(message: Message, state: FSMContext) -> None:
 async def process_region_selection(
     cb: CallbackQuery, state: FSMContext
 ) -> None:
-    """Set user's  region."""
+    """Set user's region."""
     region: str = cb.data.split("_")[1]
     user_id: int = cb.from_user.id
 
