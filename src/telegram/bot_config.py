@@ -79,6 +79,9 @@ NOTIFICATION_MESSAGES = [
     "Don’t miss jobs! Use /refresh 🔥",
 ]
 
+# Max jobs per user per /refresh
+MAX_FILTERED_JOBS = 1000
+
 user_request_count = defaultdict(int)
 
 # /start command anti-spam logic

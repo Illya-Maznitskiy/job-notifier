@@ -9,6 +9,7 @@ from src.config import SCORE_THRESHOLD
 from src.db.crud.user_keyword import get_user_all_keywords
 from src.db.models.job import Job
 from logs.logger import logger
+from src.telegram.bot_config import MAX_FILTERED_JOBS
 
 
 def score_job(job: Job, keyword_weights: dict[str, int]) -> int:
@@ -69,6 +70,8 @@ async def filter_jobs_for_user(
 
         # sort by score descending
         scored_jobs.sort(key=lambda x: x[1], reverse=True)
+        scored_jobs = scored_jobs[:MAX_FILTERED_JOBS]
+
         logger.info(f"Fetched keywords for user {user_id}: {keyword_weights}")
         logger.info(f"Found {len(scored_jobs)} jobs for user {user_id}")
         return scored_jobs
