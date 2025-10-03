@@ -7,6 +7,7 @@ from fastapi import FastAPI, Request
 import uvicorn
 
 from logs.logger import logger
+from src.api.notifications_scheduler import notify_at_10am_daily
 from src.telegram.telegram_bot import start_bot
 
 from src.utils.fetching.job_loop import job_process_loop
@@ -42,6 +43,9 @@ async def lifespan(_fastapi_app: FastAPI) -> AsyncIterator[None]:
 
     logger.info("Starting background job loop")
     asyncio.create_task(job_process_loop())
+
+    logger.info("Starting daily notifications at 10 AM UTC")
+    asyncio.create_task(notify_at_10am_daily())
 
     if not bot_started:
         bot_started = True

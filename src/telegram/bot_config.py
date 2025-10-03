@@ -73,6 +73,12 @@ READY_GIF_URLS = [
     "https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3eWVpdmR4MWV1cHhzNzV4NThsZndjd29uZmdndDAwb2c3OGV2NGRrMSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/VbnUQpnihPSIgIXuZv/giphy.gif",
 ]
 
+NOTIFICATION_MESSAGES = [
+    "Hey, check new jobs! Try /refresh 👀",
+    "Latest jobs? Run /refresh 😎",
+    "Don’t miss jobs! Use /refresh 🔥",
+]
+
 user_request_count = defaultdict(int)
 
 # /start command anti-spam logic
