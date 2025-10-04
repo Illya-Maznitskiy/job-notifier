@@ -105,8 +105,11 @@ async def fetch_jobs() -> List[Dict]:
                     logger.info("No job listings found. Stopping pagination.")
                     break
 
-                for item in tqdm_asyncio(
-                    job_items, desc="Fetching jobs", mininterval=10.0
+                for i, item in enumerate(
+                    tqdm_asyncio(
+                        job_items, desc="Fetching jobs", mininterval=10.0
+                    ),
+                    1,
                 ):
                     if len(all_jobs) >= DJINNI_MAX_JOBS:
                         logger.info(

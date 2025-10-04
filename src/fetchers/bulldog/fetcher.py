@@ -104,8 +104,11 @@ async def fetch_bulldog_jobs() -> List[Dict[str, Any]]:
                     logger.info("No job items found on this page.")
                     continue
 
-                for item in tqdm_asyncio(
-                    job_items, desc="Fetching jobs", mininterval=10.0
+                for i, item in enumerate(
+                    tqdm_asyncio(
+                        job_items, desc="Fetching jobs", mininterval=10.0
+                    ),
+                    1,
                 ):
                     # Jobs limit
                     if len(all_jobs) >= BULLDOG_MAX_JOBS:
