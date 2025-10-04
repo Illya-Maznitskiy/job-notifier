@@ -10,6 +10,7 @@ from pathlib import Path
 root_dir = Path(__file__).resolve().parent.parent
 log_dir = root_dir / "logs"
 log_dir.mkdir(exist_ok=True)
+log_level = logging.INFO
 
 # Log filename with timestamp
 log_filename = os.path.join(
@@ -18,17 +19,17 @@ log_filename = os.path.join(
 
 # Create logs instance
 logger = logging.getLogger("job_notifier_logger")
-logger.setLevel(logging.DEBUG)
+logger.setLevel(log_level)
 
 # Console handler for terminal output
 console_handler = logging.StreamHandler(sys.stdout)
-console_handler.setLevel(logging.DEBUG)
+console_handler.setLevel(log_level)
 console_format = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
 console_handler.setFormatter(console_format)
 
 # File handler for logging info and higher-level messages to file
 file_handler = logging.FileHandler(log_filename, encoding="utf-8")
-file_handler.setLevel(logging.DEBUG)
+file_handler.setLevel(log_level)
 file_format = logging.Formatter(
     "%(asctime)s - %(levelname)s - %(name)s - %(message)s"
 )
