@@ -1,4 +1,6 @@
 import re
+
+from tqdm.asyncio import tqdm_asyncio
 from playwright.async_api import async_playwright, ViewportSize
 
 from src.config import DOU_URL, DOU_HEADLESS, DOU_MAX_JOBS
@@ -40,9 +42,11 @@ async def fetch_jobs() -> list[dict]:
 
             job_cards = page.locator("ul.lt > li.l-vacancy")
             count = await job_cards.count()
-            logger.info(f"Found {count} job listings.")
+            logger.debug(f"Found {count} job listings.")
 
-            for i in range(count):
+            for i in tqdm_asyncio(
+                range(count), desc="Fetching jobs", mininterval=10.0
+            ):
                 if len(all_jobs) >= DOU_MAX_JOBS:
                     logger.info(
                         f"Reached max job count of "

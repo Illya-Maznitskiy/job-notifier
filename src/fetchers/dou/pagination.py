@@ -14,14 +14,14 @@ async def click_all_pagination_buttons(page: Page) -> None:
     try:
         while await page.locator(load_more_selector).is_visible():
             jobs_count = await page.locator(job_selector).count()
-            logger.info(f"Current job count: {jobs_count}")
+            logger.debug(f"Current job count: {jobs_count}")
 
             # Stop if we've reached max_jobs
             if jobs_count >= DOU_MAX_JOBS:
                 logger.info(f"Reached max_jobs limit: {DOU_MAX_JOBS}")
                 break
 
-            logger.info("Clicking 'Load more' to load more jobs...")
+            logger.debug("Clicking 'Load more' to load more jobs...")
             await page.locator(load_more_selector).click()
 
             # Anti-block delay
