@@ -1,6 +1,7 @@
 import re
 
 from playwright.async_api import async_playwright, ViewportSize
+from tqdm.asyncio import tqdm_asyncio
 
 from logs.logger import logger
 from src.config import NO_FLUFF_HEADLESS, NO_FLUFF_MAX_JOBS
@@ -125,7 +126,9 @@ async def fetch_nofluff_jobs(url: str) -> list[dict]:
             total_count = min(await job_cards.count(), NO_FLUFF_MAX_JOBS)
             logger.info(f"Total jobs loaded: {total_count}")
 
-            for i in range(total_count):
+            for i in tqdm_asyncio(
+                range(total_count), desc="Fetching jobs", mininterval=10.0
+            ):
                 job = job_cards.nth(i)
                 try:
                     title = await job.locator(

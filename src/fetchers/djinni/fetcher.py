@@ -2,6 +2,8 @@ from playwright.async_api import async_playwright, ViewportSize
 
 from typing import Dict, List, Union
 
+from tqdm.asyncio import tqdm_asyncio
+
 from src.config import DJINNI_HEADLESS, DJINNI_URL, DJINNI_MAX_JOBS
 from src.fetchers.djinni.pagination import build_paginated_url
 from logs.logger import logger
@@ -103,7 +105,9 @@ async def fetch_jobs() -> List[Dict]:
                     logger.info("No job listings found. Stopping pagination.")
                     break
 
-                for i, item in enumerate(job_items, start=1):
+                for item in tqdm_asyncio(
+                    job_items, desc="Fetching jobs", mininterval=10.0
+                ):
                     if len(all_jobs) >= DJINNI_MAX_JOBS:
                         logger.info(
                             f"Reached max job count of {DJINNI_MAX_JOBS}, "

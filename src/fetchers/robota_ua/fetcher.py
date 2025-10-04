@@ -2,6 +2,7 @@ import asyncio
 from typing import List
 
 from playwright.async_api import async_playwright, ElementHandle, ViewportSize
+from tqdm.asyncio import tqdm_asyncio
 
 from src.config import ROBOTA_UA_URL, ROBOTA_UA_HEADLESS, ROBOTA_UA_MAX_JOBS
 from src.fetchers.robota_ua.pagination import click_next_page
@@ -121,7 +122,9 @@ async def fetch_robota_ua_jobs() -> List[dict]:
                     logger.info("No job items found on the page.")
                     break
 
-                for item in job_items:
+                for item in tqdm_asyncio(
+                    job_items, desc="Fetching jobs", mininterval=10.0
+                ):
                     # Filter out jobs from 'recommended' section
                     is_recommended = await item.evaluate(
                         "node => node.closest("

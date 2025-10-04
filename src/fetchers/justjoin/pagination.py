@@ -1,6 +1,7 @@
 from typing import List, Dict, Any
 
 from playwright.async_api import Page, Error as PlaywrightError
+from tqdm.asyncio import tqdm_asyncio
 
 from logs.logger import logger
 from src.config import JUST_JOIN_MAX_JOBS
@@ -31,7 +32,9 @@ async def scroll_and_fetch_jobs(page: Page) -> List[Dict[str, Any]]:
             offers = await page.query_selector_all("a.offer-card")
             all_jobs = []
 
-            for offer in offers:
+            for offer in tqdm_asyncio(
+                offers, desc="Fetching jobs", mininterval=10.0
+            ):
                 # Jobs limit
                 # Use total count to stop, not just current batch
                 if len(results) + len(all_jobs) >= JUST_JOIN_MAX_JOBS:

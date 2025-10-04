@@ -3,6 +3,7 @@ from typing import Dict, Any, List
 import requests
 
 from dotenv import load_dotenv
+from tqdm.asyncio import tqdm_asyncio
 
 from logs.logger import logger
 from src.config import (
@@ -74,7 +75,7 @@ def fetch_jooble_jobs(max_jobs: int = JOOBLE_MAX_JOBS) -> List[Dict[str, Any]]:
                 job["url"] = job.pop("link")
             jobs[i] = ensure_company_name(job)
 
-        for i, job in enumerate(jobs, len(all_jobs) + 1):
+        for job in tqdm_asyncio(jobs, desc="Fetching jobs", mininterval=10.0):
             company = job.get("company") or "Unknown Company"
             title = job.get("title", "No Title")
             logger.debug(f"{i:>3}. {title.strip():<60} @ {company.strip()}")

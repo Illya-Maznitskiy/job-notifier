@@ -1,6 +1,7 @@
 from typing import Dict, Any, Union, List
 
 from playwright.async_api import async_playwright, ViewportSize
+from tqdm.asyncio import tqdm_asyncio
 
 from src.config import BULLDOG_MAX_JOBS, BULLDOG_HEADLESS
 from src.fetchers.bulldog.pagination import (
@@ -103,7 +104,9 @@ async def fetch_bulldog_jobs() -> List[Dict[str, Any]]:
                     logger.info("No job items found on this page.")
                     continue
 
-                for i, item in enumerate(job_items, start=1):
+                for item in tqdm_asyncio(
+                    job_items, desc="Fetching jobs", mininterval=10.0
+                ):
                     # Jobs limit
                     if len(all_jobs) >= BULLDOG_MAX_JOBS:
                         logger.info(
