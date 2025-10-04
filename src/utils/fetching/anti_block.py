@@ -20,7 +20,7 @@ async def random_wait(min_sec: float = 1.0, max_sec: float = 5.0) -> None:
     """Wait a random time between requests."""
     delay = random.uniform(min_sec, max_sec)
     formatted_delay = str(delay)[:5]
-    logger.info(f"Waiting {formatted_delay} seconds...")
+    logger.debug(f"Waiting {formatted_delay} seconds...")
     await asyncio.sleep(delay)
 
 
