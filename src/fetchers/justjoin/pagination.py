@@ -45,7 +45,7 @@ async def scroll_and_fetch_jobs(page: Page) -> List[Dict[str, Any]]:
                 if job_data["url"] and job_data["url"] not in seen_urls:
                     seen_urls.add(job_data["url"])
                     all_jobs.append(job_data)
-                    logger.info(
+                    logger.debug(
                         f"{job_counter:>3}. {job_data['title']:<60} @ "
                         f"{job_data['company']}"
                     )

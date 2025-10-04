@@ -160,7 +160,7 @@ async def fetch_nofluff_jobs(url: str) -> list[dict]:
                         ),
                     }
                     all_jobs.append(job_data)
-                    logger.info(
+                    logger.debug(
                         f"{i+1:>3}. {job_data['title']:<60} @ "
                         f"{job_data['company']}"
                     )

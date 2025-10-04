@@ -115,7 +115,7 @@ async def fetch_bulldog_jobs() -> List[Dict[str, Any]]:
                     job = await extract_bulldog_job(item)
                     if "title" in job and "url" in job:
                         all_jobs.append(job)
-                        logger.info(
+                        logger.debug(
                             f"{len(all_jobs):>3}. {job['title']:<60} @ "
                             f"{job.get('company', 'unknown')}"
                         )

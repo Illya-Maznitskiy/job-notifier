@@ -114,7 +114,7 @@ async def fetch_jobs() -> List[Dict]:
                     job = await extract_job_data(item)
                     if "title" in job and "url" in job:
                         all_jobs.append(job)
-                        logger.info(
+                        logger.debug(
                             f"{len(all_jobs):>3}. {job['title']:<60} @ "
                             f"{job.get('company', 'unknown')}"
                         )

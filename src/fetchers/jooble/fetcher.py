@@ -77,7 +77,7 @@ def fetch_jooble_jobs(max_jobs: int = JOOBLE_MAX_JOBS) -> List[Dict[str, Any]]:
         for i, job in enumerate(jobs, len(all_jobs) + 1):
             company = job.get("company") or "Unknown Company"
             title = job.get("title", "No Title")
-            logger.info(f"{i:>3}. {title.strip():<60} @ {company.strip()}")
+            logger.debug(f"{i:>3}. {title.strip():<60} @ {company.strip()}")
 
         all_jobs.extend(jobs)
 

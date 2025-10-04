@@ -66,7 +66,7 @@ async def fetch_jobs() -> list[dict]:
                     "location": clean_text(location) if location else "",
                 }
                 all_jobs.append(clean_job)
-                logger.info(
+                logger.debug(
                     f"{i+1:>3}. {clean_job['title']:<60} @ "
                     f"{clean_job.get('company', 'unknown')}"
                 )

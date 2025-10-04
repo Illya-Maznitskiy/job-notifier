@@ -152,7 +152,7 @@ async def fetch_robota_ua_jobs() -> List[dict]:
                         continue
 
                     all_jobs.append(job)
-                    logger.info(
+                    logger.debug(
                         f"{len(all_jobs):>3}. {job['title']:<60} @ "
                         f"{job.get('company', 'unknown')}"
                     )
