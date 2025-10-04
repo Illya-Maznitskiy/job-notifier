@@ -28,10 +28,10 @@ async def notify_inactive_users(days: int = 3) -> None:
                     if user.last_reset_date > cutoff:
                         try:
                             msg = random.choice(NOTIFICATION_MESSAGES)
-                            await bot.send_message(user.chat_id, msg)
+                            await bot.send_message(user.telegram_id, msg)
                             user.last_notification_date = date.today()
                             logging.info(
-                                f"Notification sent to user {user.chat_id}"
+                                f"Notification sent to user {user.telegram_id}"
                             )
                         except Exception as e:
                             logging.error(f"Failed sending notification: {e}")
