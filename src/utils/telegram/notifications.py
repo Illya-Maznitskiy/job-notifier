@@ -9,8 +9,19 @@ from src.db.models import User
 from src.telegram.bot_config import bot, NOTIFICATION_MESSAGES
 
 
+async def send_notification(user: User) -> None:
+    """Helper function for sending notification."""
+    try:
+        msg = random.choice(NOTIFICATION_MESSAGES)
+        await bot.send_message(user.telegram_id, msg)
+        user.last_notification_date = date.today()
+        logging.info(f"Notification sent to user {user.telegram_id}")
+    except Exception as e:
+        logging.error(f"Failed sending notification: {e}")
+
+
 async def notify_inactive_users(days: int = 3) -> None:
-    """Notify users inactive for 'days' days."""
+    """Notify without notification and inactive users for 'days' days."""
     cutoff: date = date.today() - timedelta(days=days)
 
     try:
@@ -19,22 +30,13 @@ async def notify_inactive_users(days: int = 3) -> None:
             users = result.scalars().all()
 
             for user in users:
-                # check if notification wasn't sent today
-                if (
-                    not user.last_notification_date
-                    or user.last_notification_date < date.today()
-                ):
+                if not user.last_notification_date:
+                    await send_notification(user)
+
+                elif user.last_notification_date < date.today():
                     # check if user was active last days
                     if user.last_reset_date > cutoff:
-                        try:
-                            msg = random.choice(NOTIFICATION_MESSAGES)
-                            await bot.send_message(user.telegram_id, msg)
-                            user.last_notification_date = date.today()
-                            logging.info(
-                                f"Notification sent to user {user.telegram_id}"
-                            )
-                        except Exception as e:
-                            logging.error(f"Failed sending notification: {e}")
+                        await send_notification(user)
 
             await session.commit()
     except Exception as e:
