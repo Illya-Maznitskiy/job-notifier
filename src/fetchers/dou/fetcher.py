@@ -45,7 +45,7 @@ async def fetch_jobs() -> list[dict]:
             logger.debug(f"Found {count} job listings.")
 
             for i in tqdm_asyncio(
-                range(count), desc="Fetching jobs", mininterval=10.0
+                range(count), desc="Fetching jobs", mininterval=120.0
             ):
                 if len(all_jobs) >= DOU_MAX_JOBS:
                     logger.info(

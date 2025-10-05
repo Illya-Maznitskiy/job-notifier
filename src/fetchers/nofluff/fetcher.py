@@ -127,7 +127,7 @@ async def fetch_nofluff_jobs(url: str) -> list[dict]:
             logger.info(f"Total jobs loaded: {total_count}")
 
             for i in tqdm_asyncio(
-                range(total_count), desc="Fetching jobs", mininterval=10.0
+                range(total_count), desc="Fetching jobs", mininterval=120.0
             ):
                 job = job_cards.nth(i)
                 try:

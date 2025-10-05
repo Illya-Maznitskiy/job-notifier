@@ -76,7 +76,7 @@ def fetch_jooble_jobs(max_jobs: int = JOOBLE_MAX_JOBS) -> List[Dict[str, Any]]:
             jobs[i] = ensure_company_name(job)
 
         for i, job in enumerate(
-            tqdm_asyncio(jobs, desc="Fetching jobs", mininterval=10.0), 1
+            tqdm_asyncio(jobs, desc="Fetching jobs", mininterval=120.0), 1
         ):
             company = job.get("company") or "Unknown Company"
             title = job.get("title", "No Title")

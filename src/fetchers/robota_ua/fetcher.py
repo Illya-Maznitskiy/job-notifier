@@ -123,7 +123,7 @@ async def fetch_robota_ua_jobs() -> List[dict]:
                     break
 
                 for item in tqdm_asyncio(
-                    job_items, desc="Fetching jobs", mininterval=10.0
+                    job_items, desc="Fetching jobs", mininterval=120.0
                 ):
                     # Filter out jobs from 'recommended' section
                     is_recommended = await item.evaluate(

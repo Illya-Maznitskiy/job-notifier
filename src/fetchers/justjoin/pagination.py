@@ -33,7 +33,7 @@ async def scroll_and_fetch_jobs(page: Page) -> List[Dict[str, Any]]:
             all_jobs = []
 
             for offer in tqdm_asyncio(
-                offers, desc="Fetching jobs", mininterval=10.0
+                offers, desc="Fetching jobs", mininterval=120.0
             ):
                 # Jobs limit
                 # Use total count to stop, not just current batch

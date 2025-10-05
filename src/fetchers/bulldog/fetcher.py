@@ -106,7 +106,7 @@ async def fetch_bulldog_jobs() -> List[Dict[str, Any]]:
 
                 for i, item in enumerate(
                     tqdm_asyncio(
-                        job_items, desc="Fetching jobs", mininterval=10.0
+                        job_items, desc="Fetching jobs", mininterval=120.0
                     ),
                     1,
                 ):

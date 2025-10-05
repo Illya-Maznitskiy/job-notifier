@@ -25,7 +25,7 @@ async def run_fetch_and_save_jobs() -> list[dict] | None:
         return []
 
     for i, job in enumerate(
-        tqdm_asyncio(jobs, desc="Fetching jobs", mininterval=10.0), 1
+        tqdm_asyncio(jobs, desc="Fetching jobs", mininterval=120.0), 1
     ):
         logger.debug(
             f"{i:>3}. {job['title']:<60} @ {job.get('company', 'unknown')}"
