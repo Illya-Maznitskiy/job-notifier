@@ -40,4 +40,4 @@ async def notify_inactive_users(days: int = 3) -> None:
 
             await session.commit()
     except Exception as e:
-        logging.error(f"DB or session error: {e}")
+        logger.error(f"DB or session error: {e}")
