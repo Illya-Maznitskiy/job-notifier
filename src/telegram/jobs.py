@@ -91,6 +91,7 @@ async def send_vacancy_to_user(
             await bot.send_message(
                 user_id, msg, reply_markup=keyboard, parse_mode="Markdown"
             )
+            logger.inf(f"Sent vacancy '{job.title}' to user {user.id}")
             job_sent = True
             break
 
