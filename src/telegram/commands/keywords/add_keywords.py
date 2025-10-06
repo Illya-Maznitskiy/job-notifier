@@ -163,6 +163,10 @@ async def add_keyword_save(message: Message, state: FSMContext) -> None:
 
     telegram_id = message.from_user.id
     data = await state.get_data()
+    if "keywords" not in data:
+        logger.warning(f"No keywords in data for user {telegram_id}")
+        await message.answer("Oops, system issue, no keywords were found 🤷‍♂️")
+        return
     keywords = data["keywords"]
 
     try:
@@ -207,10 +211,19 @@ async def process_weight_callback(
         await state.set_state(AddKeywordStates.waiting_for_weight)
         await cb.answer()
         return
+    telegram_id = cb.from_user.id
 
     # Extract weight from callback data
     weight = int(cb.data.split("_")[1])
     data = await state.get_data()
+    if "keywords" not in data:
+        logger.warning(f"No keywords in data for user {telegram_id}")
+        issue_user_msg = "Oops, system issue, no keywords were found 🤷‍♂️"
+        if cb.message:
+            await cb.message.answer(issue_user_msg)
+        else:
+            await cb.bot.send_message(cb.from_user.id, issue_user_msg)
+        return
     keywords = data["keywords"]
 
     async with AsyncSessionLocal() as session:
