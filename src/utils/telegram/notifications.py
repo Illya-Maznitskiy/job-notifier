@@ -1,9 +1,9 @@
-import logging
 import random
 from datetime import timedelta, date
 
 from sqlalchemy import select
 
+from logs.logger import logger
 from src.db.db import AsyncSessionLocal
 from src.db.models import User
 from src.telegram.bot_config import bot, NOTIFICATION_MESSAGES
@@ -15,9 +15,9 @@ async def send_notification(user: User) -> None:
         msg = random.choice(NOTIFICATION_MESSAGES)
         await bot.send_message(user.telegram_id, msg)
         user.last_notification_date = date.today()
-        logging.info(f"Notification sent to user {user.telegram_id}")
+        logger.info(f"Notification sent to user {user.telegram_id}")
     except Exception as e:
-        logging.error(f"Failed sending notification: {e}")
+        logger.error(f"Failed sending notification: {e}")
 
 
 async def notify_inactive_users(days: int = 3) -> None:
