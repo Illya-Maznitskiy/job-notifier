@@ -47,9 +47,7 @@ async def send_next_vacancy(message: types.Message) -> None:
                 caption="Are you ready?! 🔥\n(Applied and Skip buttons are "
                 "just to track vacancies in DB for now)",
             )
-            await send_vacancy_to_user(
-                str(telegram_id), session, str(username)
-            )
+            await send_vacancy_to_user(str(telegram_id), session, username)
     except Exception as e:
         logger.error(f"Error sending vacancy to user {telegram_id}: {e}")
         await message.answer("Server error. Try again later 🤷‍♂️")

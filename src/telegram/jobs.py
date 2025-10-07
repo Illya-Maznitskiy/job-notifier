@@ -115,6 +115,7 @@ async def process_callback(callback_query: types.CallbackQuery) -> None:
 
     action, job_id = callback_query.data.split("|", 1)
     telegram_id = str(callback_query.from_user.id)
+    username = callback_query.from_user.username
     logger.info(f"Callback from user {telegram_id}: {action}")
 
     try:
@@ -175,7 +176,7 @@ async def process_callback(callback_query: types.CallbackQuery) -> None:
         # Send next vacancy safely
         try:
             async with AsyncSessionLocal() as session2:
-                await send_vacancy_to_user(telegram_id, session2)
+                await send_vacancy_to_user(telegram_id, session2, username)
         except Exception as err:
             logger.exception(
                 f"Failed sending next vacancy to user {telegram_id}: {err}"
