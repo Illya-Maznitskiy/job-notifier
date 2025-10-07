@@ -27,21 +27,23 @@ async def remove_keyword(message: Message, state: FSMContext) -> None:
         logger.error("Message or state is None")
         return
 
-    user_id = message.from_user.id
+    telegram_id = message.from_user.id
 
     async with AsyncSessionLocal() as session:
-        user = await get_user_by_telegram_id(session, user_id)
+        user = await get_user_by_telegram_id(session, telegram_id)
         user_keywords = await get_user_all_keywords(
             session, user.id  # type: ignore
         )
 
         if not user_keywords:
             await message.answer("You have no keywords to remove 🤷‍♂️😺")
-            logger.error("User has no keywords")
+            logger.error(f"User {telegram_id} has no keywords")
             return
 
     logger.info("-" * 60)
-    logger.info(f"User {user_id} invoked /remove with text: {message.text!r}")
+    logger.info(
+        f"User {telegram_id} invoked /remove with text: {message.text!r}"
+    )
 
     await message.answer("Send me a keyword from your keywords 🧹")
 
@@ -61,14 +63,14 @@ async def remove_keyword_receive(message: Message, state: FSMContext) -> None:
         await state.clear()
         return
 
-    user_id = message.from_user.id
+    telegram_id = message.from_user.id
     keywords = parse_keywords(message.text)
 
     async with AsyncSessionLocal() as session:
-        user = await get_user_by_telegram_id(session, user_id)
+        user = await get_user_by_telegram_id(session, telegram_id)
         if not user:
             logger.warning(
-                f"Unregistered user {user_id} tried to remove keywords."
+                f"Unregistered user {telegram_id} tried to remove keywords."
             )
             await message.answer("Hmm, system issue 🤷‍♂️")
             return
@@ -83,13 +85,15 @@ async def remove_keyword_receive(message: Message, state: FSMContext) -> None:
         await session.commit()
 
     if removed:
-        logger.info(f"Removed {len(removed)} keywords")
+        logger.info(f"Removed {len(removed)} keywords for user {telegram_id}")
         await message.answer(f"💅 Successfully removed: {', '.join(removed)}")
         await message.answer(
             "Use /refresh to filter jobs without that keyword 🕵️‍♂️"
         )
     if not_found:
-        logger.info(f"Not found {len(not_found)} keywords")
+        logger.info(
+            f"Not found {len(not_found)} keywords for user {telegram_id}"
+        )
         await message.answer(f"Can't find: {', '.join(not_found)} 👀")
         await message.answer("🕶️ You can try again /remove")
     await state.clear()
