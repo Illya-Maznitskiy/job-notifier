@@ -35,6 +35,7 @@ async def send_next_vacancy(message: types.Message) -> None:
     """Send next job vacancy to the user."""
     logger.info("-" * 60)
     telegram_id = message.from_user.id
+    username = message.from_user.username
     logger.info(f"User {telegram_id} requested next vacancy.")
 
     try:
@@ -47,7 +48,7 @@ async def send_next_vacancy(message: types.Message) -> None:
                 "just to track vacancies in DB for now)",
             )
             await send_vacancy_to_user(
-                str(telegram_id), session, str(telegram_id)
+                str(telegram_id), session, str(username)
             )
     except Exception as e:
         logger.error(f"Error sending vacancy to user {telegram_id}: {e}")
