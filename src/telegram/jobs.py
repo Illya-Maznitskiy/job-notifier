@@ -32,30 +32,30 @@ MAX_VACANCIES_PER_DAY = 7
 
 
 async def send_vacancy_to_user(
-    user_id: str, session: AsyncSession, username: str | None = None
+    telegram_id: str, session: AsyncSession, username: str | None = None
 ) -> None:
     """Send next unviewed vacancy to the user."""
     logger.info("-" * 60)
-    logger.info(f"Sending vacancy to user: {user_id}")
+    logger.info(f"Sending vacancy to user: {telegram_id}")
 
     try:
-        user = await get_or_create_user(session, int(user_id), username)
+        user = await get_or_create_user(session, int(telegram_id), username)
 
         if user.last_reset_date < date.today():
             user.refresh_count = 0
             user.vacancies_count = 0
             user.last_reset_date = date.today()
             await session.commit()
-            logger.info(f"Reset daily counters for user {user.id}")
+            logger.info(f"Reset daily counters for user {telegram_id}")
 
         if user.vacancies_count >= MAX_VACANCIES_PER_DAY:
             await bot.send_message(
-                user_id, f"⚡ {MAX_VACANCIES_PER_DAY} jobs done today!"
+                telegram_id, f"⚡ {MAX_VACANCIES_PER_DAY} jobs done today!"
             )
             await bot.send_message(
-                user_id, "Support the bot for future updates 💎"
+                telegram_id, "Support the bot for future updates 💎"
             )
-            logger.info(f"User {user.id} reached daily limit")
+            logger.info(f"User {telegram_id} reached daily limit")
             return
 
         user_filtered_jobs = await get_filtered_jobs_by_user(session, user.id)
@@ -63,7 +63,7 @@ async def send_vacancy_to_user(
 
         if not user_filtered_jobs:
             await bot.send_message(
-                user_id,
+                telegram_id,
                 "You have no filters set ⏳ Use /add first",
             )
             return
@@ -83,26 +83,27 @@ async def send_vacancy_to_user(
             user.vacancies_count += 1
             await session.commit()
             logger.info(
-                f"Sent job to user {user.id},"
+                f"Sent job '{job.title}' to user {telegram_id},"
                 f" updated count {user.vacancies_count}"
             )
 
             msg, keyboard = create_vacancy_message(job, score=ufj.score)
             await bot.send_message(
-                user_id, msg, reply_markup=keyboard, parse_mode="Markdown"
+                telegram_id, msg, reply_markup=keyboard, parse_mode="Markdown"
             )
-            logger.info(f"Sent vacancy '{job.title}' to user {user.id}")
             job_sent = True
             break
 
         if not job_sent:
-            logger.info(f"No new vacancies for user {user_id}")
+            logger.info(f"No new vacancies for user {telegram_id}")
             await bot.send_message(
-                user_id, "🫠 Dried up. Jobs gone. I am but dust"
+                telegram_id, "🫠 Dried up. Jobs gone. I am but dust"
             )
 
     except Exception as err:
-        logger.exception(f"Failed sending vacancy to user {user_id}: {err}")
+        logger.exception(
+            f"Failed sending vacancy to user {telegram_id}: {err}"
+        )
 
 
 @dp.callback_query(
@@ -113,8 +114,8 @@ async def process_callback(callback_query: types.CallbackQuery) -> None:
     logger.info("-" * 60)
 
     action, job_id = callback_query.data.split("|", 1)
-    user_id = str(callback_query.from_user.id)
-    logger.info(f"Callback from user {user_id}: {action}")
+    telegram_id = str(callback_query.from_user.id)
+    logger.info(f"Callback from user {telegram_id}: {action}")
 
     try:
         async with AsyncSessionLocal() as session:
@@ -131,7 +132,9 @@ async def process_callback(callback_query: types.CallbackQuery) -> None:
 
                 # Get or create the user
                 user = await get_or_create_user(
-                    session, int(user_id), callback_query.from_user.username
+                    session,
+                    int(telegram_id),
+                    callback_query.from_user.username,
                 )
 
                 # Get or create the user_job record
@@ -161,24 +164,24 @@ async def process_callback(callback_query: types.CallbackQuery) -> None:
                 raise
 
         if action == "applied":
-            user_request_count[user_id] = (
-                user_request_count.get(user_id, 0) + 1
+            user_request_count[telegram_id] = (
+                user_request_count.get(telegram_id, 0) + 1
             )
-            if user_request_count[user_id] % 3 == 0:
+            if user_request_count[telegram_id] % 3 == 0:
                 meme_url = random.choice(MEME_GIFS)
                 await callback_query.message.answer_animation(meme_url)
-                logger.info(f"Sent meme to user {user_id}")
+                logger.info(f"Sent meme to user {telegram_id}")
 
         # Send next vacancy safely
         try:
             async with AsyncSessionLocal() as session2:
-                await send_vacancy_to_user(user_id, session2)
+                await send_vacancy_to_user(telegram_id, session2)
         except Exception as err:
             logger.exception(
-                f"Failed sending next vacancy to user {user_id}: {err}"
+                f"Failed sending next vacancy to user {telegram_id}: {err}"
             )
 
     except Exception as err:
         logger.exception(
-            f"Error processing callback for user {user_id}: {err}"
+            f"Error processing callback for user {telegram_id}: {err}"
         )
