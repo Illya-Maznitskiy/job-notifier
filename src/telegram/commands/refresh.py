@@ -47,7 +47,7 @@ async def refresh_jobs(message: types.Message) -> None:
                 session, telegram_id, message.from_user.username
             )
             logger.info(
-                f"User {user.id} refresh count: "
+                f"User {telegram_id} refresh count: "
                 f"{user.refresh_count}/{MAX_REFRESH_PER_DAY}"
             )
 
@@ -56,7 +56,9 @@ async def refresh_jobs(message: types.Message) -> None:
                 user.refresh_count = 0
                 user.vacancies_count = 0
                 user.last_reset_date = today
-                logger.info(f"User {user.id} daily counters reset for {today}")
+                logger.info(
+                    f"User {telegram_id} daily counters reset for {today}"
+                )
 
             if user.refresh_count >= MAX_REFRESH_PER_DAY:
                 await message.answer(
@@ -102,7 +104,9 @@ async def refresh_jobs(message: types.Message) -> None:
 
             # Filter jobs for the user (returns list of tuples: (job, score))
             logger.info("Starting job filtering")
-            filtered_jobs = await filter_jobs_for_user(session, user.id, jobs)
+            filtered_jobs = await filter_jobs_for_user(
+                session, user.id, telegram_id, jobs
+            )
             logger.info(f"Filtering done, found {len(filtered_jobs)} jobs")
             logger.info("Saving filtered vacancies to DB")
 
@@ -124,12 +128,14 @@ async def refresh_jobs(message: types.Message) -> None:
                     "Try more keywords, or report issues via /feedback!"
                 )
                 logger.info(
-                    f"No jobs found for user {user.id} with keywords "
+                    f"No jobs found for user {telegram_id} with keywords "
                     f"{[kw.keyword for kw in user.keywords]}"
                 )
 
-            logger.info(f"Found {len(filtered_jobs)} jobs for user {user.id}")
+            logger.info(
+                f"Found {len(filtered_jobs)} jobs for user {telegram_id}"
+            )
 
     except Exception as e:
         logger.error(f"Error refreshing jobs for user {telegram_id}: {e}")
-        await message.answer("⚠️ Failed to refresh jobs. Try again later.")
+        await message.answer("⚠️ Failed refreshing jobs. Try again later 🫠")

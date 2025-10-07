@@ -38,7 +38,7 @@ def score_job(job: Job, keyword_weights: dict[str, int]) -> int:
 
 
 async def filter_jobs_for_user(
-    session: AsyncSession, user_id: int, jobs: List[Job]
+    session: AsyncSession, user_id: int, telegram_id: int, jobs: List[Job]
 ) -> List[Tuple[Job, int]]:
     """Filter jobs for a user and compute scores."""
     try:
@@ -72,11 +72,13 @@ async def filter_jobs_for_user(
         scored_jobs.sort(key=lambda x: x[1], reverse=True)
         scored_jobs = scored_jobs[:MAX_FILTERED_JOBS]
 
-        logger.info(f"Fetched keywords for user {user_id}: {keyword_weights}")
-        logger.info(f"Found {len(scored_jobs)} jobs for user {user_id}")
+        logger.info(
+            f"Fetched keywords for user {telegram_id}: {keyword_weights}"
+        )
+        logger.info(f"Found {len(scored_jobs)} jobs for user {telegram_id}")
         return scored_jobs
     except Exception as e:
-        logger.warning(f"Failed to filter jobs for user {user_id}: {e}")
+        logger.warning(f"Failed to filter jobs for user {telegram_id}: {e}")
         return []
 
 
