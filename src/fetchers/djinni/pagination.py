@@ -12,7 +12,7 @@ def build_paginated_url(base_url: str, page_number: int):
         query["page"] = [str(page_number)]
         url_parts[4] = urlencode(query, doseq=True)
         final_url = urlunparse(url_parts)
-        logger.info(f"Built URL for page {page_number}: {final_url}")
+        logger.debug(f"Built URL for page {page_number}: {final_url}")
         return final_url
     except TypeError as e:
         logger.error(f"Error building URL for page {page_number}: {e}")

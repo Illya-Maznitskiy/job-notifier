@@ -87,7 +87,7 @@ async def fetch_jobs() -> List[Dict]:
 
             while True:
                 paginated_url = build_paginated_url(DJINNI_URL, page_num)
-                logger.info(f"Fetching page {page_num}: {paginated_url}")
+                logger.debug(f"Fetching page {page_num}: {paginated_url}")
                 await page.goto(paginated_url)
 
                 try:
