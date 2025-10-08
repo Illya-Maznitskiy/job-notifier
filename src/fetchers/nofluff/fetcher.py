@@ -44,7 +44,7 @@ async def fetch_nofluff_jobs(url: str) -> list[dict]:
             ua = get_random_user_agent()
             logger.info(f"User-agent: {ua}")
             page = await browser.new_page(
-                viewport=ViewportSize(width=600, height=400)
+                viewport=ViewportSize(width=1000, height=700)
             )
             await page.route("**/*", block_resources)
             await page.goto(url)
