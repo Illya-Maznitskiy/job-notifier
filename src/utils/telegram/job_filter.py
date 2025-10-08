@@ -59,7 +59,9 @@ async def filter_jobs_for_user(
                 if k_clean:
                     keyword_weights[k_clean] = kw.weight
                     logger.info(
-                        f"Added keyword '{k_clean}' with weight {kw.weight}"
+                        f"Filtering keyword '{k_clean}' "
+                        f"with weight {kw.weight} "
+                        f"for user {telegram_id}"
                     )
 
         now = datetime.now(timezone.utc)
