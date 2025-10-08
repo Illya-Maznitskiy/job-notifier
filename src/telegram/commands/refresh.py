@@ -3,6 +3,7 @@ from datetime import date
 from aiogram import types
 from sqlalchemy import select, delete
 
+from src.db.crud.user_keyword import get_user_all_keywords
 from src.db.db import AsyncSessionLocal
 from src.db.models.job import Job
 from src.db.models.user_filtered_job import UserFilteredJob
@@ -68,6 +69,16 @@ async def refresh_jobs(message: types.Message) -> None:
                 await message.answer("Support the bot for future upgrades ⚡")
                 return
 
+            if not await get_user_all_keywords(session, user.id):
+                await message.answer(
+                    "You have no keywords set 😬\nUse /add to add some 😇"
+                )
+                logger.info(
+                    f"No keywords for user {telegram_id}, "
+                    f"skipping job filtering"
+                )
+                return
+
             user.refresh_count += 1
             await session.commit()
 
@@ -127,6 +138,11 @@ async def refresh_jobs(message: types.Message) -> None:
                     "No jobs found for your keywords 🥲\n"
                     "Try more keywords, or report issues via /feedback!"
                 )
+                reply = "🗝️ Your keywords:\n\n"
+                for kw in user.keywords:
+                    reply += f"• {kw.keyword} ({kw.weight})\n"
+                await message.answer(reply)
+
                 logger.info(
                     f"No jobs found for user {telegram_id} with keywords "
                     f"{[kw.keyword for kw in user.keywords]}"

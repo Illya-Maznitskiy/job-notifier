@@ -47,6 +47,11 @@ async def filter_jobs_for_user(
         keyword_weights: dict[str, int] = {
             kw.keyword.lower(): kw.weight for kw in keywords_list
         }
+        if not keyword_weights:
+            logger.info(
+                f"No keywords for user {telegram_id}, skipping job filtering"
+            )
+            return []
 
         for kw in keywords_list:
             for k in re.split(r"[, ]+", kw.keyword):
