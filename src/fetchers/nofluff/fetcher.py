@@ -94,33 +94,44 @@ async def fetch_nofluff_jobs(url: str) -> list[dict]:
                     await page.evaluate(
                         "window.scrollTo(0, document.body.scrollHeight)"
                     )
-                    await load_more_button.scroll_into_view_if_needed()
-                    await page.evaluate(
-                        """
-                        Array.from(document.querySelectorAll('button'))
-                             .find(b => b.textContent.includes
-                             ('Pokaż kolejne oferty'))
-                             ?.click()
-                        """
-                    )
-                    await page.wait_for_timeout(3000)
-                    await page.wait_for_function(
-                        f"document.querySelectorAll"
-                        f"('a.posting-list-item').length > {count_before}",
-                        timeout=30_000,
-                    )
-                    count_after = await job_cards.count()
-                    logger.info(
-                        f"Loaded {count_after - count_before} "
-                        f"new jobs (total: {count_after})."
-                    )
+                    try:
 
-                    if (
-                        count_after == count_before
-                        or count_after >= NO_FLUFF_MAX_JOBS
-                    ):
+                        await load_more_button.scroll_into_view_if_needed(
+                            timeout=60_000
+                        )
+                        await page.evaluate(
+                            """
+                            Array.from(document.querySelectorAll('button'))
+                                 .find(b => b.textContent.includes
+                                 ('Pokaż kolejne oferty'))
+                                 ?.click()
+                            """
+                        )
+                        await page.wait_for_timeout(3000)
+                        await page.wait_for_function(
+                            f"document.querySelectorAll"
+                            f"('a.posting-list-item').length > {count_before}",
+                            timeout=30_000,
+                        )
+                        count_after = await job_cards.count()
+                        logger.info(
+                            f"Loaded {count_after - count_before} "
+                            f"new jobs (total: {count_after})."
+                        )
+
+                        if (
+                            count_after == count_before
+                            or count_after >= NO_FLUFF_MAX_JOBS
+                        ):
+                            break
+                    except Exception as err:
+                        logger.warning(
+                            f"Failed to scroll/click load-more button: {err}"
+                        )
                         break
+
                 else:
+                    logger.warning(f"Failed to scroll/click load-more button")
                     break
 
             total_count = min(await job_cards.count(), NO_FLUFF_MAX_JOBS)
