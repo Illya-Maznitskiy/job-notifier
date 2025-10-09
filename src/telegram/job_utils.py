@@ -131,7 +131,12 @@ async def get_or_create_user(
     user = await get_user_by_telegram_id(session, telegram_id)
     if user:
         return user
-
+    if not username:
+        username = telegram_id
+        logger.info(
+            f"User {telegram_id} doesn't have a username, "
+            f"setting it to his telegram id {telegram_id}"
+        )
     logger.info(
         f"Creating new user with id={telegram_id}, username={username}"
     )
