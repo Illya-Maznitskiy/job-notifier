@@ -131,7 +131,7 @@ async def fetch_nofluff_jobs(url: str) -> list[dict]:
                         break
 
                 else:
-                    logger.warning(f"Failed to scroll/click load-more button")
+                    logger.warning("Failed to scroll/click load-more button")
                     break
 
             total_count = min(await job_cards.count(), NO_FLUFF_MAX_JOBS)
