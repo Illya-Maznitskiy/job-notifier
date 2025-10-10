@@ -111,7 +111,7 @@ async def fetch_nofluff_jobs(url: str) -> list[dict]:
                         await page.wait_for_function(
                             f"document.querySelectorAll"
                             f"('a.posting-list-item').length > {count_before}",
-                            timeout=30_000,
+                            timeout=60_000,
                         )
                         count_after = await job_cards.count()
                         logger.info(
