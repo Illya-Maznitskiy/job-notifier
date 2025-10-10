@@ -6,16 +6,28 @@ from sqlalchemy import select
 from logs.logger import logger
 from src.db.db import AsyncSessionLocal
 from src.db.models import User
-from src.telegram.bot_config import bot, NOTIFICATION_MESSAGES
+from src.telegram.bot_config import (
+    bot,
+    NOTIFICATION_MESSAGES,
+    NOTIFICATION_MEDIA,
+)
 
 
 async def send_notification(user: User) -> None:
     """Helper function for sending notification."""
     try:
+        telegram_id = user.telegram_id
         msg = random.choice(NOTIFICATION_MESSAGES)
-        await bot.send_message(user.telegram_id, msg)
+        media = random.choice(NOTIFICATION_MEDIA)
+
+        await bot.send_animation(
+            chat_id=telegram_id,
+            animation=media,
+            caption=msg,
+        )
+
         user.last_notification_date = date.today()
-        logger.info(f"Notification sent to user {user.telegram_id}")
+        logger.info(f"Notification sent to user {telegram_id}")
     except Exception as e:
         logger.error(f"Failed sending notification: {e}")
 

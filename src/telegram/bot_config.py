@@ -77,6 +77,23 @@ NOTIFICATION_MESSAGES = [
     "Hey, check new jobs! Try /refresh 👀",
     "Latest jobs? Run /refresh 😎",
     "Don’t miss jobs! Use /refresh 🔥",
+    "Don’t snooze! Use /refresh 😴",
+    "Opportunities are waiting! /refresh ✨",
+    "Jobs incoming! /refresh 🚀",
+]
+NOTIFICATION_MEDIA = [
+    "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExZDlrOWdqMmpicnJ0cGpidTd4Mmd0MHBkbjlnZ3Y3OGluaW0xbmg4eCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/fUQ4rhUZJYiQsas6WD/giphy.gif",
+    "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExc3lvMWVqOTF5ZGxscXJsZm4zOWp5azdtNDZ3c3FvNWFzNzl5bm5oMiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/tHIRLHtNwxpjIFqPdV/giphy.gif",
+    "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExczl4MXk4dTJsdmhpMTJyNnRtbDkxcTE1dWgxbHA0b2QwZ3d5cDdzcyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/DYH297XiCS2Ck/giphy.gif",
+    "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExOGlrZnBjZ3NkZHR6NWpqZG40YmpobnFqcGJkODgwMWJqMjVjZmZ6NSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/l0GtHIM5EbawwbX1K/giphy.gif",
+    "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExaWJ1M2kxYzZpOTJ4dTAybXNtc2RiMXBsYzdmcmEwZzFtdDBybDRlNCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/QBd2kLB5qDmysEXre9/giphy.gif",
+    "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExbGV2aWd5ams2OHBxMndxOGE2ZzgwNm1nd2tidXA3NmwzMHlsZ3BrbyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/sthmCnCpfr8M8jtTQy/giphy.gif",
+    "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExa2Z4M3NwNnFoZ253c2dhZjBvanV5YWNvc2F2aHM2a2RobDM2OTEyNCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/QPQ3xlJhqR1BXl89RG/giphy.gif",
+    "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExZTl0aG9zcW85eW14cGRlbnpjamQ0ajBtMHZxZG43NmV3c2N0anNvbiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/GiWEowj3nQv9C/giphy.gif",
+    "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExZ2JqMHMyOTE1a3liZXl5NHR4emQwNmQ2ZHRrMnVrbTVvOTRnM2Z3biZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/jZAwc1FZ4TednLkWwu/giphy.gif",
+    "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExNXZjanB2Y211Z2w1bTYwcHY2aDNqN3l4ZWp4YjE0NjJpOGVjdTFrYSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/xT9IgG50Fb7Mi0prBC/giphy.gif",
+    "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExNWRiMXB4bjludng4NGt2Y2gxc3I0b3pweWMxdXRqYmVrYTYyanJ3YiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/IThjAlJnD9WNO/giphy.gif",
+    "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExbGE0cXhxeWk1c3J0YzI0bGp4eG1rczJlY24wd3FlaDRybWhkNTBjdCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/imI7Kn0Tbi80w/giphy.gif",
 ]
 
 # Max jobs per user per /refresh
