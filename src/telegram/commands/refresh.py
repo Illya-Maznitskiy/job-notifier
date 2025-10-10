@@ -118,22 +118,7 @@ async def refresh_jobs(message: types.Message) -> None:
             filtered_jobs = await filter_jobs_for_user(
                 session, user.id, telegram_id, jobs
             )
-            logger.info(f"Filtering done, found {len(filtered_jobs)} jobs")
-            logger.info("Saving filtered vacancies to DB")
-
-            # Save filtered jobs to DB using CRUD
-            entries = [
-                UserFilteredJob(user_id=user.id, job_id=job.id, score=score)
-                for job, score in filtered_jobs
-            ]
-            await create_user_filtered_jobs(session, entries)
-
-            if filtered_jobs:
-                await message.answer(
-                    f"✅ Found {len(filtered_jobs)} relevant jobs. Use "
-                    f"/vacancy to get your jobs"
-                )
-            else:
+            if not filtered_jobs:
                 await message.answer(
                     "No jobs found for your keywords 🥲\n"
                     "Try more keywords, or report issues via /feedback!"
@@ -148,6 +133,20 @@ async def refresh_jobs(message: types.Message) -> None:
                     f"{[kw.keyword for kw in user.keywords]}"
                 )
 
+            logger.info(f"Filtering done, found {len(filtered_jobs)} jobs")
+            logger.info("Saving filtered vacancies to DB")
+
+            # Save filtered jobs to DB using CRUD
+            entries = [
+                UserFilteredJob(user_id=user.id, job_id=job.id, score=score)
+                for job, score in filtered_jobs
+            ]
+            await create_user_filtered_jobs(session, entries)
+
+            await message.answer(
+                f"✅ Found {len(filtered_jobs)} relevant jobs. Use "
+                f"/vacancy to get your jobs"
+            )
             logger.info(
                 f"Found {len(filtered_jobs)} jobs for user {telegram_id}"
             )
