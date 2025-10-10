@@ -83,7 +83,3 @@ NOTIFICATION_MESSAGES = [
 MAX_FILTERED_JOBS = 1000
 
 user_request_count = defaultdict(int)
-
-# /start command anti-spam logic
-last_start = {}
-COOLDOWN = timedelta(seconds=30)
