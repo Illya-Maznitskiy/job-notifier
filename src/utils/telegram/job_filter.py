@@ -78,7 +78,11 @@ async def filter_jobs_for_user(
         # sort by score descending
         scored_jobs.sort(key=lambda x: x[1], reverse=True)
         scored_jobs = scored_jobs[:MAX_FILTERED_JOBS]
-
+        if not scored_jobs:
+            logger.info(
+                f"No jobs for user {telegram_id}, skipping job filtering"
+            )
+            return []
         logger.info(
             f"Fetched keywords for user {telegram_id}: {keyword_weights}"
         )
