@@ -9,7 +9,7 @@ from src.telegram.jobs import send_vacancy_to_user
 from src.telegram.bot_config import (
     dp,
     bot,
-    READY_GIF_URLS,
+    READY_VACANCY_GIFS,
 )
 
 
@@ -40,7 +40,7 @@ async def send_next_vacancy(message: types.Message) -> None:
 
     try:
         async with AsyncSessionLocal() as session:
-            gif_url = random.choice(READY_GIF_URLS)
+            gif_url = random.choice(READY_VACANCY_GIFS)
             await bot.send_animation(
                 chat_id=message.chat.id,
                 animation=gif_url,

@@ -9,7 +9,7 @@ from src.db.models import User
 from src.telegram.bot_config import (
     bot,
     NOTIFICATION_MESSAGES,
-    NOTIFICATION_MEDIA,
+    NOTIFICATION_GIFS,
 )
 
 
@@ -18,7 +18,7 @@ async def send_notification(user: User) -> None:
     try:
         telegram_id = user.telegram_id
         msg = random.choice(NOTIFICATION_MESSAGES)
-        media = random.choice(NOTIFICATION_MEDIA)
+        media = random.choice(NOTIFICATION_GIFS)
 
         await bot.send_animation(
             chat_id=telegram_id,

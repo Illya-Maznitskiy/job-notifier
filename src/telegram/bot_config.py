@@ -1,6 +1,5 @@
 import os
 from collections import defaultdict
-from datetime import timedelta
 
 from dotenv import load_dotenv
 from aiogram import Bot, Dispatcher
@@ -22,7 +21,7 @@ dp = Dispatcher()
 
 # No PEP8 warnings about line length
 # flake8: noqa
-MEME_GIFS = [
+APPLIED_GIFS = [
     "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExa293a3lpNjA0cTJkemE0ZGlienhzZTdjbXltbTh2YXk1aG53a2ptcyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/gidMR0Kv3ljSivshKJ/giphy.gif",
     "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExd24xYWd2dmJvd2FtbXpxNnJ2dTBhbXE5ajFmamp3NmwxOXl5NTk1dCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/bNpLfNOskgvGIfKIZN/giphy.gif",
     "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcHliYnd2cmM2NHM5MHdobzNhMWd0cTluZmgzZjJxb21yMDBxanhjMCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/lEADCfIrDg5fMyb3ca/giphy.gif",
@@ -38,7 +37,7 @@ MEME_GIFS = [
     "https://media1.tenor.com/m/KshIPrRS1aAAAAAd/cat-orange-cat.gif",
     "https://i.pinimg.com/originals/86/64/11/866411be17e4b33411a40cde77d57afa.gif",
 ]
-READY_GIF_URLS = [
+READY_VACANCY_GIFS = [
     "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExanZqMnl1NWNwdHlmcGg0cHZzbGtiZHJlNHpsYmtueHB6amJieTQ2bCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/xT39Db8zIOODTppk08/giphy.gif",
     "https://media1.tenor.com/m/RIxhUuakMdEAAAAd/ready-are-you-ready.gif",
     "https://media1.tenor.com/m/zgHjtVU_rocAAAAd/ac-dc-brian-johnson.gif",
@@ -81,7 +80,7 @@ NOTIFICATION_MESSAGES = [
     "Opportunities are waiting! /refresh ✨",
     "Jobs incoming! /refresh 🚀",
 ]
-NOTIFICATION_MEDIA = [
+NOTIFICATION_GIFS = [
     "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExZDlrOWdqMmpicnJ0cGpidTd4Mmd0MHBkbjlnZ3Y3OGluaW0xbmg4eCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/fUQ4rhUZJYiQsas6WD/giphy.gif",
     "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExc3lvMWVqOTF5ZGxscXJsZm4zOWp5azdtNDZ3c3FvNWFzNzl5bm5oMiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/tHIRLHtNwxpjIFqPdV/giphy.gif",
     "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExczl4MXk4dTJsdmhpMTJyNnRtbDkxcTE1dWgxbHA0b2QwZ3d5cDdzcyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/DYH297XiCS2Ck/giphy.gif",

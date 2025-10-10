@@ -18,7 +18,7 @@ from .bot_config import (
     bot,
     dp,
     user_request_count,
-    MEME_GIFS,
+    APPLIED_GIFS,
 )
 from logs.logger import logger
 from src.telegram.job_utils import (
@@ -169,7 +169,7 @@ async def process_callback(callback_query: types.CallbackQuery) -> None:
                 user_request_count.get(telegram_id, 0) + 1
             )
             if user_request_count[telegram_id] % 3 == 0:
-                meme_url = random.choice(MEME_GIFS)
+                meme_url = random.choice(APPLIED_GIFS)
                 await callback_query.message.answer_animation(meme_url)
                 logger.info(f"Sent meme to user {telegram_id}")
 
