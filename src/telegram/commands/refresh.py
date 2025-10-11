@@ -47,6 +47,8 @@ async def refresh_jobs(message: types.Message) -> None:
             user = await get_or_create_user(
                 session, telegram_id, message.from_user.username
             )
+            # add here user_id and reuse the var instead of user.id everywhere
+
             logger.info(
                 f"User {telegram_id} refresh count: "
                 f"{user.refresh_count}/{MAX_REFRESH_PER_DAY}"
@@ -80,7 +82,6 @@ async def refresh_jobs(message: types.Message) -> None:
                 return
 
             user.refresh_count += 1
-            await session.commit()
 
             await message.answer("⏳ Filtering jobs, please wait…")
 
@@ -89,14 +90,6 @@ async def refresh_jobs(message: types.Message) -> None:
                 select(UserRegion.region).where(UserRegion.user_id == user.id)
             )
             region = result.scalar()  # None if not set
-
-            # Delete old filtered jobs for this user
-            await session.execute(
-                delete(UserFilteredJob).where(
-                    UserFilteredJob.user_id == user.id
-                )
-            )
-            await session.commit()
 
             # Fetch all jobs
             all_jobs = await session.execute(select(Job))
@@ -114,29 +107,42 @@ async def refresh_jobs(message: types.Message) -> None:
                 ]
 
             # Filter jobs for the user (returns list of tuples: (job, score))
-            logger.info("Starting job filtering")
+            logger.info(f"Starting job filtering for user {telegram_id}")
             filtered_jobs = await filter_jobs_for_user(
                 session, user.id, telegram_id, jobs
             )
             if not filtered_jobs:
-                await message.answer(
-                    "No jobs found for your keywords 🥲\n"
-                    "Try more keywords, or report issues via /feedback!"
-                )
-                reply = "🗝️ Your keywords:\n\n"
-                for kw in user.keywords:
-                    reply += f"• {kw.keyword} ({kw.weight})\n"
+                logger.info(f"Sending no jobs message to user {telegram_id}")
+                keywords = await get_user_all_keywords(session, user.id)
+                reply = "No jobs found for your keywords 🥲"
+                for kw in keywords:
+                    reply += f"\n• {kw.keyword} ({kw.weight})"
                 await message.answer(reply)
+
+                await message.answer(
+                    "Try other keywords /add, "
+                    "or report issues via /feedback 🐞"
+                )
 
                 logger.info(
                     f"No jobs found for user {telegram_id} with keywords "
-                    f"{[kw.keyword for kw in user.keywords]}"
+                    f"{[kw.keyword for kw in keywords]}"
                 )
+                return
 
             logger.info(f"Filtering done, found {len(filtered_jobs)} jobs")
-            logger.info("Saving filtered vacancies to DB")
 
-            # Save filtered jobs to DB using CRUD
+            # Delete old filtered jobs for this user
+            logger.info(f"Deleting old filtered jobs for user {telegram_id}")
+            await session.execute(
+                delete(UserFilteredJob).where(
+                    UserFilteredJob.user_id == user.id
+                )
+            )
+            await session.commit()
+
+            # Save new filtered jobs to DB using CRUD
+            logger.info("Saving new filtered vacancies to DB")
             entries = [
                 UserFilteredJob(user_id=user.id, job_id=job.id, score=score)
                 for job, score in filtered_jobs
