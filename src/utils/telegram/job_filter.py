@@ -63,10 +63,12 @@ async def filter_jobs_for_user(
                         f"with weight {kw.weight} "
                         f"for user {telegram_id}"
                     )
-
-        now = datetime.now(timezone.utc)
+        logger.info(
+            f"Fetched keywords for user {telegram_id}: {keyword_weights}"
+        )
 
         scored_jobs: List[Tuple[Job, int]] = []
+        now = datetime.now(timezone.utc)
         for job in jobs:
             if job.archived_at and job.archived_at <= now:
                 continue
@@ -83,9 +85,6 @@ async def filter_jobs_for_user(
                 f"No jobs for user {telegram_id}, skipping job filtering"
             )
             return []
-        logger.info(
-            f"Fetched keywords for user {telegram_id}: {keyword_weights}"
-        )
         logger.info(f"Found {len(scored_jobs)} jobs for user {telegram_id}")
         return scored_jobs
     except Exception as e:
