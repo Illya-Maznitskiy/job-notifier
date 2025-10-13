@@ -1,5 +1,5 @@
 import random
-from datetime import timedelta, date
+from datetime import date
 
 from sqlalchemy import select
 
@@ -32,9 +32,9 @@ async def send_notification(user: User) -> None:
         logger.error(f"Failed sending notification: {e}")
 
 
-async def notify_inactive_users(days: int = 3) -> None:
-    """Notify without notification and inactive users for 'days' days."""
-    cutoff: date = date.today() - timedelta(days=days)
+async def notify_inactive_users() -> None:
+    """Notify without notification and inactive users for period of days."""
+    today = date.today()
 
     try:
         async with AsyncSessionLocal() as session:
@@ -42,12 +42,21 @@ async def notify_inactive_users(days: int = 3) -> None:
             users = result.scalars().all()
 
             for user in users:
+                days_inactive = (today - user.last_reset_date).days
+
                 if not user.last_notification_date:
                     await send_notification(user)
 
                 elif user.last_notification_date < date.today():
-                    # check if user was active last days
-                    if user.last_reset_date > cutoff:
+                    # check if user was active at least last days
+                    if days_inactive < 3:
+                        await send_notification(user)
+
+                    # one time notification for other inactive users
+                    elif days_inactive == 7:
+                        await send_notification(user)
+
+                    elif days_inactive == 30:
                         await send_notification(user)
 
             await session.commit()
