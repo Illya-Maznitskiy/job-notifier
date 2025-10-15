@@ -114,6 +114,15 @@ async def fetch_robota_ua_jobs() -> List[dict]:
             await page.goto(ROBOTA_UA_URL, timeout=60000)
 
             while len(all_jobs) < ROBOTA_UA_MAX_JOBS:
+
+                # debugging part ↓↓↓
+                await asyncio.sleep(3)
+                html_content = await page.content()
+                logger.info(
+                    f"Fetching robota.ua page HTML:\n{html_content[:1000]}"
+                )
+                # debugging part ↑↑↑
+
                 await auto_scroll(page)
                 await page.wait_for_selector("a.card", timeout=60000)
 
