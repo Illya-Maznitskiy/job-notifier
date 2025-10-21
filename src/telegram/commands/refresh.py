@@ -59,6 +59,7 @@ async def refresh_jobs(message: types.Message) -> None:
                 user.refresh_count = 0
                 user.vacancies_count = 0
                 user.last_reset_date = today
+                await session.commit()
                 logger.info(
                     f"User {telegram_id} daily counters reset for {today}"
                 )
