@@ -35,7 +35,9 @@ async def auto_scroll(
         previous_scroll = current_scroll
         next_scroll = min(current_scroll + scroll_step, max_scroll)
         await page.evaluate(f"window.scrollTo(0, {next_scroll})")
-        await asyncio.sleep(1)  # wait for content to load
+
+        # Anti-block delay
+        await random_wait(0.5, 10.0)
 
         scroll_count += 1
 
@@ -170,7 +172,7 @@ async def fetch_robota_ua_jobs() -> List[dict]:
                     )
 
                     # Anti-block delay
-                    await random_wait(0.5, 5.0)
+                    await random_wait(0.5, 10.0)
 
                 # Job limit
                 if len(all_jobs) >= ROBOTA_UA_MAX_JOBS:
