@@ -152,11 +152,11 @@ async def fetch_robota_ua_jobs() -> List[dict]:
                         continue
 
                     # Check for remote work tag
-                    tags = [
-                        (await tag.inner_text()).strip().lower()
-                        for tag in await item.query_selector_all("div, span")
-                    ]
-                    is_remote = any("віддалена" in tag for tag in tags)
+                    all_text = await item.inner_text()
+                    is_remote = (
+                        "remote work" in all_text.lower()
+                        or "віддалена" in all_text.lower()
+                    )
 
                     if not is_remote:
                         logger.info(
