@@ -30,7 +30,7 @@ async def paginate_jobs(page: Page, max_jobs: int) -> List[Dict[str, str]]:
         )
 
         # Anti-block delay
-        await random_wait(0.5, 5.0)
+        await random_wait(0.5, 10.0)
 
         next_button = page.locator(
             "button[data-test='bottom-pagination-button-next']"

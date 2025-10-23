@@ -176,6 +176,11 @@ async def fetch_pracuj_jobs(url: str) -> List[Dict[str, str]]:
         await block_pracuj_resources(page)
         await page.goto(url)
         await page.wait_for_timeout(3000)
+        # debugging part ↓↓↓
+        await asyncio.sleep(3)
+        html_content = await page.content()
+        logger.info(f"Fetching pracuj page HTML:\n{html_content[:1000]}")
+        # debugging part ↑↑↑
         await accept_cookies_if_present(page)
 
         all_jobs = await paginate_jobs(page, PRACUJ_MAX_JOBS)
