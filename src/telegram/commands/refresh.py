@@ -47,6 +47,15 @@ async def refresh_jobs(message: types.Message) -> None:
             user = await get_or_create_user(
                 session, telegram_id, message.from_user.username
             )
+            if not user:
+                logger.error(
+                    f"User {telegram_id} not created or fetched. "
+                    f"Aborting refresh."
+                )
+                await message.answer(
+                    "Couldn’t load your profile. Try again later 🫠"
+                )
+                return
             user_id = user.id
 
             logger.info(
@@ -160,4 +169,4 @@ async def refresh_jobs(message: types.Message) -> None:
 
     except Exception as e:
         logger.error(f"Error refreshing jobs for user {telegram_id}: {e}")
-        await message.answer("⚠️ Failed refreshing jobs. Try again later 🫠")
+        await message.answer("Failed refreshing jobs. Try again later 🫠")
