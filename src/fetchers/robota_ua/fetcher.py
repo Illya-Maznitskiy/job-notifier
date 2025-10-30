@@ -182,6 +182,15 @@ async def fetch_robota_ua_jobs() -> List[dict]:
                     )
                     break
 
+                # Remove blocking iframe
+                await page.evaluate(
+                    """() => {
+                        document.querySelectorAll
+                        ('.popOutiframe, #zsitc_frame')
+                            .forEach(el => el.remove());
+                    }"""
+                )
+
                 if not await click_next_page(page):
                     logger.info("No more pages to fetch.")
                     break
