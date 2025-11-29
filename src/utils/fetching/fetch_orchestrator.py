@@ -12,12 +12,13 @@ from src.fetchers.dou.dou import run_fetch_and_save_jobs as fetch_dou
 from src.fetchers.bulldog.bulldog import (
     run_fetch_and_save_jobs as fetch_bulldog,
 )
-from src.fetchers.robota_ua.robota_ua import (
-    run_fetch_and_save_jobs as fetch_robota_ua,
-)
+# from src.fetchers.robota_ua.robota_ua import (
+#     run_fetch_and_save_jobs as fetch_robota_ua,
+# )
 from src.fetchers.jooble.jooble import run_fetch_and_save_jobs as fetch_jooble
 from logs.logger import logger
 from src.utils.resources_logging import log_resources
+
 
 FETCHERS = {
     "justjoin": fetch_justjoin,
@@ -26,7 +27,8 @@ FETCHERS = {
     "pracuj": fetch_pracuj,
     "dou": fetch_dou,
     "bulldog": fetch_bulldog,
-    "robota_ua": fetch_robota_ua,
+    # stop for now because of the blocking issue
+    # "robota_ua": fetch_robota_ua,
     "jooble": fetch_jooble,
 }
 
