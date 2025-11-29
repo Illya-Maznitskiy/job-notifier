@@ -1,14 +1,16 @@
 """
 Project coding rules:
 - Use type hints and short docstrings (max 12 words)
-- Minimal logging/comments, only for non-obvious logic
+- Minimal logging/comments, for non-obvious logic, and marking some sections
 - Handle errors and resources properly
 - Stick to concise, essential code changes only
 """
 
 import os
-import uvicorn
 import asyncio
+
+import uvicorn
+
 from src.api.fastapi_app import app
 
 

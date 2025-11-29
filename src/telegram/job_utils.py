@@ -2,15 +2,14 @@ import re
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from src.db.crud.user import get_user_by_telegram_id, create_user
 from src.db.crud.user_keyword import upsert_user_keyword
 from src.db.models.user import User
 from src.db.models.job import Job
-from logs.logger import logger
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-
 from src.telegram.bot_config import bot, ADMIN_ID
+from logs.logger import logger
 
 
 def get_keyboard(job: Job) -> InlineKeyboardMarkup:
